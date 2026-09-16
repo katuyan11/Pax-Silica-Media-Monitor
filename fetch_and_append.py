@@ -19,7 +19,19 @@ creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
 gc = gspread.authorize(creds)
 sheet = gc.open_by_key(SHEET_ID).sheet1
 
-NEWS_API_URL = "https://newsapi.org/v2/everything"
+NEWS_API_URL = "https://newsapi.org/v2/top-headlines"  # changed from /v2/everything
+
+def fetch_news(topics, page_size=20):
+    all_articles = []
+
+    for topic in topics:
+        params = {
+            "q": f'"{topic}"',
+            "country": "ph",       # restricts to PH-tagged sources
+            "language": "en",       # note: language + country together can be redundant/conflicting on some plans, safe to drop this if it errors
+            "pageSize": page_size,
+            "apiKey": NEWS_API_KEY,
+        }
 
 default_topics = [
     "Pax Silica", "Pax Silica Summit", "Pax Silica Declaration", "Jacob Helberg",
