@@ -75,13 +75,17 @@ default_topics = [
 
     # Government / policy
     "BCDA",
+    "DICT Pax Silica",
     "Economic Security Zone",
-    "Henry Aguda",
+    "AI data center Philippines",
 
     # Civil society & environment
-    "Kalikasan",
+    "Makabayan bloc Pax Silica",
+    "IBON Foundation Pax Silica",
     "Aeta ancestral domain",
-    "hyperscaler moratorium",
+    "desalination data center",
+    "water table depletion Luzon",
+    "kain suka",
 ]
 
 
@@ -132,7 +136,7 @@ THEME_KEYWORDS = {
         "opposition",
         "moratorium",
         "activist",
-        "criticiz"
+        "criticize"
     ],
 
     "Government / Policy": [
@@ -151,7 +155,7 @@ THEME_KEYWORDS = {
     "Geopolitics / Security": [
         "coercive dependencies",
         "supply chain security",
-        "geopolit",
+        "geopolitics",
         "national security",
         "strategic"
     ],
