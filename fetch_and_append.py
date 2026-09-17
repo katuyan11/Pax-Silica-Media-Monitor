@@ -1,4 +1,3 @@
-```python
 import os
 import json
 import requests
@@ -411,4 +410,3 @@ if __name__ == "__main__":
     # Append only new articles
     # -----------------------------------------------------
     append_new_articles_to_sheet(df)
-```
