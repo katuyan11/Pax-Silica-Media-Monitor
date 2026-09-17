@@ -21,7 +21,7 @@ jobs:
 
       - name: Run fetch script
         env:
-          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          WORLD_NEWS_API_KEY: ${{ secrets.WORLD_NEWS_API_KEY }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: python fetch_and_append.py
