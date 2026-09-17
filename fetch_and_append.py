@@ -9,7 +9,8 @@ from datetime import datetime, timedelta
 # ---------------------------------------------------------
 # CREDENTIALS (from GitHub Actions Secrets, not a local file)
 # ---------------------------------------------------------
-WORLD_NEWS_API_KEY = os.environ["WORLD_NEWS_API_KEY"]
+WORLD_NEWS_API_KEY = os.environ["WORLD_NEWS_API_KEY"].strip()
+print(f"DEBUG: key length = {len(WORLD_NEWS_API_KEY)}, first 4 chars = {WORLD_NEWS_API_KEY[:4]}, last 4 chars = {WORLD_NEWS_API_KEY[-4:]}")
 GOOGLE_SERVICE_ACCOUNT_JSON = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]  # full JSON as a string
 SHEET_ID = os.environ["GOOGLE_SHEET_ID"]
 
