@@ -84,9 +84,13 @@ def classify_stance(text: str) -> str:
         return "Critical"
     return "Neutral"
 
-def fetch_news(topics, days_back=2, page_size=20):
-    """Uses World News API's search-news endpoint, filtered to PH sources.
-    days_back kept short since this runs daily — we only need what's new since yesterday."""
+def fetch_news(topics, days_back=20, page_size=20):
+    """Fetch news from World News API's search-news endpoint,
+    filtered to Philippine sources.
+
+    days_back is kept short because this runs daily and only
+    needs to capture recent articles.
+    """
     from_date = (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d")
     all_articles = []
 
