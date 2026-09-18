@@ -48,18 +48,41 @@ sheet = gc.open_by_key(SHEET_ID).sheet1
 
 
 # ---------------------------------------------------------
-# API / RSS SOURCES
+# WORLD NEWS API
 # ---------------------------------------------------------
 WORLD_NEWS_URL = "https://api.worldnewsapi.com/search-news"
 
-GMA_RSS_URL = "https://data.gmanews.tv/gno/rss/news/feed.xml"
+
+# ---------------------------------------------------------
+# RSS SOURCES
+# ---------------------------------------------------------
+RSS_SOURCES = {
+    "GMA News": "https://data.gmanews.tv/gno/rss/news/feed.xml",
+    "Philippine Daily Inquirer": "https://www.inquirer.net/fullfeed",
+    "Manila Bulletin": "https://mb.com.ph/rss/articles",
+    "Philippine Star": "https://www.philstar.com/rss/headlines",
+    "Rappler": "https://www.rappler.com/feed/",
+}
+
+RSS_KEYWORDS = [
+    "pax silica",
+    "new clark city",
+    "clark freeport",
+    "tarlac ai",
+    "bcda",
+    "economic security zone",
+    "henry aguda",
+    "hyperscaler",
+    "aeta ancestral domain",
+    "kalikasan",
+]
 
 
 # ---------------------------------------------------------
-# SEARCH TOPICS
+# SEARCH TOPICS (World News API)
 # ---------------------------------------------------------
-# Trimmed to 12 topics to fit the free tier's 50 points/day
-# budget while keeping thematic variety.
+# Trimmed to fit the free tier's 50 points/day budget
+# while keeping thematic variety.
 
 default_topics = [
 
@@ -240,6 +263,15 @@ def classify_stance(text: str) -> str:
 
 
 # ---------------------------------------------------------
+# RELEVANCE FILTER
+# ---------------------------------------------------------
+def is_relevant(row) -> bool:
+    """Keep only articles that actually mention Pax Silica by name."""
+    combined = f"{row['title']} {row['description']}".lower()
+    return "pax silica" in combined
+
+
+# ---------------------------------------------------------
 # WORLD NEWS API
 # ---------------------------------------------------------
 def fetch_news(
@@ -249,9 +281,6 @@ def fetch_news(
 ):
     """Fetch news from World News API's search-news endpoint,
     filtered to Philippine sources.
-
-    days_back is kept short because this runs daily and only
-    needs to capture recent articles.
     """
 
     print("Starting World News API fetch...")
@@ -362,103 +391,53 @@ def fetch_news(
 
 
 # ---------------------------------------------------------
-# GMA RSS
+# RSS FEEDS (multi-source)
 # ---------------------------------------------------------
-def fetch_rss_news(days_back=20):
-    """Fetch recent GMA News articles matching
-    Pax Silica-related keywords.
-
-    GMA's RSS feed is a general news feed, so keyword
-    filtering is used to identify potentially relevant
-    articles.
+def fetch_rss_feed(
+    source_name: str,
+    feed_url: str,
+    days_back: int = 20
+) -> pd.DataFrame:
+    """Fetch and keyword-filter a single RSS feed for
+    Pax Silica-related coverage.
     """
 
-    print("Starting GMA RSS fetch...")
+    print(f"Starting {source_name} RSS fetch...")
 
-    rss_keywords = [
-
-        "pax silica",
-
-        "new clark city",
-
-        "clark freeport",
-
-        "tarlac ai",
-
-        "bcda",
-
-        "economic security zone",
-
-        "henry aguda",
-
-        "hyperscaler",
-
-        "aeta ancestral domain",
-
-        "kalikasan",
-    ]
-
-    cutoff_date = (
-        datetime.now()
-        - timedelta(days=days_back)
-    )
+    cutoff_date = datetime.now() - timedelta(days=days_back)
 
     all_articles = []
 
     try:
 
-        feed = feedparser.parse(
-            GMA_RSS_URL
-        )
+        feed = feedparser.parse(feed_url)
 
         print(
-            f"GMA RSS: found "
+            f"{source_name} RSS: found "
             f"{len(feed.entries)} feed entries."
         )
 
         for entry in feed.entries:
 
-            title = entry.get(
-                "title"
-            ) or ""
+            title = entry.get("title") or ""
+            description = entry.get("summary") or ""
+            url = entry.get("link")
 
-            description = entry.get(
-                "summary"
-            ) or ""
-
-            url = entry.get(
-                "link"
-            )
-
-            # ---------------------------------------------
-            # Search title + RSS description
-            # ---------------------------------------------
-            full_text = (
-                f"{title} {description}"
-            ).lower()
+            full_text = f"{title} {description}".lower()
 
             matched_keywords = [
                 keyword
-                for keyword in rss_keywords
+                for keyword in RSS_KEYWORDS
                 if keyword in full_text
             ]
 
-            # Skip unrelated GMA articles
             if not matched_keywords:
                 continue
 
-            # ---------------------------------------------
-            # Publication date
-            # ---------------------------------------------
-            published_at = entry.get(
-                "published"
-            )
-
+            published_at = entry.get("published")
             published_datetime = None
 
-            if entry.get(
-                "published_parsed"
-            ):
+            if entry.get("published_parsed"):
 
                 try:
 
@@ -470,40 +449,24 @@ def fetch_rss_news(days_back=20):
 
                     published_datetime = None
 
-            # ---------------------------------------------
-            # Lookback filter
-            # ---------------------------------------------
             if (
                 published_datetime
                 and published_datetime < cutoff_date
             ):
                 continue
 
-            # ---------------------------------------------
-            # Classification
-            # ---------------------------------------------
-            themes = classify_themes(
-                full_text
-            )
+            themes = classify_themes(full_text)
+            stance = classify_stance(full_text)
 
-            stance = classify_stance(
-                full_text
-            )
-
-            # ---------------------------------------------
-            # Add article
-            # ---------------------------------------------
             all_articles.append({
 
-                "topic": ", ".join(
-                    matched_keywords
-                ),
+                "topic": ", ".join(matched_keywords),
 
                 "title": title,
 
                 "description": description,
 
-                "source": "GMA News",
+                "source": source_name,
 
                 "url": url,
 
@@ -520,13 +483,25 @@ def fetch_rss_news(days_back=20):
 
     except Exception as e:
 
-        print(
-            f"GMA RSS request failed: {e}"
-        )
+        print(f"{source_name} RSS request failed: {e}")
 
-    return pd.DataFrame(
-        all_articles
+    print(
+        f"{source_name} RSS returned "
+        f"{len(all_articles)} relevant recent articles."
     )
+
+    return pd.DataFrame(all_articles)
+
+
+def fetch_all_rss_news(days_back: int = 20) -> pd.DataFrame:
+    """Fetch and combine all configured RSS sources."""
+
+    dfs = [
+        fetch_rss_feed(name, url, days_back)
+        for name, url in RSS_SOURCES.items()
+    ]
+
+    return pd.concat(dfs, ignore_index=True)
 
 
 # ---------------------------------------------------------
@@ -665,14 +640,14 @@ if __name__ == "__main__":
     )
 
     print(
-        "Fetching news from GMA RSS..."
+        "Fetching news from RSS feeds..."
     )
 
-    rss_df = fetch_rss_news()
+    rss_df = fetch_all_rss_news()
 
     print(
-        f"GMA RSS returned "
-        f"{len(rss_df)} relevant recent articles."
+        f"RSS feeds returned "
+        f"{len(rss_df)} relevant recent articles total."
     )
 
     # -----------------------------------------------------
@@ -688,7 +663,25 @@ if __name__ == "__main__":
 
     print(
         f"Total articles before "
-        f"deduplication: {len(df)}"
+        f"relevance filtering: {len(df)}"
+    )
+
+    # -----------------------------------------------------
+    # Keep only articles that actually mention Pax Silica
+    # -----------------------------------------------------
+    before_relevance_filter = len(df)
+
+    if not df.empty:
+        df = df[df.apply(is_relevant, axis=1)]
+
+    print(
+        f"Removed "
+        f"{before_relevance_filter - len(df)} "
+        f"articles not mentioning 'Pax Silica' by name."
+    )
+
+    print(
+        f"Total articles before deduplication: {len(df)}"
     )
 
     # -----------------------------------------------------
