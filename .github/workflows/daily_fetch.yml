@@ -2,8 +2,8 @@ name: Daily News Fetch
 
 on:
   schedule:
-    - cron: '0 22 * * *'  # runs 6:00 AM Manila time (UTC+8) daily
-  workflow_dispatch:  # lets you trigger it manually from GitHub's UI to test
+    - cron: '0 1 * * *'  # 1:00 AM UTC = 9:00 AM Manila time — safely after the UTC midnight quota reset
+  workflow_dispatch:
 
 jobs:
   fetch:
