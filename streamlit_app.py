@@ -73,23 +73,6 @@ df = load_data()
 if df.empty:
     st.info("No data yet. Check back after the next daily fetch runs.")
 else:
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Most Frequent Categories")
-        theme_series = df["themes"].str.split(", ").explode()
-        theme_counts = theme_series.value_counts().reset_index()
-        theme_counts.columns = ["theme", "count"]
-        fig_themes = px.bar(theme_counts, x="theme", y="count")
-        fig_themes.update_yaxes(dtick=1)
-        st.plotly_chart(fig_themes, use_container_width=True)
-
-    with col2:
-        st.subheader("Article Stance")
-        stance_counts = df["stance"].value_counts().reset_index()
-        stance_counts.columns = ["stance", "count"]
-        st.plotly_chart(px.pie(stance_counts, names="stance", values="count"), use_container_width=True)
-
     st.subheader("Theme × Stance Heatmap")
 
     theme_stance_df = df.copy()
@@ -125,8 +108,9 @@ else:
     top_terms = get_top_terms(combined_texts)
 
     terms_df = pd.DataFrame(top_terms, columns=["term", "count"])
-    fig_terms = px.bar(terms_df, x="term", y="count")
-    fig_terms.update_yaxes(dtick=1)
+    fig_terms = px.bar(terms_df, x="count", y="term", orientation="h")
+    fig_terms.update_xaxes(dtick=1)
+    fig_terms.update_yaxes(categoryorder="total ascending")
     st.plotly_chart(fig_terms, use_container_width=True)
 
     st.subheader("Articles")
