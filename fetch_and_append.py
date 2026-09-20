@@ -119,7 +119,7 @@ default_topics = [
 # ---------------------------------------------------------
 THEME_KEYWORDS = {
 
-    "Economic / Investment": [
+    "Economic Development": [
         "investment",
         "jobs",
         "gdp",
@@ -129,11 +129,21 @@ THEME_KEYWORDS = {
         "hub",
         "trade",
         "manufacturing",
-        "corridor"
+        "corridor",
+        "value chain",
+        "industrial corridor"
     ],
 
-    "Environmental Impact": [
+    "Environmental & Resources Impact": [
         "water",
+        "water table",
+        "water depletion",
+        "water scarcity",
+        "energy consumption",
+        "energy demand",
+        "power consumption",
+        "electricity demand",
+        "power grid",
         "groundwater",
         "desalination",
         "pollution",
@@ -142,9 +152,6 @@ THEME_KEYWORDS = {
         "power grid",
         "land conversion",
         "lng"
-    ],
-
-    "Indigenous Rights / Displacement": [
         "aeta",
         "ancestral domain",
         "displacement",
@@ -153,32 +160,92 @@ THEME_KEYWORDS = {
         "land rights"
     ],
 
-    "Civil Society / Opposition": [
-        "kalikasan",
-        "makabayan",
-        "ibon",
-        "protest",
-        "opposition",
-        "moratorium",
-        "activist",
-        "criticize"
-    ],
+    "Technological Advancement": [
+        "artificial intelligence",
+        "ai infrastructure",
+        "data center",
+        "hyperscaler",
+        "cloud computing",
+        "semiconductor",
+        "chip",
+        "chip design",
+        "wafer",
+        "fabrication",
+        "technology transfer",
+        "digital infrastructure",
+        "computing infrastructure",
+        "advanced manufacturing"
+],
 
-    "Government / Policy": [
+"Human Capital & Employment": [
+        "workforce",
+        "human capital",
+        "skills training",
+        "workforce development",
+        "training",
+        "technical skills",
+        "vocational training",
+        "skilled workers",
+        "engineers",
+        "technical professionals",
+        "talent",
+        "jobs",
+        "job creation",
+        "employment opportunities",
+        "upskilling",
+        "reskilling"
+],
+
+"Supply-Chain Resilience": [
+        "supply chain",
+        "supply chain resilience",
+        "supply chain security",
+        "critical minerals",
+        "mineral supply",
+        "semiconductor supply chain",
+        "regional partners",
+        "regional integration",
+        "diversification",
+        "market diversification",
+        "supplier diversification",
+        "strategic dependencies",
+        "coercive dependencies",
+        "single market",
+        "alternative markets",
+        "trusted partners",
+        "economic resilience"
+],
+
+    "Institutional Governance": [
         "bcda",
         "dict",
         "dti",
         "marcos",
         "bingcang",
         "aguda",
+        "bilateral agreement",
+        "multilateral agreement",
         "declaration",
         "summit",
         "policy",
         "regulation"
+        "oversight",
+        "legal framework"
+        "civil society",
+        "Kalikasan",
+        "Makabayan",
+        "IBON",
+        "protest",
+        "opposition",
+        "moratorium",
+        "activist",
+        "walkout",
+        "criticize"
     ],
 
-    "Geopolitics / Security": [
+    "Geopolitical Security": [
         "coercive dependencies",
+        "civilian industrial zone",
         "supply chain security",
         "geopolitics",
         "national security",
