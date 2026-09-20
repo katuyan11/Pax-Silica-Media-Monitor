@@ -377,20 +377,6 @@ else:
             )
 
             # ------------------------------------------------
-            # Improve hover labels
-            # ------------------------------------------------
-
-            fig_bubble.update_traces(
-                hovertemplate=(
-                    "<b>%{y}</b><br>"
-                    "Date: %{x|%b %d, %Y}<br>"
-                    "Stance: %{marker.color}<br>"
-                    "Articles: %{marker.size}"
-                    "<extra></extra>"
-                )
-            )
-
-            # ------------------------------------------------
             # Keep theme rows fixed
             # ------------------------------------------------
 
@@ -452,29 +438,28 @@ else:
 
 
     # ========================================================
-    # ARTICLE STANCE + WORD CLOUD
+    # DETECTED ARTICLE-LEVEL STANCE + WORD CLOUD
     # ========================================================
 
     col1, col2 = st.columns(2)
 
 
     # ========================================================
-    # ARTICLE STANCE
+    # DETECTED ARTICLE-LEVEL STANCE
     # ========================================================
 
     with col1:
 
-      st.subheader(
-    "Detected Article-Level Stance"
-)
+        st.subheader(
+            "Detected Article-Level Stance"
+        )
 
-st.caption(
-    "Stance reflects the predominant stance detected by the rule-based "
-    "classifier in the available article text. It should not be interpreted "
-    "as a definitive assessment of the article's overall position."
-)
-
-bubble_df = df.copy()
+        st.caption(
+            "Stance reflects the predominant stance detected by the rule-based "
+            "classifier in the available article text. It should not be "
+            "interpreted as a definitive assessment of the article's overall "
+            "position."
+        )
 
         stance_counts = (
             df["stance"]
