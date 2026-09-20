@@ -78,7 +78,7 @@ else:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Theme Frequency")
+        st.subheader("Most Frequent Categories")
         theme_series = df["themes"].str.split(", ").explode()
         theme_counts = theme_series.value_counts().reset_index()
         theme_counts.columns = ["theme", "count"]
@@ -87,12 +87,12 @@ else:
         st.plotly_chart(fig_themes, use_container_width=True)
 
     with col2:
-        st.subheader("Stance Distribution")
+        st.subheader("Article Stance")
         stance_counts = df["stance"].value_counts().reset_index()
         stance_counts.columns = ["stance", "count"]
         st.plotly_chart(px.pie(stance_counts, names="stance", values="count"), use_container_width=True)
 
-    st.subheader("Most Common Terms in Coverage")
+    st.subheader("Frequently Mentioned Words in Coverage")
     combined_texts = (df["title"] + " " + df["description"]).tolist()
     top_terms = get_top_terms(combined_texts)
 
