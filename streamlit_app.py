@@ -230,298 +230,310 @@ if df.empty:
 else:
 
     # ========================================================
-    # THEME × STANCE BUBBLE MATRIX + DESCRIPTIONS
+    # THEME × STANCE BUBBLE MATRIX
     # ========================================================
 
-    chart_col, description_col = st.columns(
-        [2.3, 1]
+    st.subheader(
+        "Theme × Stance Over Time"
+    )
+
+    st.caption(
+        "Bubble size represents the number of articles. "
+        "Bubble color represents stance. The number in "
+        "parentheses beside each theme is the total number "
+        "of articles associated with that theme across the "
+        "monitoring period."
+    )
+
+    bubble_df = df.copy()
+
+
+    # --------------------------------------------------------
+    # Clean stance labels
+    # --------------------------------------------------------
+
+    bubble_df["stance"] = (
+        bubble_df["stance"]
+        .fillna("Neutral")
+        .astype(str)
+        .str.strip()
+        .str.title()
+    )
+
+    # Keep only the three defined stance categories
+    bubble_df = bubble_df[
+        bubble_df["stance"].isin(
+            [
+                "Supportive",
+                "Neutral",
+                "Critical"
+            ]
+        )
+    ]
+
+
+    # --------------------------------------------------------
+    # Convert publication timestamp to date
+    # --------------------------------------------------------
+
+    bubble_df["date"] = pd.to_datetime(
+        bubble_df["published_at"],
+        errors="coerce"
+    ).dt.date
+
+
+    # --------------------------------------------------------
+    # Split multi-label themes
+    # --------------------------------------------------------
+
+    bubble_df["themes"] = (
+        bubble_df["themes"]
+        .fillna("")
+        .astype(str)
+        .str.split(", ")
+    )
+
+    bubble_df = bubble_df.explode(
+        "themes"
     )
 
 
-    # ========================================================
-    # BUBBLE MATRIX
-    # ========================================================
+    # --------------------------------------------------------
+    # Keep only defined themes
+    # --------------------------------------------------------
 
-    with chart_col:
-
-        st.subheader(
-            "Theme × Stance Over Time"
+    bubble_df = bubble_df[
+        bubble_df["themes"].isin(
+            THEME_ORDER
         )
+    ]
 
-        st.caption(
-            "Bubble size represents the number of articles. "
-            "Bubble color represents stance. The number in "
-            "parentheses beside each theme is the total number "
-            "of articles associated with that theme across the "
-            "monitoring period."
+
+    # --------------------------------------------------------
+    # Remove rows without usable dates
+    # --------------------------------------------------------
+
+    bubble_df = bubble_df[
+        bubble_df["date"].notna()
+    ]
+
+
+    # --------------------------------------------------------
+    # Calculate total articles per theme
+    # across the entire monitoring period
+    # --------------------------------------------------------
+
+    theme_totals = (
+        bubble_df
+        .groupby("themes")
+        .size()
+        .reindex(
+            THEME_ORDER,
+            fill_value=0
         )
+    )
 
-        bubble_df = df.copy()
 
-        # ----------------------------------------------------
-        # Clean stance labels
-        # ----------------------------------------------------
+    # --------------------------------------------------------
+    # Aggregate articles by:
+    # date + theme + stance
+    # --------------------------------------------------------
 
-        bubble_df["stance"] = (
-            bubble_df["stance"]
-            .fillna("Neutral")
-            .astype(str)
-            .str.strip()
-            .str.title()
+    bubble_data = (
+        bubble_df
+        .groupby(
+            [
+                "date",
+                "themes",
+                "stance"
+            ]
         )
+        .size()
+        .reset_index(
+            name="article_count"
+        )
+    )
 
-        # Keep only the three defined stance categories
-        bubble_df = bubble_df[
-            bubble_df["stance"].isin(
-                [
+
+    # --------------------------------------------------------
+    # Add total article count for each theme
+    # --------------------------------------------------------
+
+    bubble_data["theme_total"] = (
+        bubble_data["themes"]
+        .map(theme_totals)
+    )
+
+
+    # --------------------------------------------------------
+    # Create Y-axis labels with theme totals
+    # --------------------------------------------------------
+
+    theme_labels = {
+        theme: f"{theme} ({theme_totals[theme]})"
+        for theme in THEME_ORDER
+    }
+
+    bubble_data["theme_label"] = (
+        bubble_data["themes"]
+        .map(theme_labels)
+    )
+
+
+    # --------------------------------------------------------
+    # Force themes into fixed categorical order
+    # --------------------------------------------------------
+
+    bubble_data["themes"] = pd.Categorical(
+        bubble_data["themes"],
+        categories=THEME_ORDER,
+        ordered=True
+    )
+
+    bubble_data["theme_label"] = pd.Categorical(
+        bubble_data["theme_label"],
+        categories=[
+            theme_labels[theme]
+            for theme in THEME_ORDER
+        ],
+        ordered=True
+    )
+
+    bubble_data = bubble_data.sort_values(
+        [
+            "themes",
+            "date"
+        ]
+    )
+
+
+    # --------------------------------------------------------
+    # Generate bubble matrix
+    # --------------------------------------------------------
+
+    if not bubble_data.empty:
+
+        fig_bubble = px.scatter(
+            bubble_data,
+            x="date",
+            y="theme_label",
+            size="article_count",
+            color="stance",
+            size_max=45,
+
+            hover_name="theme_label",
+
+            hover_data={
+                "date": True,
+                "theme_label": False,
+                "stance": True,
+                "article_count": True,
+                "theme_total": True
+            },
+
+            category_orders={
+                "theme_label": [
+                    theme_labels[theme]
+                    for theme in THEME_ORDER
+                ],
+                "stance": [
                     "Supportive",
                     "Neutral",
                     "Critical"
                 ]
-            )
-        ]
+            },
 
-        # ----------------------------------------------------
-        # Convert publication timestamp to date
-        # ----------------------------------------------------
-
-        bubble_df["date"] = pd.to_datetime(
-            bubble_df["published_at"],
-            errors="coerce"
-        ).dt.date
-
-        # ----------------------------------------------------
-        # Split multi-label themes
-        # ----------------------------------------------------
-
-        bubble_df["themes"] = (
-            bubble_df["themes"]
-            .fillna("")
-            .astype(str)
-            .str.split(", ")
+            labels={
+                "date": "Publication Date",
+                "theme_label": "Theme",
+                "stance": "Stance",
+                "article_count": "Articles",
+                "theme_total": "Theme Total"
+            }
         )
 
-        bubble_df = bubble_df.explode(
-            "themes"
-        )
 
         # ----------------------------------------------------
-        # Keep only defined themes
+        # Keep theme rows fixed
         # ----------------------------------------------------
 
-        bubble_df = bubble_df[
-            bubble_df["themes"].isin(
-                THEME_ORDER
-            )
-        ]
-
-        # ----------------------------------------------------
-        # Remove rows without usable dates
-        # ----------------------------------------------------
-
-        bubble_df = bubble_df[
-            bubble_df["date"].notna()
-        ]
-
-        # ----------------------------------------------------
-        # Calculate total articles per theme
-        # across the entire monitoring period
-        # ----------------------------------------------------
-
-        theme_totals = (
-            bubble_df
-            .groupby("themes")
-            .size()
-            .reindex(
-                THEME_ORDER,
-                fill_value=0
-            )
-        )
-
-        # ----------------------------------------------------
-        # Aggregate articles by:
-        # date + theme + stance
-        # ----------------------------------------------------
-
-        bubble_data = (
-            bubble_df
-            .groupby(
-                [
-                    "date",
-                    "themes",
-                    "stance"
-                ]
-            )
-            .size()
-            .reset_index(
-                name="article_count"
-            )
-        )
-
-        # ----------------------------------------------------
-        # Add total article count for each theme
-        # ----------------------------------------------------
-
-        bubble_data["theme_total"] = (
-            bubble_data["themes"]
-            .map(theme_totals)
-        )
-
-        # ----------------------------------------------------
-        # Create Y-axis labels with theme totals
-        # ----------------------------------------------------
-
-        theme_labels = {
-            theme: f"{theme} ({theme_totals[theme]})"
-            for theme in THEME_ORDER
-        }
-
-        bubble_data["theme_label"] = (
-            bubble_data["themes"]
-            .map(theme_labels)
-        )
-
-        # ----------------------------------------------------
-        # Force themes into fixed categorical order
-        # ----------------------------------------------------
-
-        bubble_data["themes"] = pd.Categorical(
-            bubble_data["themes"],
-            categories=THEME_ORDER,
-            ordered=True
-        )
-
-        bubble_data["theme_label"] = pd.Categorical(
-            bubble_data["theme_label"],
-            categories=[
+        fig_bubble.update_yaxes(
+            categoryorder="array",
+            categoryarray=[
                 theme_labels[theme]
                 for theme in THEME_ORDER
-            ],
-            ordered=True
-        )
-
-        bubble_data = bubble_data.sort_values(
-            [
-                "themes",
-                "date"
             ]
         )
 
+
         # ----------------------------------------------------
-        # Generate bubble matrix
+        # Layout
         # ----------------------------------------------------
 
-        if not bubble_data.empty:
+        fig_bubble.update_layout(
+            height=600,
+            xaxis_title="Publication Date",
+            yaxis_title="Theme",
+            legend_title="Stance",
+            hovermode="closest"
+        )
 
-            fig_bubble = px.scatter(
-                bubble_data,
-                x="date",
-                y="theme_label",
-                size="article_count",
-                color="stance",
-                size_max=45,
 
-                hover_name="theme_label",
+        st.plotly_chart(
+            fig_bubble,
+            use_container_width=True
+        )
 
-                hover_data={
-                    "date": True,
-                    "theme_label": False,
-                    "stance": True,
-                    "article_count": True,
-                    "theme_total": True
-                },
 
-                category_orders={
-                    "theme_label": [
-                        theme_labels[theme]
-                        for theme in THEME_ORDER
-                    ],
-                    "stance": [
-                        "Supportive",
-                        "Neutral",
-                        "Critical"
-                    ]
-                },
+        st.caption(
+            "Each bubble represents the number of articles "
+            "associated with a theme and stance on a given date. "
+            "The number in parentheses beside each theme is the "
+            "total number of articles associated with that theme "
+            "across the monitoring period. Articles may contribute "
+            "to more than one theme, so theme totals are not "
+            "mutually exclusive."
+        )
 
-                labels={
-                    "date": "Publication Date",
-                    "theme_label": "Theme",
-                    "stance": "Stance",
-                    "article_count": "Articles",
-                    "theme_total": "Theme Total"
-                }
-            )
+    else:
 
-            # ------------------------------------------------
-            # Keep theme rows fixed
-            # ------------------------------------------------
-
-            fig_bubble.update_yaxes(
-                categoryorder="array",
-                categoryarray=[
-                    theme_labels[theme]
-                    for theme in THEME_ORDER
-                ]
-            )
-
-            # ------------------------------------------------
-            # Layout
-            # ------------------------------------------------
-
-            fig_bubble.update_layout(
-                height=600,
-                xaxis_title="Publication Date",
-                yaxis_title="Theme",
-                legend_title="Stance",
-                hovermode="closest"
-            )
-
-            st.plotly_chart(
-                fig_bubble,
-                use_container_width=True
-            )
-
-            st.caption(
-                "Each bubble represents the number of articles "
-                "associated with a theme and stance on a given date. "
-                "The number in parentheses beside each theme is the "
-                "total number of articles associated with that theme "
-                "across the monitoring period. Articles may contribute "
-                "to more than one theme, so theme totals are not "
-                "mutually exclusive."
-            )
-
-        else:
-
-            st.info(
-                "Not enough dated theme data available to generate "
-                "the bubble matrix."
-            )
+        st.info(
+            "Not enough dated theme data available to generate "
+            "the bubble matrix."
+        )
 
 
     # ========================================================
     # THEME DESCRIPTIONS
     # ========================================================
 
-    with description_col:
+    st.subheader(
+        "Theme Descriptions"
+    )
 
-        st.markdown(
-            "##### Theme Descriptions"
+    desc_col1, desc_col2 = st.columns(2)
+
+    for i, theme in enumerate(THEME_ORDER):
+
+        col = (
+            desc_col1
+            if i % 2 == 0
+            else desc_col2
         )
 
-        for theme in THEME_ORDER:
+        with col:
 
             st.markdown(
                 f"**{theme}**"
             )
 
-            st.markdown(
+            st.caption(
                 THEME_DESCRIPTIONS[theme]
             )
 
 
     # ========================================================
-    # SPACE BETWEEN UPPER AND LOWER SECTIONS
+    # SPACE BETWEEN SECTIONS
     # ========================================================
 
     st.markdown(
@@ -658,7 +670,7 @@ else:
 
 
     # ========================================================
-    # ARTICLES
+    # ARTICLES COLLECTED
     # ========================================================
 
     st.subheader(
@@ -668,7 +680,7 @@ else:
     st.markdown("""
     New articles are automatically collected and added to the list every day at 9:00 AM Philippine time.
     """)
-    
+
     st.dataframe(
         df[
             [
