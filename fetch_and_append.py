@@ -63,6 +63,7 @@ RSS_SOURCES = {
     "Philippine Star": "https://www.philstar.com/rss/headlines",
     "Rappler": "https://www.rappler.com/feed/",
     "Philippine News Agency": "https://www.pna.gov.ph/latest.rss",  # new
+    "Abante": "https://www.abante.com.ph/feed",  # new
 }
 
 RSS_KEYWORDS = [
