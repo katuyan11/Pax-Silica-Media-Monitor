@@ -14,10 +14,18 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
 
+# ============================================================
+# NLTK SETUP
+# ============================================================
+
 nltk.download("punkt")
 nltk.download("punkt_tab")
 nltk.download("stopwords")
 
+
+# ============================================================
+# PAGE CONFIGURATION
+# ============================================================
 
 st.set_page_config(
     page_title="Pax Silica NLP News Monitor",
@@ -27,9 +35,7 @@ st.set_page_config(
 st.title("Pax Silica NLP News Monitor")
 
 st.markdown("""
-This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), 
-including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. 
-Coverage has been tracked daily since September 17, 2026, using Python and Streamlit.
+This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. Coverage has been tracked daily since September 17, 2026, using Python and Streamlit.
 """)
 
 
@@ -80,12 +86,47 @@ def load_data():
 THEME_ORDER = [
     "Economic Development",
     "Technological Advancement",
-    "Human Capital & Employment",
+    "Human-Capital Upgrading",
     "Supply-Chain Resilience",
-    "Environmental & Resource Impacts",
+    "Environmental Sustainability",
     "Institutional Governance",
     "Geopolitical Security"
 ]
+
+
+# ============================================================
+# THEME DESCRIPTIONS
+# ============================================================
+
+THEME_DESCRIPTIONS = {
+    "Economic Development": """
+Focuses on massive foreign and domestic investments, industrial modernization, wealth creation, and shifting away from low-margin assembly toward high-value manufacturing.
+""",
+
+    "Technological Advancement": """
+Aims for advanced semiconductor capabilities, wafer fabrication, chip design, and technology transfer.
+""",
+
+    "Human-Capital Upgrading": """
+Emphasizes workforce preparation, specialized skills training, and high-quality employment for engineers and technical professionals.
+""",
+
+    "Supply-Chain Resilience": """
+Seeks to reduce concentrated, coercive dependencies on single markets by integrating regional partners across critical mineral and chip ecosystems.
+""",
+
+    "Environmental Sustainability": """
+Highlights concerns over heavy energy and water consumption, land conversion, and the ecological strain of expanded mining.
+""",
+
+    "Institutional Governance": """
+Tests regulatory arrangements, policy transparency, and public accountability surrounding large-scale bilateral or multilateral agreements. It also captures the role of civil society, advocacy groups, and political opposition in raising concerns, challenging policies, calling for greater accountability, or opposing proposed agreements and developments.
+""",
+
+    "Geopolitical Security": """
+Examines strategic alignments, national sovereignty, and the risk of civilian industrial zones intersecting with broader military cooperation frameworks.
+"""
+}
 
 
 # ============================================================
@@ -111,7 +152,8 @@ def get_top_terms(
     n: int = 100
 ) -> list[tuple[str, int]]:
 
-    """Tokenize text, remove stopwords, and return frequent terms.
+    """
+    Tokenize text, remove stopwords, and return frequent terms.
     Known multi-word phrases are preserved as single entries.
     """
 
@@ -182,6 +224,10 @@ def get_top_terms(
 df = load_data()
 
 
+# ============================================================
+# MAIN APP
+# ============================================================
+
 if df.empty:
 
     st.info(
@@ -198,175 +244,222 @@ else:
         "Theme × Stance Over Time"
     )
 
-    st.caption(
-        "Bubble size represents the number of articles. "
-        "Bubble color represents stance. Themes are fixed as "
-        "categorical rows; vertical position does not indicate rank or importance."
+    # --------------------------------------------------------
+    # Two-column layout
+    # --------------------------------------------------------
+
+    chart_col, description_col = st.columns(
+        [2.3, 1]
     )
 
-    bubble_df = df.copy()
 
-    # --------------------------------------------------------
-    # Convert publication timestamp to date
-    # --------------------------------------------------------
+    # ========================================================
+    # BUBBLE MATRIX
+    # ========================================================
 
-    bubble_df["date"] = (
-        bubble_df["published_at"]
-        .dt.date
-    )
+    with chart_col:
 
-    # --------------------------------------------------------
-    # Split multi-label themes
-    # --------------------------------------------------------
-
-    bubble_df["themes"] = (
-        bubble_df["themes"]
-        .fillna("Uncategorized")
-        .str.split(", ")
-    )
-
-    bubble_df = bubble_df.explode(
-        "themes"
-    )
-
-    # --------------------------------------------------------
-    # Keep only the six defined themes
-    # --------------------------------------------------------
-
-    bubble_df = bubble_df[
-        bubble_df["themes"].isin(
-            THEME_ORDER
+        st.caption(
+            "Bubble size represents the number of articles. "
+            "Bubble color represents stance. Themes are fixed as "
+            "categorical rows; vertical position does not indicate "
+            "rank or importance."
         )
-    ]
 
-    # --------------------------------------------------------
-    # Remove rows without usable dates
-    # --------------------------------------------------------
+        bubble_df = df.copy()
 
-    bubble_df = bubble_df[
-        bubble_df["date"].notna()
-    ]
+        # ----------------------------------------------------
+        # Convert publication timestamp to date
+        # ----------------------------------------------------
 
-    # --------------------------------------------------------
-    # Aggregate articles by:
-    # date + theme + stance
-    # --------------------------------------------------------
+        bubble_df["date"] = pd.to_datetime(
+            bubble_df["published_at"],
+            errors="coerce"
+        ).dt.date
 
-    bubble_data = (
-        bubble_df
-        .groupby(
-            [
-                "date",
-                "themes",
-                "stance"
-            ]
+        # ----------------------------------------------------
+        # Split multi-label themes
+        # ----------------------------------------------------
+
+        bubble_df["themes"] = (
+            bubble_df["themes"]
+            .fillna("")
+            .astype(str)
+            .str.split(", ")
         )
-        .size()
-        .reset_index(
-            name="article_count"
+
+        bubble_df = bubble_df.explode(
+            "themes"
         )
-    )
 
-    # --------------------------------------------------------
-    # Force themes into a fixed categorical order
-    # --------------------------------------------------------
+        # ----------------------------------------------------
+        # Keep only defined themes
+        # ----------------------------------------------------
 
-    bubble_data["themes"] = pd.Categorical(
-        bubble_data["themes"],
-        categories=THEME_ORDER,
-        ordered=True
-    )
-
-    bubble_data = bubble_data.sort_values(
-        [
-            "themes",
-            "date"
+        bubble_df = bubble_df[
+            bubble_df["themes"].isin(
+                THEME_ORDER
+            )
         ]
-    )
 
-    if not bubble_data.empty:
+        # ----------------------------------------------------
+        # Remove rows without usable dates
+        # ----------------------------------------------------
 
-        fig_bubble = px.scatter(
-            bubble_data,
-            x="date",
-            y="themes",
-            size="article_count",
-            color="stance",
-            size_max=45,
-            hover_name="themes",
-            hover_data={
-                "date": True,
-                "themes": False,
-                "stance": True,
-                "article_count": True
-            },
-            category_orders={
-                "themes": THEME_ORDER,
-                "stance": [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
+        bubble_df = bubble_df[
+            bubble_df["date"].notna()
+        ]
+
+        # ----------------------------------------------------
+        # Aggregate articles by:
+        # date + theme + stance
+        # ----------------------------------------------------
+
+        bubble_data = (
+            bubble_df
+            .groupby(
+                [
+                    "date",
+                    "themes",
+                    "stance"
                 ]
-            },
-            labels={
-                "date": "Publication Date",
-                "themes": "Theme",
-                "stance": "Stance",
-                "article_count": "Articles"
-            }
-        )
-
-        # ----------------------------------------------------
-        # Improve hover labels
-        # ----------------------------------------------------
-
-        fig_bubble.update_traces(
-            hovertemplate=(
-                "<b>%{y}</b><br>"
-                "Date: %{x|%b %d, %Y}<br>"
-                "Stance: %{marker.color}<br>"
-                "Articles: %{marker.size}"
-                "<extra></extra>"
+            )
+            .size()
+            .reset_index(
+                name="article_count"
             )
         )
 
         # ----------------------------------------------------
-        # Keep theme rows equally spaced
+        # Force themes into fixed categorical order
         # ----------------------------------------------------
 
-        fig_bubble.update_yaxes(
-            categoryorder="array",
-            categoryarray=THEME_ORDER
+        bubble_data["themes"] = pd.Categorical(
+            bubble_data["themes"],
+            categories=THEME_ORDER,
+            ordered=True
+        )
+
+        bubble_data = bubble_data.sort_values(
+            [
+                "themes",
+                "date"
+            ]
         )
 
         # ----------------------------------------------------
-        # Layout
+        # Generate bubble matrix
         # ----------------------------------------------------
 
-        fig_bubble.update_layout(
-            height=600,
-            xaxis_title="Publication Date",
-            yaxis_title="Theme",
-            legend_title="Stance",
-            hovermode="closest"
+        if not bubble_data.empty:
+
+            fig_bubble = px.scatter(
+                bubble_data,
+                x="date",
+                y="themes",
+                size="article_count",
+                color="stance",
+                size_max=45,
+
+                hover_name="themes",
+
+                hover_data={
+                    "date": True,
+                    "themes": False,
+                    "stance": True,
+                    "article_count": True
+                },
+
+                category_orders={
+                    "themes": THEME_ORDER,
+                    "stance": [
+                        "Supportive",
+                        "Neutral",
+                        "Critical"
+                    ]
+                },
+
+                labels={
+                    "date": "Publication Date",
+                    "themes": "Theme",
+                    "stance": "Stance",
+                    "article_count": "Articles"
+                }
+            )
+
+            # ------------------------------------------------
+            # Improve hover labels
+            # ------------------------------------------------
+
+            fig_bubble.update_traces(
+                hovertemplate=(
+                    "<b>%{y}</b><br>"
+                    "Date: %{x|%b %d, %Y}<br>"
+                    "Stance: %{marker.color}<br>"
+                    "Articles: %{marker.size}"
+                    "<extra></extra>"
+                )
+            )
+
+            # ------------------------------------------------
+            # Keep theme rows fixed
+            # ------------------------------------------------
+
+            fig_bubble.update_yaxes(
+                categoryorder="array",
+                categoryarray=THEME_ORDER
+            )
+
+            # ------------------------------------------------
+            # Layout
+            # ------------------------------------------------
+
+            fig_bubble.update_layout(
+                height=600,
+                xaxis_title="Publication Date",
+                yaxis_title="Theme",
+                legend_title="Stance",
+                hovermode="closest"
+            )
+
+            st.plotly_chart(
+                fig_bubble,
+                use_container_width=True
+            )
+
+            st.caption(
+                "Each bubble represents the number of articles "
+                "associated with a theme and stance on a given date. "
+                "An article may contribute to more than one theme."
+            )
+
+        else:
+
+            st.info(
+                "Not enough dated theme data available to generate "
+                "the bubble matrix."
+            )
+
+
+    # ========================================================
+    # THEME DESCRIPTIONS
+    # ========================================================
+
+    with description_col:
+
+        st.markdown(
+            "### Theme Descriptions"
         )
 
-        st.plotly_chart(
-            fig_bubble,
-            use_container_width=True
-        )
+        for theme in THEME_ORDER:
 
-        st.caption(
-            "Each bubble represents the number of articles associated "
-            "with a theme and stance on a given date. An article may "
-            "contribute to more than one theme."
-        )
+            st.markdown(
+                f"**{theme}**"
+            )
 
-    else:
-
-        st.info(
-            "Not enough dated theme data available to generate the bubble matrix."
-        )
+            st.markdown(
+                THEME_DESCRIPTIONS[theme]
+            )
 
 
     # ========================================================
@@ -471,7 +564,8 @@ else:
         else:
 
             st.info(
-                "Not enough text available to generate a word cloud."
+                "Not enough text available to generate "
+                "a word cloud."
             )
 
 
