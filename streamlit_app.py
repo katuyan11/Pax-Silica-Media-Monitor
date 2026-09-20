@@ -97,35 +97,27 @@ THEME_ORDER = [
 # ============================================================
 # THEME DESCRIPTIONS
 # ============================================================
-
 THEME_DESCRIPTIONS = {
-    "Economic Development": """
-Focuses on massive foreign and domestic investments, industrial modernization, wealth creation, and shifting away from low-margin assembly toward high-value manufacturing.
-""",
+    "Economic Development":
+        "Investment, industrial modernization, and high-value manufacturing.",
 
-    "Technological Advancement": """
-Aims for advanced semiconductor capabilities, wafer fabrication, chip design, and technology transfer.
-""",
+    "Technological Advancement":
+        "Semiconductors, AI infrastructure, chip design, and technology transfer.",
 
-    "Human-Capital Upgrading": """
-Emphasizes workforce preparation, specialized skills training, and high-quality employment for engineers and technical professionals.
-""",
+    "Human-Capital Upgrading":
+        "Workforce preparation, specialized skills, and technical employment.",
 
-    "Supply-Chain Resilience": """
-Seeks to reduce concentrated, coercive dependencies on single markets by integrating regional partners across critical mineral and chip ecosystems.
-""",
+    "Supply-Chain Resilience":
+        "Diversifying markets and strengthening regional critical-mineral and chip supply chains.",
 
-    "Environmental Sustainability": """
-Highlights concerns over heavy energy and water consumption, land conversion, and the ecological strain of expanded mining.
-""",
+    "Environmental Sustainability":
+        "Energy and water use, land conversion, mining, and ecological impacts.",
 
-    "Institutional Governance": """
-Tests regulatory arrangements, policy transparency, and public accountability surrounding large-scale bilateral or multilateral agreements. It also captures the role of civil society, advocacy groups, and political opposition in raising concerns, challenging policies, calling for greater accountability, or opposing proposed agreements and developments.
-""",
+    "Institutional Governance":
+        "Regulation, transparency, accountability, and civil society or opposition responses.",
 
-    "Geopolitical Security": """
-Examines strategic alignments, national sovereignty, and the risk of civilian industrial zones intersecting with broader military cooperation frameworks.
-"""
+    "Geopolitical Security":
+        "Strategic alignment, sovereignty, and links between industrial and military frameworks."
 }
 
 
