@@ -103,12 +103,6 @@ else:
         "cell totals will add up to more than the total number of articles."
     )
 
-     with col2:
-        st.subheader("Article Stance")
-        stance_counts = df["stance"].value_counts().reset_index()
-        stance_counts.columns = ["stance", "count"]
-        st.plotly_chart(px.pie(stance_counts, names="stance", values="count"), use_container_width=True)
-
     st.subheader("Frequently Mentioned Words in Coverage")
     combined_texts = (df["title"] + " " + df["description"]).tolist()
     top_terms = get_top_terms(combined_texts)
