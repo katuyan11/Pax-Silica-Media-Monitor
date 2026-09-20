@@ -662,7 +662,7 @@ else:
     # ========================================================
 
     st.subheader(
-        "Articles"
+        "Articles Collected by the Monitor"
     )
 
     st.dataframe(
