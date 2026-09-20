@@ -102,14 +102,6 @@ else:
     fig_terms.update_yaxes(dtick=1)
     st.plotly_chart(fig_terms, use_container_width=True)
 
-    st.subheader("Articles")
-    st.dataframe(
-        df[["published_at", "source", "title", "themes", "stance", "url"]].sort_values(
-            "published_at", ascending=False
-        ),
-        use_container_width=True
-    )
-
 st.subheader("Theme vs. Stance")
 theme_stance_df = df.copy()
 theme_stance_df["themes"] = theme_stance_df["themes"].str.split(", ")
@@ -136,3 +128,13 @@ st.caption(
     "Note: an article can span multiple themes, so it is counted once per theme here — "
     "bar totals will add up to more than the total number of articles."
 )
+
+
+    
+    st.subheader("Articles")
+    st.dataframe(
+        df[["published_at", "source", "title", "themes", "stance", "url"]].sort_values(
+            "published_at", ascending=False
+        ),
+        use_container_width=True
+    )
