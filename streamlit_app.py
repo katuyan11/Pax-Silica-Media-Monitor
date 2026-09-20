@@ -505,8 +505,8 @@ else:
 
     with description_col:
 
-        st.subheader(
-            "Theme Descriptions"
+        st.markdown(
+            "##### Theme Descriptions"
         )
 
         for theme in THEME_ORDER:
@@ -518,6 +518,16 @@ else:
             st.markdown(
                 THEME_DESCRIPTIONS[theme]
             )
+
+
+    # ========================================================
+    # SPACE BETWEEN UPPER AND LOWER SECTIONS
+    # ========================================================
+
+    st.markdown(
+        "<br>",
+        unsafe_allow_html=True
+    )
 
 
     # ========================================================
@@ -538,11 +548,12 @@ else:
         )
 
         st.caption(
-        "Stance is identified by looking for predefined words and "
-        "phrases that indicate supportive or critical language in the "
-        "available article text. The classifier counts these indicators "
-        "and assigns the stance with the stronger signal. Articles with "
-        "no clear predominance are classified as Neutral."
+            "Stance is identified by looking for predefined words "
+            "and phrases that indicate supportive or critical language "
+            "in the available article text. The classifier counts "
+            "these indicators and assigns the stance with the stronger "
+            "signal. Articles with no clear predominance are classified "
+            "as Neutral."
         )
 
         stance_counts = (
