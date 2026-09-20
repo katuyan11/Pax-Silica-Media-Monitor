@@ -464,15 +464,17 @@ else:
 
     with col1:
 
-        st.subheader(
-            "Detected Article-Level Stance"
-        )
-        st.caption(
-            "Stance reflects the predominant stance detected by the rule-based classifier in the available article text.
-            It should not be interpreted as a definitive assessment of the article's overall position."
-        )
+      st.subheader(
+    "Detected Article-Level Stance"
+)
 
-        bubble_df = df.copy()
+st.caption(
+    "Stance reflects the predominant stance detected by the rule-based "
+    "classifier in the available article text. It should not be interpreted "
+    "as a definitive assessment of the article's overall position."
+)
+
+bubble_df = df.copy()
 
         stance_counts = (
             df["stance"]
