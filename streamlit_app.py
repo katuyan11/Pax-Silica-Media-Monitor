@@ -4,6 +4,14 @@ import gspread
 from google.oauth2.service_account import Credentials
 import plotly.express as px
 
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from collections import Counter
+
+nltk.download('punkt')
+nltk.download('stopwords')
+
 st.set_page_config(page_title="Pax Silica NLP News Monitor", layout="wide")
 st.title("Pax Silica NLP News Monitor")
 st.markdown("""
@@ -25,6 +33,18 @@ def load_data():
         df["published_at"] = pd.to_datetime(df["published_at"], errors="coerce")
     return df
 
+def get_top_terms(texts: list[str], n: int = 15) -> list[tuple[str, int]]:
+    """Tokenize, remove stopwords, and return the n most common terms."""
+    stop_words = set(stopwords.words('english'))
+    all_words = []
+
+    for text in texts:
+        tokens = word_tokenize(text.lower())
+        words = [w for w in tokens if w.isalpha() and w not in stop_words and len(w) > 2]
+        all_words.extend(words)
+
+    return Counter(all_words).most_common(n)
+
 df = load_data()
 
 if df.empty:
@@ -44,6 +64,14 @@ else:
         stance_counts = df["stance"].value_counts().reset_index()
         stance_counts.columns = ["stance", "count"]
         st.plotly_chart(px.pie(stance_counts, names="stance", values="count"), use_container_width=True)
+
+    st.subheader("Most Common Terms in Coverage")
+    combined_texts = (df["title"] + " " + df["description"]).tolist()
+    top_terms = get_top_terms(combined_texts)
+
+    terms_df = pd.DataFrame(top_terms, columns=["term", "count"])
+    fig_terms = px.bar(terms_df, x="term", y="count")
+    st.plotly_chart(fig_terms, use_container_width=True)
 
     st.subheader("Articles")
     st.dataframe(
