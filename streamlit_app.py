@@ -76,12 +76,13 @@ def load_data():
 # ============================================================
 
 THEME_ORDER = [
-    "Economic / Investment",
-    "Environmental Impact",
-    "Indigenous Rights / Displacement",
-    "Civil Society / Opposition",
-    "Government / Policy",
-    "Geopolitics / Security"
+    "Economic Development",
+    "Technological Advancement",
+    "Human Capital & Employment",
+    "Supply-Chain Resilience",
+    "Environmental & Resource Impacts",
+    "Institutional Governance",
+    "Geopolitical Security"
 ]
 
 
