@@ -88,7 +88,7 @@ THEME_ORDER = [
     "Technological Advancement",
     "Human-Capital Upgrading",
     "Supply-Chain Resilience",
-    "Environmental Sustainability",
+    "Environmental & Resource Impacts",
     "Institutional Governance",
     "Geopolitical Security"
 ]
