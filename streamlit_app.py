@@ -27,10 +27,13 @@ st.set_page_config(
 st.title("Pax Silica NLP News Monitor")
 
 st.markdown("""
-This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP) to identify dominant themes and stances. 
-Coverage has been tracked daily since September 17, 2026, using Python and Streamlit.
+This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP) to identify dominant themes and stances. Coverage has been tracked daily since September 17, 2026, using Python and Streamlit.
 """)
 
+
+# ============================================================
+# GOOGLE SHEETS CONNECTION
+# ============================================================
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -69,6 +72,20 @@ def load_data():
 
 
 # ============================================================
+# THEME ORDER
+# ============================================================
+
+THEME_ORDER = [
+    "Economic / Investment",
+    "Environmental Impact",
+    "Indigenous Rights / Displacement",
+    "Civil Society / Opposition",
+    "Government / Policy",
+    "Geopolitics / Security"
+]
+
+
+# ============================================================
 # MULTI-WORD TERMS
 # ============================================================
 
@@ -81,6 +98,10 @@ MULTI_WORD_TERMS = [
     "data center",
 ]
 
+
+# ============================================================
+# FREQUENT TERM EXTRACTION
+# ============================================================
 
 def get_top_terms(
     texts: list[str],
@@ -151,6 +172,10 @@ def get_top_terms(
     ]
 
 
+# ============================================================
+# LOAD DATA
+# ============================================================
+
 df = load_data()
 
 
@@ -163,22 +188,34 @@ if df.empty:
 else:
 
     # ========================================================
-    # THEME × STANCE × TIME BUBBLE CHART
+    # THEME × STANCE BUBBLE MATRIX
     # ========================================================
 
     st.subheader(
-        "Theme and Stance Over Time"
+        "Theme × Stance Over Time"
+    )
+
+    st.caption(
+        "Bubble size represents the number of articles. "
+        "Bubble color represents stance. Themes are fixed as "
+        "categorical rows; vertical position does not indicate rank or importance."
     )
 
     bubble_df = df.copy()
 
+    # --------------------------------------------------------
     # Convert publication timestamp to date
+    # --------------------------------------------------------
+
     bubble_df["date"] = (
         bubble_df["published_at"]
         .dt.date
     )
 
+    # --------------------------------------------------------
     # Split multi-label themes
+    # --------------------------------------------------------
+
     bubble_df["themes"] = (
         bubble_df["themes"]
         .fillna("Uncategorized")
@@ -189,12 +226,29 @@ else:
         "themes"
     )
 
+    # --------------------------------------------------------
+    # Keep only the six defined themes
+    # --------------------------------------------------------
+
+    bubble_df = bubble_df[
+        bubble_df["themes"].isin(
+            THEME_ORDER
+        )
+    ]
+
+    # --------------------------------------------------------
     # Remove rows without usable dates
+    # --------------------------------------------------------
+
     bubble_df = bubble_df[
         bubble_df["date"].notna()
     ]
 
-    # Aggregate by date + theme + stance
+    # --------------------------------------------------------
+    # Aggregate articles by:
+    # date + theme + stance
+    # --------------------------------------------------------
+
     bubble_data = (
         bubble_df
         .groupby(
@@ -210,6 +264,23 @@ else:
         )
     )
 
+    # --------------------------------------------------------
+    # Force themes into a fixed categorical order
+    # --------------------------------------------------------
+
+    bubble_data["themes"] = pd.Categorical(
+        bubble_data["themes"],
+        categories=THEME_ORDER,
+        ordered=True
+    )
+
+    bubble_data = bubble_data.sort_values(
+        [
+            "themes",
+            "date"
+        ]
+    )
+
     if not bubble_data.empty:
 
         fig_bubble = px.scatter(
@@ -218,14 +289,16 @@ else:
             y="themes",
             size="article_count",
             color="stance",
+            size_max=45,
+            hover_name="themes",
             hover_data={
                 "date": True,
-                "themes": True,
+                "themes": False,
                 "stance": True,
                 "article_count": True
             },
-            size_max=45,
             category_orders={
+                "themes": THEME_ORDER,
                 "stance": [
                     "Supportive",
                     "Neutral",
@@ -240,11 +313,39 @@ else:
             }
         )
 
+        # ----------------------------------------------------
+        # Improve hover labels
+        # ----------------------------------------------------
+
+        fig_bubble.update_traces(
+            hovertemplate=(
+                "<b>%{y}</b><br>"
+                "Date: %{x|%b %d, %Y}<br>"
+                "Stance: %{marker.color}<br>"
+                "Articles: %{marker.size}"
+                "<extra></extra>"
+            )
+        )
+
+        # ----------------------------------------------------
+        # Keep theme rows equally spaced
+        # ----------------------------------------------------
+
+        fig_bubble.update_yaxes(
+            categoryorder="array",
+            categoryarray=THEME_ORDER
+        )
+
+        # ----------------------------------------------------
+        # Layout
+        # ----------------------------------------------------
+
         fig_bubble.update_layout(
             height=600,
             xaxis_title="Publication Date",
             yaxis_title="Theme",
             legend_title="Stance",
+            hovermode="closest"
         )
 
         st.plotly_chart(
@@ -253,8 +354,15 @@ else:
         )
 
         st.caption(
-            "Each bubble represents the number of articles for a theme × stance combination "
-            "on a given publication date. Articles can contribute to multiple themes."
+            "Each bubble represents the number of articles associated "
+            "with a theme and stance on a given date. An article may "
+            "contribute to more than one theme."
+        )
+
+    else:
+
+        st.info(
+            "Not enough dated theme data available to generate the bubble matrix."
         )
 
 
@@ -265,9 +373,9 @@ else:
     col1, col2 = st.columns(2)
 
 
-    # --------------------------------------------------------
-    # LEFT: ARTICLE STANCE
-    # --------------------------------------------------------
+    # ========================================================
+    # ARTICLE STANCE
+    # ========================================================
 
     with col1:
 
@@ -298,9 +406,9 @@ else:
         )
 
 
-    # --------------------------------------------------------
-    # RIGHT: WORD CLOUD
-    # --------------------------------------------------------
+    # ========================================================
+    # WORD CLOUD
+    # ========================================================
 
     with col2:
 
@@ -353,7 +461,9 @@ else:
                 use_container_width=True
             )
 
-            plt.close(fig_wordcloud)
+            plt.close(
+                fig_wordcloud
+            )
 
         else:
 
