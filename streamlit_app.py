@@ -37,6 +37,8 @@ def load_data():
 def get_top_terms(texts: list[str], n: int = 15) -> list[tuple[str, int]]:
     """Tokenize, remove stopwords, and return the n most common terms."""
     stop_words = set(stopwords.words('english'))
+    stop_words.update({'pax', 'silica'})  # exclude the anchor terms themselves — trivially frequent
+
     all_words = []
 
     for text in texts:
