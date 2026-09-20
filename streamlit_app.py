@@ -250,9 +250,10 @@ else:
 
         st.caption(
             "Bubble size represents the number of articles. "
-            "Bubble color represents stance. Themes are fixed as "
-            "categorical rows; vertical position does not indicate "
-            "rank or importance."
+            "Bubble color represents stance. The number in "
+            "parentheses beside each theme is the total number "
+            "of articles associated with that theme across the "
+            "monitoring period."
         )
 
         bubble_df = df.copy()
@@ -323,6 +324,21 @@ else:
         ]
 
         # ----------------------------------------------------
+        # Calculate total articles per theme
+        # across the entire monitoring period
+        # ----------------------------------------------------
+
+        theme_totals = (
+            bubble_df
+            .groupby("themes")
+            .size()
+            .reindex(
+                THEME_ORDER,
+                fill_value=0
+            )
+        )
+
+        # ----------------------------------------------------
         # Aggregate articles by:
         # date + theme + stance
         # ----------------------------------------------------
@@ -343,12 +359,44 @@ else:
         )
 
         # ----------------------------------------------------
+        # Add total article count for each theme
+        # ----------------------------------------------------
+
+        bubble_data["theme_total"] = (
+            bubble_data["themes"]
+            .map(theme_totals)
+        )
+
+        # ----------------------------------------------------
+        # Create Y-axis labels with theme totals
+        # ----------------------------------------------------
+
+        theme_labels = {
+            theme: f"{theme} ({theme_totals[theme]})"
+            for theme in THEME_ORDER
+        }
+
+        bubble_data["theme_label"] = (
+            bubble_data["themes"]
+            .map(theme_labels)
+        )
+
+        # ----------------------------------------------------
         # Force themes into fixed categorical order
         # ----------------------------------------------------
 
         bubble_data["themes"] = pd.Categorical(
             bubble_data["themes"],
             categories=THEME_ORDER,
+            ordered=True
+        )
+
+        bubble_data["theme_label"] = pd.Categorical(
+            bubble_data["theme_label"],
+            categories=[
+                theme_labels[theme]
+                for theme in THEME_ORDER
+            ],
             ordered=True
         )
 
@@ -368,22 +416,26 @@ else:
             fig_bubble = px.scatter(
                 bubble_data,
                 x="date",
-                y="themes",
+                y="theme_label",
                 size="article_count",
                 color="stance",
                 size_max=45,
 
-                hover_name="themes",
+                hover_name="theme_label",
 
                 hover_data={
                     "date": True,
-                    "themes": False,
+                    "theme_label": False,
                     "stance": True,
-                    "article_count": True
+                    "article_count": True,
+                    "theme_total": True
                 },
 
                 category_orders={
-                    "themes": THEME_ORDER,
+                    "theme_label": [
+                        theme_labels[theme]
+                        for theme in THEME_ORDER
+                    ],
                     "stance": [
                         "Supportive",
                         "Neutral",
@@ -393,9 +445,10 @@ else:
 
                 labels={
                     "date": "Publication Date",
-                    "themes": "Theme",
+                    "theme_label": "Theme",
                     "stance": "Stance",
-                    "article_count": "Articles"
+                    "article_count": "Articles",
+                    "theme_total": "Theme Total"
                 }
             )
 
@@ -405,7 +458,10 @@ else:
 
             fig_bubble.update_yaxes(
                 categoryorder="array",
-                categoryarray=THEME_ORDER
+                categoryarray=[
+                    theme_labels[theme]
+                    for theme in THEME_ORDER
+                ]
             )
 
             # ------------------------------------------------
@@ -428,7 +484,11 @@ else:
             st.caption(
                 "Each bubble represents the number of articles "
                 "associated with a theme and stance on a given date. "
-                "An article may contribute to more than one theme."
+                "The number in parentheses beside each theme is the "
+                "total number of articles associated with that theme "
+                "across the monitoring period. Articles may contribute "
+                "to more than one theme, so theme totals are not "
+                "mutually exclusive."
             )
 
         else:
