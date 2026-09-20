@@ -28,7 +28,7 @@ def load_data():
     creds_dict = st.secrets["google_service_account"]
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
     gc = gspread.authorize(creds)
-    sheet = gc.open_by_key(st.secrets["GOOGLE_SHEET_ID"]).worksheet("Clean_Data")  # changed from .sheet1
+    sheet = gc.open_by_key(st.secrets["GOOGLE_SHEET_ID"]).worksheet("Clean_Data")
     records = sheet.get_all_records()
     df = pd.DataFrame(records)
     if not df.empty:
@@ -57,7 +57,6 @@ def get_top_terms(texts: list[str], n: int = 15) -> list[tuple[str, int]]:
     for text in texts:
         text_lower = text.lower()
 
-        # Join known phrases with underscores so they survive tokenization intact
         for phrase in MULTI_WORD_TERMS:
             joined = phrase.replace(" ", "_")
             text_lower = re.sub(r'\b' + re.escape(phrase) + r'\b', joined, text_lower)
@@ -66,7 +65,6 @@ def get_top_terms(texts: list[str], n: int = 15) -> list[tuple[str, int]]:
         words = [w for w in tokens if (w.isalpha() or "_" in w) and w not in stop_words and len(w) > 2]
         all_words.extend(words)
 
-    # Convert underscores back to spaces for display
     counted = Counter(all_words).most_common(n)
     return [(term.replace("_", " "), count) for term, count in counted]
 
@@ -92,7 +90,6 @@ else:
         stance_counts.columns = ["stance", "count"]
         st.plotly_chart(px.pie(stance_counts, names="stance", values="count"), use_container_width=True)
 
-    
     st.subheader("Frequently Mentioned Words in Coverage")
     combined_texts = (df["title"] + " " + df["description"]).tolist()
     top_terms = get_top_terms(combined_texts)
@@ -102,35 +99,33 @@ else:
     fig_terms.update_yaxes(dtick=1)
     st.plotly_chart(fig_terms, use_container_width=True)
 
-st.subheader("Theme vs. Stance")
-theme_stance_df = df.copy()
-theme_stance_df["themes"] = theme_stance_df["themes"].str.split(", ")
-theme_stance_df = theme_stance_df.explode("themes")
+    st.subheader("Theme vs. Stance")
+    theme_stance_df = df.copy()
+    theme_stance_df["themes"] = theme_stance_df["themes"].str.split(", ")
+    theme_stance_df = theme_stance_df.explode("themes")
 
-theme_stance_counts = (
-    theme_stance_df.groupby(["themes", "stance"])
-    .size()
-    .reset_index(name="count")
-)
+    theme_stance_counts = (
+        theme_stance_df.groupby(["themes", "stance"])
+        .size()
+        .reset_index(name="count")
+    )
 
-fig_theme_stance = px.bar(
-    theme_stance_counts,
-    x="themes",
-    y="count",
-    color="stance",
-    barmode="stack",
-    labels={"themes": "Theme", "count": "Number of Articles"},
-)
-fig_theme_stance.update_yaxes(dtick=1)
-st.plotly_chart(fig_theme_stance, use_container_width=True)
+    fig_theme_stance = px.bar(
+        theme_stance_counts,
+        x="themes",
+        y="count",
+        color="stance",
+        barmode="stack",
+        labels={"themes": "Theme", "count": "Number of Articles"},
+    )
+    fig_theme_stance.update_yaxes(dtick=1)
+    st.plotly_chart(fig_theme_stance, use_container_width=True)
 
-st.caption(
-    "Note: an article can span multiple themes, so it is counted once per theme here — "
-    "bar totals will add up to more than the total number of articles."
-)
+    st.caption(
+        "Note: an article can span multiple themes, so it is counted once per theme here — "
+        "bar totals will add up to more than the total number of articles."
+    )
 
-
-    
     st.subheader("Articles")
     st.dataframe(
         df[["published_at", "source", "title", "themes", "stance", "url"]].sort_values(
