@@ -100,25 +100,25 @@ THEME_ORDER = [
 
 THEME_DESCRIPTIONS = {
     "Economic Development":
-        "Investment, industrial modernization, and high-value manufacturing.",
+        "Investment, industry, and high-value manufacturing.",
 
     "Technological Advancement":
-        "Semiconductors, AI infrastructure, chip design, and technology transfer.",
+        "Semiconductors, AI, data centers, and technology transfer.",
 
     "Human-Capital Upgrading":
-        "Workforce preparation, specialized skills, and technical employment.",
+        "Workforce skills, training, and technical jobs.",
 
     "Supply-Chain Resilience":
-        "Diversifying markets and strengthening regional critical-mineral and chip supply chains.",
+        "Market diversification and critical supply chains.",
 
     "Environmental Sustainability":
-        "Energy and water use, land conversion, mining, and ecological impacts.",
+        "Energy, water, land, mining, and ecological impacts.",
 
     "Institutional Governance":
-        "Regulation, transparency, accountability, and civil society or opposition responses.",
+        "Regulation, accountability, and civil society responses.",
 
     "Geopolitical Security":
-        "Strategic alignment, sovereignty, and links between industrial and military frameworks."
+        "Strategic alignment, sovereignty, and security."
 }
 
 
@@ -256,6 +256,29 @@ else:
         )
 
         bubble_df = df.copy()
+
+        # ----------------------------------------------------
+        # Clean stance labels
+        # ----------------------------------------------------
+
+        bubble_df["stance"] = (
+            bubble_df["stance"]
+            .fillna("Neutral")
+            .astype(str)
+            .str.strip()
+            .str.title()
+        )
+
+        # Keep only the three defined stance categories
+        bubble_df = bubble_df[
+            bubble_df["stance"].isin(
+                [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ]
+            )
+        ]
 
         # ----------------------------------------------------
         # Convert publication timestamp to date
@@ -455,14 +478,16 @@ else:
         )
 
         st.caption(
-            "Stance reflects the predominant stance detected by the rule-based "
-            "classifier in the available article text. It should not be "
-            "interpreted as a definitive assessment of the article's overall "
-            "position."
+            "Stance reflects the predominant stance detected by the "
+            "rule-based classifier in the available article text."
         )
 
         stance_counts = (
             df["stance"]
+            .fillna("Neutral")
+            .astype(str)
+            .str.strip()
+            .str.title()
             .value_counts()
             .reset_index()
         )
@@ -475,7 +500,14 @@ else:
         fig_stance = px.pie(
             stance_counts,
             names="stance",
-            values="count"
+            values="count",
+            category_orders={
+                "stance": [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ]
+            }
         )
 
         st.plotly_chart(
