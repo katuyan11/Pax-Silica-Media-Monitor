@@ -90,15 +90,6 @@ else:
         stance_counts.columns = ["stance", "count"]
         st.plotly_chart(px.pie(stance_counts, names="stance", values="count"), use_container_width=True)
 
-    st.subheader("Frequently Mentioned Words in Coverage")
-    combined_texts = (df["title"] + " " + df["description"]).tolist()
-    top_terms = get_top_terms(combined_texts)
-
-    terms_df = pd.DataFrame(top_terms, columns=["term", "count"])
-    fig_terms = px.bar(terms_df, x="term", y="count")
-    fig_terms.update_yaxes(dtick=1)
-    st.plotly_chart(fig_terms, use_container_width=True)
-
     st.subheader("Theme × Stance Heatmap")
 
     theme_stance_df = df.copy()
@@ -121,12 +112,22 @@ else:
         aspect="auto",
     )
     fig_heatmap.update_xaxes(side="top")
+    fig_heatmap.update_layout(coloraxis_colorbar=dict(dtick=1))
     st.plotly_chart(fig_heatmap, use_container_width=True)
 
     st.caption(
         "Note: an article can span multiple themes, so it is counted once per theme here — "
         "cell totals will add up to more than the total number of articles."
     )
+
+    st.subheader("Frequently Mentioned Words in Coverage")
+    combined_texts = (df["title"] + " " + df["description"]).tolist()
+    top_terms = get_top_terms(combined_texts)
+
+    terms_df = pd.DataFrame(top_terms, columns=["term", "count"])
+    fig_terms = px.bar(terms_df, x="term", y="count")
+    fig_terms.update_yaxes(dtick=1)
+    st.plotly_chart(fig_terms, use_container_width=True)
 
     st.subheader("Articles")
     st.dataframe(
