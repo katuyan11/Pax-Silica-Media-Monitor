@@ -10,9 +10,14 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from collections import Counter
 
-nltk.download('punkt')
-nltk.download('punkt_tab')
-nltk.download('stopwords')
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+
+nltk.download("punkt")
+nltk.download("punkt_tab")
+nltk.download("stopwords")
+
 
 st.set_page_config(
     page_title="Pax Silica NLP News Monitor",
@@ -22,9 +27,10 @@ st.set_page_config(
 st.title("Pax Silica NLP News Monitor")
 
 st.markdown("""
-This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP) classification.
-News were tracked daily starting September 17, 2026. Built with Python and Streamlit. 
+Natural Language Processing (NLP) monitoring of dominant themes and stances in Pax Silica coverage, 
+an evolving Philippine news topic tracked daily since September 17, 2026 — built with Python and Streamlit.
 """)
+
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -34,6 +40,7 @@ SCOPES = [
 
 @st.cache_data(ttl=3600)
 def load_data():
+
     creds_dict = st.secrets["google_service_account"]
 
     creds = Credentials.from_service_account_info(
@@ -52,6 +59,7 @@ def load_data():
     df = pd.DataFrame(records)
 
     if not df.empty:
+
         df["published_at"] = pd.to_datetime(
             df["published_at"],
             errors="coerce"
@@ -60,7 +68,10 @@ def load_data():
     return df
 
 
-# Phrases to treat as a single term instead of splitting into separate words
+# ============================================================
+# MULTI-WORD TERMS
+# ============================================================
+
 MULTI_WORD_TERMS = [
     "artificial intelligence",
     "new clark city",
@@ -73,13 +84,16 @@ MULTI_WORD_TERMS = [
 
 def get_top_terms(
     texts: list[str],
-    n: int = 15
+    n: int = 100
 ) -> list[tuple[str, int]]:
-    """Tokenize, remove stopwords, and return the n most common terms.
+
+    """Tokenize text, remove stopwords, and return frequent terms.
     Known multi-word phrases are preserved as single entries.
     """
 
-    stop_words = set(stopwords.words("english"))
+    stop_words = set(
+        stopwords.words("english")
+    )
 
     stop_words.update({
         "pax",
@@ -91,10 +105,15 @@ def get_top_terms(
     all_words = []
 
     for text in texts:
+
         text_lower = text.lower()
 
         for phrase in MULTI_WORD_TERMS:
-            joined = phrase.replace(" ", "_")
+
+            joined = phrase.replace(
+                " ",
+                "_"
+            )
 
             text_lower = re.sub(
                 r"\b" + re.escape(phrase) + r"\b",
@@ -102,7 +121,9 @@ def get_top_terms(
                 text_lower
             )
 
-        tokens = word_tokenize(text_lower)
+        tokens = word_tokenize(
+            text_lower
+        )
 
         words = [
             w
@@ -117,10 +138,15 @@ def get_top_terms(
 
         all_words.extend(words)
 
-    counted = Counter(all_words).most_common(n)
+    counted = Counter(
+        all_words
+    ).most_common(n)
 
     return [
-        (term.replace("_", " "), count)
+        (
+            term.replace("_", " "),
+            count
+        )
         for term, count in counted
     ]
 
@@ -136,77 +162,118 @@ if df.empty:
 
 else:
 
-    # ============================================================
-    # THEME × STANCE HEATMAP
-    # ============================================================
+    # ========================================================
+    # THEME × STANCE × TIME BUBBLE CHART
+    # ========================================================
 
-    st.subheader("Theme × Stance Heatmap")
+    st.subheader(
+        "Themes and Stances Over Time"
+    )
 
-    theme_stance_df = df.copy()
+    bubble_df = df.copy()
 
-    theme_stance_df["themes"] = (
-        theme_stance_df["themes"]
+    # Convert publication timestamp to date
+    bubble_df["date"] = (
+        bubble_df["published_at"]
+        .dt.date
+    )
+
+    # Split multi-label themes
+    bubble_df["themes"] = (
+        bubble_df["themes"]
+        .fillna("Uncategorized")
         .str.split(", ")
     )
 
-    theme_stance_df = theme_stance_df.explode("themes")
+    bubble_df = bubble_df.explode(
+        "themes"
+    )
 
-    heatmap_data = (
-        theme_stance_df
-        .groupby(["themes", "stance"])
-        .size()
-        .reset_index(name="count")
-        .pivot(
-            index="themes",
-            columns="stance",
-            values="count"
+    # Remove rows without usable dates
+    bubble_df = bubble_df[
+        bubble_df["date"].notna()
+    ]
+
+    # Aggregate by date + theme + stance
+    bubble_data = (
+        bubble_df
+        .groupby(
+            [
+                "date",
+                "themes",
+                "stance"
+            ]
         )
-        .fillna(0)
+        .size()
+        .reset_index(
+            name="article_count"
+        )
     )
 
-    fig_heatmap = px.imshow(
-        heatmap_data,
-        labels=dict(
-            x="Stance",
-            y="Theme",
-            color="Article Count"
-        ),
-        text_auto=True,
-        color_continuous_scale="Blues",
-        aspect="auto",
-    )
+    if not bubble_data.empty:
 
-    fig_heatmap.update_xaxes(side="top")
+        fig_bubble = px.scatter(
+            bubble_data,
+            x="date",
+            y="themes",
+            size="article_count",
+            color="stance",
+            hover_data={
+                "date": True,
+                "themes": True,
+                "stance": True,
+                "article_count": True
+            },
+            size_max=45,
+            category_orders={
+                "stance": [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ]
+            },
+            labels={
+                "date": "Publication Date",
+                "themes": "Theme",
+                "stance": "Stance",
+                "article_count": "Articles"
+            }
+        )
 
-    fig_heatmap.update_layout(
-        coloraxis_colorbar=dict(dtick=1)
-    )
+        fig_bubble.update_layout(
+            height=600,
+            xaxis_title="Publication Date",
+            yaxis_title="Theme",
+            legend_title="Stance",
+        )
 
-    st.plotly_chart(
-        fig_heatmap,
-        use_container_width=True
-    )
+        st.plotly_chart(
+            fig_bubble,
+            use_container_width=True
+        )
 
-    st.caption(
-        "Note: an article can span multiple themes, so it is counted once per theme here — "
-        "cell totals will add up to more than the total number of articles."
-    )
+        st.caption(
+            "Each bubble represents the number of articles for a theme × stance combination "
+            "on a given publication date. Articles can contribute to multiple themes."
+        )
 
 
-    # ============================================================
-    # ARTICLE STANCE + FREQUENTLY MENTIONED WORDS
-    # ============================================================
+    # ========================================================
+    # ARTICLE STANCE + WORD CLOUD
+    # ========================================================
 
     col1, col2 = st.columns(2)
 
 
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
     # LEFT: ARTICLE STANCE
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     with col1:
 
-        st.subheader("Article Stance")
+        st.subheader(
+            "Article Stance"
+        )
 
         stance_counts = (
             df["stance"]
@@ -231,9 +298,9 @@ else:
         )
 
 
-    # ------------------------------------------------------------
-    # RIGHT: FREQUENTLY MENTIONED WORDS
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
+    # RIGHT: WORD CLOUD
+    # --------------------------------------------------------
 
     with col2:
 
@@ -248,43 +315,60 @@ else:
         ).tolist()
 
         top_terms = get_top_terms(
-            combined_texts
+            combined_texts,
+            n=100
         )
 
-        terms_df = pd.DataFrame(
-            top_terms,
-            columns=[
-                "term",
-                "count"
-            ]
+        word_frequencies = dict(
+            top_terms
         )
 
-        fig_terms = px.bar(
-            terms_df,
-            x="count",
-            y="term",
-            orientation="h"
-        )
+        if word_frequencies:
 
-        fig_terms.update_xaxes(
-            dtick=1
-        )
+            wordcloud = WordCloud(
+                width=900,
+                height=500,
+                background_color="white",
+                max_words=60,
+                min_font_size=10,
+                max_font_size=70,
+                collocations=False
+            ).generate_from_frequencies(
+                word_frequencies
+            )
 
-        fig_terms.update_yaxes(
-            categoryorder="total ascending"
-        )
+            fig_wordcloud, ax = plt.subplots(
+                figsize=(10, 5)
+            )
 
-        st.plotly_chart(
-            fig_terms,
-            use_container_width=True
-        )
+            ax.imshow(
+                wordcloud,
+                interpolation="bilinear"
+            )
+
+            ax.axis("off")
+
+            st.pyplot(
+                fig_wordcloud,
+                use_container_width=True
+            )
+
+            plt.close(fig_wordcloud)
+
+        else:
+
+            st.info(
+                "Not enough text available to generate a word cloud."
+            )
 
 
-    # ============================================================
+    # ========================================================
     # ARTICLES
-    # ============================================================
+    # ========================================================
 
-    st.subheader("Articles")
+    st.subheader(
+        "Articles"
+    )
 
     st.dataframe(
         df[
