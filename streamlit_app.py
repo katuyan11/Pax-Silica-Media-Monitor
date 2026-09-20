@@ -665,6 +665,10 @@ else:
         "Articles Collected by the Monitor"
     )
 
+    st.markdown("""
+    New articles are automatically collected and added to the list every day at 9:00 AM Philippine time.
+    """)
+    
     st.dataframe(
         df[
             [
