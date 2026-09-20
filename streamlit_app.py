@@ -10,6 +10,7 @@ from nltk.tokenize import word_tokenize
 from collections import Counter
 
 nltk.download('punkt')
+nltk.download('punkt_tab')  # newer NLTK versions require this separately
 nltk.download('stopwords')
 
 st.set_page_config(page_title="Pax Silica NLP News Monitor", layout="wide")
