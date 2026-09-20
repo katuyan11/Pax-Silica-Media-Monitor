@@ -111,7 +111,7 @@ THEME_DESCRIPTIONS = {
     "Supply-Chain Resilience":
         "Market diversification and critical supply chains.",
 
-    "Environmental Sustainability":
+    "Environmental & Resource Impacts":
         "Energy, water, land, mining, and ecological impacts.",
 
     "Institutional Governance":
