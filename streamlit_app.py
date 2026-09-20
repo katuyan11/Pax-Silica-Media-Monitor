@@ -34,10 +34,42 @@ def load_data():
         df["published_at"] = pd.to_datetime(df["published_at"], errors="coerce")
     return df
 
+import re
+
+# Phrases to treat as a single term instead of splitting into separate words
+MULTI_WORD_TERMS = [
+    "artificial intelligence",
+    "new clark city",
+    "clark freeport",
+    "economic security zone",
+    "ancestral domain",
+    "data center",
+]
+
 def get_top_terms(texts: list[str], n: int = 15) -> list[tuple[str, int]]:
-    """Tokenize, remove stopwords, and return the n most common terms."""
+    """Tokenize, remove stopwords, and return the n most common terms.
+    Known multi-word phrases are preserved as single entries."""
+
     stop_words = set(stopwords.words('english'))
-    stop_words.update({'pax', 'silica'})  # exclude the anchor terms themselves — trivially frequent
+    stop_words.update({'pax', 'silica'})
+
+    all_words = []
+
+    for text in texts:
+        text_lower = text.lower()
+
+        # Join known phrases with underscores so they survive tokenization intact
+        for phrase in MULTI_WORD_TERMS:
+            joined = phrase.replace(" ", "_")
+            text_lower = re.sub(r'\b' + re.escape(phrase) + r'\b', joined, text_lower)
+
+        tokens = word_tokenize(text_lower)
+        words = [w for w in tokens if (w.isalpha() or "_" in w) and w not in stop_words and len(w) > 2]
+        all_words.extend(words)
+
+    # Convert underscores back to spaces for display
+    counted = Counter(all_words).most_common(n)
+    return [(term.replace("_", " "), count) for term, count in counted]
 
     all_words = []
 
