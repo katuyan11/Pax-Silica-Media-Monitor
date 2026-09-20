@@ -23,10 +23,10 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapi
 
 @st.cache_data(ttl=3600)
 def load_data():
-    creds_dict = st.secrets["google_service_account"]  # set via Streamlit Cloud secrets, see below
+    creds_dict = st.secrets["google_service_account"]
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
     gc = gspread.authorize(creds)
-    sheet = gc.open_by_key(st.secrets["GOOGLE_SHEET_ID"]).sheet1
+    sheet = gc.open_by_key(st.secrets["GOOGLE_SHEET_ID"]).worksheet("Clean_Data")  # changed from .sheet1
     records = sheet.get_all_records()
     df = pd.DataFrame(records)
     if not df.empty:
