@@ -4,6 +4,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import plotly.express as px
 
+import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -33,8 +34,6 @@ def load_data():
     if not df.empty:
         df["published_at"] = pd.to_datetime(df["published_at"], errors="coerce")
     return df
-
-import re
 
 # Phrases to treat as a single term instead of splitting into separate words
 MULTI_WORD_TERMS = [
@@ -71,15 +70,6 @@ def get_top_terms(texts: list[str], n: int = 15) -> list[tuple[str, int]]:
     counted = Counter(all_words).most_common(n)
     return [(term.replace("_", " "), count) for term, count in counted]
 
-    all_words = []
-
-    for text in texts:
-        tokens = word_tokenize(text.lower())
-        words = [w for w in tokens if w.isalpha() and w not in stop_words and len(w) > 2]
-        all_words.extend(words)
-
-    return Counter(all_words).most_common(n)
-
 df = load_data()
 
 if df.empty:
@@ -92,7 +82,9 @@ else:
         theme_series = df["themes"].str.split(", ").explode()
         theme_counts = theme_series.value_counts().reset_index()
         theme_counts.columns = ["theme", "count"]
-        st.plotly_chart(px.bar(theme_counts, x="theme", y="count"), use_container_width=True)
+        fig_themes = px.bar(theme_counts, x="theme", y="count")
+        fig_themes.update_yaxes(dtick=1)
+        st.plotly_chart(fig_themes, use_container_width=True)
 
     with col2:
         st.subheader("Stance Distribution")
@@ -106,6 +98,7 @@ else:
 
     terms_df = pd.DataFrame(top_terms, columns=["term", "count"])
     fig_terms = px.bar(terms_df, x="term", y="count")
+    fig_terms.update_yaxes(dtick=1)
     st.plotly_chart(fig_terms, use_container_width=True)
 
     st.subheader("Articles")
