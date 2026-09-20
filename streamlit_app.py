@@ -101,32 +101,32 @@ else:
 
     st.subheader("Theme × Stance Heatmap")
 
-theme_stance_df = df.copy()
-theme_stance_df["themes"] = theme_stance_df["themes"].str.split(", ")
-theme_stance_df = theme_stance_df.explode("themes")
+    theme_stance_df = df.copy()
+    theme_stance_df["themes"] = theme_stance_df["themes"].str.split(", ")
+    theme_stance_df = theme_stance_df.explode("themes")
 
-heatmap_data = (
-    theme_stance_df.groupby(["themes", "stance"])
-    .size()
-    .reset_index(name="count")
-    .pivot(index="themes", columns="stance", values="count")
-    .fillna(0)
-)
+    heatmap_data = (
+        theme_stance_df.groupby(["themes", "stance"])
+        .size()
+        .reset_index(name="count")
+        .pivot(index="themes", columns="stance", values="count")
+        .fillna(0)
+    )
 
-fig_heatmap = px.imshow(
-    heatmap_data,
-    labels=dict(x="Stance", y="Theme", color="Article Count"),
-    text_auto=True,
-    color_continuous_scale="Blues",
-    aspect="auto",
-)
-fig_heatmap.update_xaxes(side="top")
-st.plotly_chart(fig_heatmap, use_container_width=True)
+    fig_heatmap = px.imshow(
+        heatmap_data,
+        labels=dict(x="Stance", y="Theme", color="Article Count"),
+        text_auto=True,
+        color_continuous_scale="Blues",
+        aspect="auto",
+    )
+    fig_heatmap.update_xaxes(side="top")
+    st.plotly_chart(fig_heatmap, use_container_width=True)
 
-st.caption(
-    "Note: an article can span multiple themes, so it is counted once per theme here — "
-    "cell totals will add up to more than the total number of articles."
-)
+    st.caption(
+        "Note: an article can span multiple themes, so it is counted once per theme here — "
+        "cell totals will add up to more than the total number of articles."
+    )
 
     st.subheader("Articles")
     st.dataframe(
