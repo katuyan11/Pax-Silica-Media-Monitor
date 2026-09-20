@@ -16,8 +16,7 @@ nltk.download('stopwords')
 st.set_page_config(page_title="Pax Silica NLP News Monitor", layout="wide")
 st.title("Pax Silica NLP News Monitor")
 st.markdown("""
-Track dominant themes and narratives in news coverage of Pax Silica using 
-NLP techniques, Python, and Streamlit — updated daily.
+Natural Language Processing (NLP) analysis of dominant themes and stances in Pax Silica news coverage — built with Python and Streamlit, updated daily.
 """)
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
