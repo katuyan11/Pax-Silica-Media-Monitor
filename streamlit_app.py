@@ -97,6 +97,7 @@ THEME_ORDER = [
 # ============================================================
 # THEME DESCRIPTIONS
 # ============================================================
+
 THEME_DESCRIPTIONS = {
     "Economic Development":
         "Investment, industrial modernization, and high-value manufacturing.",
@@ -229,16 +230,8 @@ if df.empty:
 else:
 
     # ========================================================
-    # THEME × STANCE BUBBLE MATRIX
+    # THEME × STANCE BUBBLE MATRIX + DESCRIPTIONS
     # ========================================================
-
-    st.subheader(
-        "Theme × Stance Over Time"
-    )
-
-    # --------------------------------------------------------
-    # Two-column layout
-    # --------------------------------------------------------
 
     chart_col, description_col = st.columns(
         [2.3, 1]
@@ -250,6 +243,10 @@ else:
     # ========================================================
 
     with chart_col:
+
+        st.subheader(
+            "Theme × Stance Over Time"
+        )
 
         st.caption(
             "Bubble size represents the number of articles. "
@@ -439,8 +436,8 @@ else:
 
     with description_col:
 
-        st.markdown(
-            "### Theme Descriptions"
+        st.subheader(
+            "Theme Descriptions"
         )
 
         for theme in THEME_ORDER:
