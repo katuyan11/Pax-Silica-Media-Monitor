@@ -62,6 +62,7 @@ RSS_SOURCES = {
     "Manila Bulletin": "https://mb.com.ph/rss/articles",
     "Philippine Star": "https://www.philstar.com/rss/headlines",
     "Rappler": "https://www.rappler.com/feed/",
+    "Philippine News Agency": "https://www.pna.gov.ph/latest.rss",  # new
 }
 
 RSS_KEYWORDS = [
@@ -216,7 +217,8 @@ CRITICAL_WORDS = [
     "opposition",
     "exploitation",
     "controversy",
-    "outcry"
+    "outcry",
+    "worse"
 ]
 
 
