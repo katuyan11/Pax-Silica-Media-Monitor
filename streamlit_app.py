@@ -22,8 +22,8 @@ st.set_page_config(
 st.title("Pax Silica NLP News Monitor")
 
 st.markdown("""
-Natural Language Processing (NLP) monitoring of dominant themes and stances in Pax Silica coverage, 
-an evolving Philippine news topic tracked daily since September 17, 2026 — built with Python and Streamlit.
+Natural Language Processing (NLP) monitoring of dominant themes and stances in Pax Silica media coverage, 
+an evolving Philippine news topic. News were tracked daily starting September 17, 2026. Built with Python and Streamlit.
 """)
 
 SCOPES = [
