@@ -92,6 +92,34 @@ else:
         stance_counts.columns = ["stance", "count"]
         st.plotly_chart(px.pie(stance_counts, names="stance", values="count"), use_container_width=True)
 
+st.subheader("Theme vs. Stance")
+theme_stance_df = df.copy()
+theme_stance_df["themes"] = theme_stance_df["themes"].str.split(", ")
+theme_stance_df = theme_stance_df.explode("themes")
+
+theme_stance_counts = (
+    theme_stance_df.groupby(["themes", "stance"])
+    .size()
+    .reset_index(name="count")
+)
+
+fig_theme_stance = px.bar(
+    theme_stance_counts,
+    x="themes",
+    y="count",
+    color="stance",
+    barmode="stack",
+    labels={"themes": "Theme", "count": "Number of Articles"},
+)
+fig_theme_stance.update_yaxes(dtick=1)
+st.plotly_chart(fig_theme_stance, use_container_width=True)
+
+st.caption(
+    "Note: an article can span multiple themes, so it is counted once per theme here — "
+    "bar totals will add up to more than the total number of articles."
+)
+
+    
     st.subheader("Frequently Mentioned Words in Coverage")
     combined_texts = (df["title"] + " " + df["description"]).tolist()
     top_terms = get_top_terms(combined_texts)
