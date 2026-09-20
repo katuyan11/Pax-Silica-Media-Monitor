@@ -167,7 +167,7 @@ else:
     # ========================================================
 
     st.subheader(
-        "Themes and Stances Over Time"
+        "Theme and Stance Over Time"
     )
 
     bubble_df = df.copy()
