@@ -674,7 +674,7 @@ else:
     )
 
     st.markdown("""
-    New articles are automatically collected and added to the list every day at 9:00 AM Philippine time.
+    New articles are automatically collected and added to the list every day at 9:00 AM and 7:00 PM Philippine time.
     """)
 
     st.dataframe(
