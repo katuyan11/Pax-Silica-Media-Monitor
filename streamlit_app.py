@@ -88,7 +88,7 @@ THEME_ORDER = [
     "Technological Advancement",
     "Human Capital & Employment",
     "Supply-Chain Resilience",
-    "Environmental & Resources Impact",
+    "Environmental & Resource Impact",
     "Institutional Governance",
     "Geopolitical Security"
 ]
@@ -111,7 +111,7 @@ THEME_DESCRIPTIONS = {
     "Supply-Chain Resilience":
         "Market diversification and critical supply chains.",
 
-    "Environmental & Resources Impact":
+    "Environmental & Resource Impact":
         "Energy, water, land, mining, and ecological impacts.",
 
     "Institutional Governance":
