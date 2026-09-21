@@ -2,7 +2,8 @@ name: Daily News Fetch
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 1:00 AM UTC = 9:00 AM Manila time — safely after the UTC midnight quota reset
+    - cron: '0 1 * * *'   # 1:00 AM UTC = 9:00 AM Manila time
+    - cron: '0 11 * * *'  # 11:00 AM UTC = 7:00 PM Manila time
   workflow_dispatch:
 
 jobs:
