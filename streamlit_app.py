@@ -86,9 +86,9 @@ def load_data():
 THEME_ORDER = [
     "Economic Development",
     "Technological Advancement",
-    "Human-Capital Upgrading",
+    "Human Capital & Employment",
     "Supply-Chain Resilience",
-    "Environmental & Resource Impacts",
+    "Environmental & Resource Impact",
     "Institutional Governance",
     "Geopolitical Security"
 ]
