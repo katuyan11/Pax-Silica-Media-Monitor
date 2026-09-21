@@ -58,7 +58,15 @@ WORLD_NEWS_URL = "https://api.worldnewsapi.com/search-news"
 # ---------------------------------------------------------
 RSS_SOURCES = {
     "GMA News": "https://data.gmanews.tv/gno/rss/news/feed.xml",
-    "Philippine Daily Inquirer": "https://www.inquirer.net/fullfeed",
+    "Philippine Daily Inquirer": "https://www.inquirer.net/feed",
+    "Philippine Daily Inquirer - Newsinfo":
+        "https://newsinfo.inquirer.net/feed",
+
+    "Philippine Daily Inquirer - Business":
+        "https://business.inquirer.net/feed",
+
+    "Philippine Daily Inquirer - Global Nation":
+        "https://globalnation.inquirer.net/feed",
     "Manila Bulletin": "https://mb.com.ph/rss/articles",
     "Philippine Star": "https://www.philstar.com/rss/headlines",
     "Rappler": "https://www.rappler.com/feed/",
