@@ -134,7 +134,7 @@ THEME_KEYWORDS = {
         "industrial corridor"
     ],
 
-    "Environmental & Resources Impact": [
+    "Environmental & Resource Impact": [
         "water",
         "water table",
         "water depletion",
