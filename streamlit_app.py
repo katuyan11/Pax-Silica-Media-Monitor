@@ -88,7 +88,7 @@ THEME_ORDER = [
     "Technological Advancement",
     "Human Capital & Employment",
     "Supply-Chain Resilience",
-    "Environmental & Resource Impact",
+    "Environmental & Resources Impact",
     "Institutional Governance",
     "Geopolitical Security"
 ]
@@ -105,13 +105,13 @@ THEME_DESCRIPTIONS = {
     "Technological Advancement":
         "Semiconductors, AI, data centers, and technology transfer.",
 
-    "Human-Capital & Employment":
+    "Human Capital & Employment":
         "Workforce skills, training, and technical jobs.",
 
     "Supply-Chain Resilience":
         "Market diversification and critical supply chains.",
 
-    "Environmental & Resource Impact":
+    "Environmental & Resources Impact":
         "Energy, water, land, mining, and ecological impacts.",
 
     "Institutional Governance":
