@@ -560,12 +560,8 @@ else:
         )
 
         st.caption(
-            "Stance is identified by looking for predefined words "
-            "and phrases that indicate supportive or critical language "
-            "in the available article text. The classifier counts "
-            "these indicators and assigns the stance with the stronger "
-            "signal. Articles with no clear predominance are classified "
-            "as Neutral."
+            "Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. 
+            This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position."
         )
 
         stance_counts = (
