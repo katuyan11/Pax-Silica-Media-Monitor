@@ -105,13 +105,13 @@ THEME_DESCRIPTIONS = {
     "Technological Advancement":
         "Semiconductors, AI, data centers, and technology transfer.",
 
-    "Human-Capital Upgrading":
+    "Human-Capital & Employment":
         "Workforce skills, training, and technical jobs.",
 
     "Supply-Chain Resilience":
         "Market diversification and critical supply chains.",
 
-    "Environmental & Resource Impacts":
+    "Environmental & Resource Impact":
         "Energy, water, land, mining, and ecological impacts.",
 
     "Institutional Governance":
