@@ -215,6 +215,7 @@ def get_top_terms(
 # ============================================================
 
 if st.button("Refresh Data"):
+
     st.cache_data.clear()
     st.rerun()
 
@@ -264,7 +265,6 @@ else:
         .str.title()
     )
 
-    # Keep only the three defined stance categories
     bubble_df = bubble_df[
         bubble_df["stance"].isin(
             [
@@ -323,13 +323,34 @@ else:
 
 
     # --------------------------------------------------------
+    # FORCE THEME COLUMN INTO FIXED CATEGORY ORDER
+    #
+    # This is important because all seven themes need to
+    # remain part of the categorical axis, even when one
+    # has zero associated articles.
+    # --------------------------------------------------------
+
+    bubble_df["themes"] = pd.Categorical(
+        bubble_df["themes"],
+        categories=THEME_ORDER,
+        ordered=True
+    )
+
+
+    # --------------------------------------------------------
     # Calculate total articles per theme
     # across the entire monitoring period
+    #
+    # observed=False ensures categorical themes are retained
+    # during grouping.
     # --------------------------------------------------------
 
     theme_totals = (
         bubble_df
-        .groupby("themes")
+        .groupby(
+            "themes",
+            observed=False
+        )
         .size()
         .reindex(
             THEME_ORDER,
@@ -339,8 +360,34 @@ else:
 
 
     # --------------------------------------------------------
+    # Create Y-axis labels with theme totals
+    # --------------------------------------------------------
+
+    theme_labels = {
+        theme: f"{theme} ({theme_totals[theme]})"
+        for theme in THEME_ORDER
+    }
+
+
+    # --------------------------------------------------------
+    # Complete list of theme labels.
+    #
+    # This explicitly defines all seven possible Y-axis
+    # categories, including themes with zero articles.
+    # --------------------------------------------------------
+
+    all_theme_labels = [
+        theme_labels[theme]
+        for theme in THEME_ORDER
+    ]
+
+
+    # --------------------------------------------------------
     # Aggregate articles by:
     # date + theme + stance
+    #
+    # observed=False preserves the complete categorical
+    # theme structure.
     # --------------------------------------------------------
 
     bubble_data = (
@@ -350,7 +397,8 @@ else:
                 "date",
                 "themes",
                 "stance"
-            ]
+            ],
+            observed=False
         )
         .size()
         .reset_index(
@@ -370,13 +418,8 @@ else:
 
 
     # --------------------------------------------------------
-    # Create Y-axis labels with theme totals
+    # Create theme labels
     # --------------------------------------------------------
-
-    theme_labels = {
-        theme: f"{theme} ({theme_totals[theme]})"
-        for theme in THEME_ORDER
-    }
 
     bubble_data["theme_label"] = (
         bubble_data["themes"]
@@ -385,23 +428,19 @@ else:
 
 
     # --------------------------------------------------------
-    # Force themes into fixed categorical order
+    # Force theme labels into fixed categorical order
     # --------------------------------------------------------
-
-    bubble_data["themes"] = pd.Categorical(
-        bubble_data["themes"],
-        categories=THEME_ORDER,
-        ordered=True
-    )
 
     bubble_data["theme_label"] = pd.Categorical(
         bubble_data["theme_label"],
-        categories=[
-            theme_labels[theme]
-            for theme in THEME_ORDER
-        ],
+        categories=all_theme_labels,
         ordered=True
     )
+
+
+    # --------------------------------------------------------
+    # Sort data
+    # --------------------------------------------------------
 
     bubble_data = bubble_data.sort_values(
         [
@@ -419,10 +458,15 @@ else:
 
         fig_bubble = px.scatter(
             bubble_data,
+
             x="date",
+
             y="theme_label",
+
             size="article_count",
+
             color="stance",
+
             size_max=45,
 
             hover_name="theme_label",
@@ -436,10 +480,8 @@ else:
             },
 
             category_orders={
-                "theme_label": [
-                    theme_labels[theme]
-                    for theme in THEME_ORDER
-                ],
+                "theme_label": all_theme_labels,
+
                 "stance": [
                     "Supportive",
                     "Neutral",
@@ -458,15 +500,12 @@ else:
 
 
         # ----------------------------------------------------
-        # Keep theme rows fixed
+        # Explicitly force all seven themes onto Y-axis
         # ----------------------------------------------------
 
         fig_bubble.update_yaxes(
             categoryorder="array",
-            categoryarray=[
-                theme_labels[theme]
-                for theme in THEME_ORDER
-            ]
+            categoryarray=all_theme_labels
         )
 
 
@@ -482,6 +521,10 @@ else:
             hovermode="closest"
         )
 
+
+        # ----------------------------------------------------
+        # Display chart
+        # ----------------------------------------------------
 
         st.plotly_chart(
             fig_bubble,
@@ -564,7 +607,7 @@ else:
         )
 
         st.caption(
-            """Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. 
+            """Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral.
             This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position."""
         )
 
@@ -585,8 +628,11 @@ else:
 
         fig_stance = px.pie(
             stance_counts,
+
             names="stance",
+
             values="count",
+
             category_orders={
                 "stance": [
                     "Supportive",
