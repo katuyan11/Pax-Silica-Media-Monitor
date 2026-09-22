@@ -7,3 +7,4 @@ google-auth>=2.30
 feedparser
 nltk
 wordcloud
+trafilatura
