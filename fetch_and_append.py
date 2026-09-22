@@ -425,22 +425,140 @@ EXCLUDE_TERMS = [
 ]
 
 SECONDARY_TERMS = [
-    "new clark city", "clark freeport", "tarlac ai hub",
-    "economic security zone", "bcda", "aeta ancestral domain",
-    "semiconductor hub", "data center philippines",
+    "new clark city",
+    "clark freeport",
+    "tarlac ai hub",
+    "economic security zone",
+    "bcda",
+    "aeta ancestral domain",
+    "semiconductor hub",
+    "data center philippines",
+
+    # Geopolitical / security relevance
+    "geopolitics",
+    "geopolitical",
+    "national security",
+    "economic security",
+    "strategic alignment",
+    "strategic partnership",
+    "strategic cooperation",
+    "strategic dependence",
+    "strategic dependency",
+    "security implications",
+    "security cooperation",
+    "defense cooperation",
+    "defence cooperation",
+    "indo-pacific",
+    "us-china",
+    "u.s.-china",
+    "united states",
+    "china",
+    "beijing",
+    "washington",
+    "sovereignty",
+    "critical infrastructure",
 ]
 
 def is_relevant(row) -> bool:
-    combined = f"{row['title']} {row['description']}".lower()
 
-    if any(term in combined for term in EXCLUDE_TERMS):
+    combined = (
+        f"{row['title']} "
+        f"{row['description']}"
+    ).lower()
+
+    # ---------------------------------------------------------
+    # Explicit exclusions
+    # ---------------------------------------------------------
+
+    if any(
+        term in combined
+        for term in EXCLUDE_TERMS
+    ):
         return False
 
-    if any(term in combined for term in ANCHOR_TERMS):
+    # ---------------------------------------------------------
+    # Strongest signal:
+    # Pax Silica is explicitly mentioned
+    # ---------------------------------------------------------
+
+    if any(
+        term in combined
+        for term in ANCHOR_TERMS
+    ):
         return True
 
-    secondary_hits = sum(term in combined for term in SECONDARY_TERMS)
-    return secondary_hits >= 2
+    # ---------------------------------------------------------
+    # Standard Pax Silica ecosystem terms
+    # Require at least TWO
+    # ---------------------------------------------------------
+
+    standard_terms = [
+        "new clark city",
+        "clark freeport",
+        "tarlac ai hub",
+        "economic security zone",
+        "bcda",
+        "aeta ancestral domain",
+        "semiconductor hub",
+        "data center philippines",
+    ]
+
+    standard_hits = sum(
+        term in combined
+        for term in standard_terms
+    )
+
+    if standard_hits >= 2:
+        return True
+
+    # ---------------------------------------------------------
+    # Geopolitical/security terms
+    # Require a geopolitical term PLUS a
+    # Pax Silica ecosystem term
+    # ---------------------------------------------------------
+
+    geopolitical_terms = [
+        "geopolitics",
+        "geopolitical",
+        "national security",
+        "economic security",
+        "strategic alignment",
+        "strategic partnership",
+        "strategic cooperation",
+        "strategic dependence",
+        "strategic dependency",
+        "security implications",
+        "security cooperation",
+        "defense cooperation",
+        "defence cooperation",
+        "indo-pacific",
+        "us-china",
+        "u.s.-china",
+        "united states",
+        "china",
+        "beijing",
+        "washington",
+        "sovereignty",
+        "critical infrastructure",
+    ]
+
+    geopolitical_hits = sum(
+        term in combined
+        for term in geopolitical_terms
+    )
+
+    ecosystem_hits = sum(
+        term in combined
+        for term in standard_terms
+    )
+
+    if (
+        geopolitical_hits >= 1
+        and ecosystem_hits >= 1
+    ):
+        return True
+
+    return False
 
 
 # ---------------------------------------------------------
