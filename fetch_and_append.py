@@ -244,6 +244,8 @@ THEME_KEYWORDS = {
         "moratorium",
         "activist",
         "walkout",
+        "dialogue",
+        "multi-stakeholder dialogue",
         "criticize"
     ],
 
