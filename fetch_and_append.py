@@ -6,73 +6,34 @@ import gspread
 import feedparser
 
 from google.oauth2.service_account import Credentials
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 
 
-# ---------------------------------------------------------
-# DEBUG
-# ---------------------------------------------------------
-print("FETCH SCRIPT STARTED")
+# ============================================================
+# CONFIG
+# ============================================================
 
-
-# ---------------------------------------------------------
-# CREDENTIALS
-# (from GitHub Actions Secrets, not a local file)
-# ---------------------------------------------------------
-WORLD_NEWS_API_KEY = os.environ["WORLD_NEWS_API_KEY"].strip()
-
-print(
-    f"DEBUG: key length = {len(WORLD_NEWS_API_KEY)}, "
-    f"first 4 chars = {WORLD_NEWS_API_KEY[:4]}, "
-    f"last 4 chars = {WORLD_NEWS_API_KEY[-4:]}"
-)
-
-GOOGLE_SERVICE_ACCOUNT_JSON = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
-SHEET_ID = os.environ["GOOGLE_SHEET_ID"]
-
-SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-
-creds_dict = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
-
-creds = Credentials.from_service_account_info(
-    creds_dict,
-    scopes=SCOPES
-)
-
-gc = gspread.authorize(creds)
-
-sheet = gc.open_by_key(SHEET_ID).sheet1
-
-
-# ---------------------------------------------------------
-# WORLD NEWS API
-# ---------------------------------------------------------
 WORLD_NEWS_URL = "https://api.worldnewsapi.com/search-news"
 
+SHEET_TAB_NAME = "Clean_Data"
 
-# ---------------------------------------------------------
-# RSS SOURCES
-# ---------------------------------------------------------
-RSS_SOURCES = {
-    "GMA News": "https://data.gmanews.tv/gno/rss/news/feed.xml",
-    "Philippine Daily Inquirer": "https://www.inquirer.net/feed",
-    "Philippine Daily Inquirer - Newsinfo":
-        "https://newsinfo.inquirer.net/feed",
-
-    "Philippine Daily Inquirer - Business":
-        "https://business.inquirer.net/feed",
-
-    "Philippine Daily Inquirer - Global Nation":
-        "https://globalnation.inquirer.net/feed",
-    "Manila Bulletin": "https://mb.com.ph/rss/articles",
-    "Philippine Star": "https://www.philstar.com/rss/headlines",
+RSS_FEEDS = {
+    "GMA News": "https://www.gmanetwork.com/news/rss/",
+    "Inquirer": "https://newsinfo.inquirer.net/feed",
+    "Inquirer Newsinfo": "https://newsinfo.inquirer.net/feed",
+    "Inquirer Business": "https://business.inquirer.net/feed",
+    "Inquirer Global Nation": "https://globalnation.inquirer.net/feed",
+    "Manila Bulletin": "https://mb.com.ph/feed/",
+    "Philstar": "https://www.philstar.com/rss/headlines",
     "Rappler": "https://www.rappler.com/feed/",
-    "Philippine News Agency": "https://www.pna.gov.ph/latest.rss",
-    "Abante": "https://www.abante.com.ph/feed",
+    "PNA": "https://www.pna.gov.ph/rss",
+    "Abante": "https://www.abante.com.ph/feed/",
 }
+
+
+# ============================================================
+# KEYWORDS
+# ============================================================
 
 RSS_KEYWORDS = [
     "pax silica",
@@ -88,28 +49,15 @@ RSS_KEYWORDS = [
 ]
 
 
-# ---------------------------------------------------------
-# SEARCH TOPICS (World News API)
-# ---------------------------------------------------------
-default_topics = [
-
-    # Core identity
+DEFAULT_TOPICS = [
     "Pax Silica",
-    "Pax Silica Philippines",
-    "Pax Silica Summit",
-
-    # Location & project terms
     "New Clark City",
     "Clark Freeport",
     "Tarlac AI hub",
-
-    # Government / policy
     "BCDA",
     "DICT Pax Silica",
     "Economic Security Zone",
     "AI data center Philippines",
-
-    # Civil society & environment
     "Makabayan bloc Pax Silica",
     "IBON Foundation Pax Silica",
     "Aeta ancestral domain",
@@ -119,11 +67,11 @@ default_topics = [
 ]
 
 
-# ---------------------------------------------------------
+# ============================================================
 # THEME CLASSIFICATION
-# ---------------------------------------------------------
-THEME_KEYWORDS = {
+# ============================================================
 
+THEME_KEYWORDS = {
     "Economic Development": [
         "investment",
         "jobs",
@@ -136,7 +84,7 @@ THEME_KEYWORDS = {
         "manufacturing",
         "corridor",
         "value chain",
-        "industrial corridor"
+        "industrial corridor",
     ],
 
     "Environmental & Resource Impact": [
@@ -161,7 +109,7 @@ THEME_KEYWORDS = {
         "displacement",
         "indigenous",
         "resettlement",
-        "land rights"
+        "land rights",
     ],
 
     "Technological Advancement": [
@@ -178,7 +126,7 @@ THEME_KEYWORDS = {
         "technology transfer",
         "digital infrastructure",
         "computing infrastructure",
-        "advanced manufacturing"
+        "advanced manufacturing",
     ],
 
     "Human Capital & Employment": [
@@ -197,7 +145,7 @@ THEME_KEYWORDS = {
         "job creation",
         "employment opportunities",
         "upskilling",
-        "reskilling"
+        "reskilling",
     ],
 
     "Supply-Chain Resilience": [
@@ -217,7 +165,7 @@ THEME_KEYWORDS = {
         "single market",
         "alternative markets",
         "trusted partners",
-        "economic resilience"
+        "economic resilience",
     ],
 
     "Institutional Governance": [
@@ -246,182 +194,96 @@ THEME_KEYWORDS = {
         "walkout",
         "dialogue",
         "multi-stakeholder dialogue",
-        "criticize"
+        "criticize",
     ],
 
     "Geopolitical Security": [
-        # Geopolitical concepts
+        "coercive dependencies",
+        "civilian industrial zone",
+        "supply chain security",
         "geopolitics",
-        "geopolitical",
-        "geopolitical security",
         "national security",
-        "economic security",
-        "security implications",
-        "security concern",
-        "security concerns",
-    
-        # Strategic concepts
         "strategic alignment",
-        "strategic partnership",
-        "strategic partner",
-        "strategic cooperation",
         "strategic dependence",
         "strategic dependency",
-        "strategic interests",
-        "strategic importance",
-        "strategic position",
-        "strategic advantage",
-        "strategic autonomy",
-        "strategic competition",
-        "strategic rival",
-    
-        # Alliances / international relations
-        "alliance",
-        "allied",
-        "ally",
-        "bilateral relations",
-        "international relations",
-        "foreign policy",
-        "diplomatic relations",
-        "diplomatic",
-        "bilateral partnership",
-        "bilateral cooperation",
-    
-        # Major geopolitical actors
+        "security implications",
+        "economic security",
         "china",
-        "beijing",
-        "united states",
-        "u.s.",
-        "u.s.-china",
-        "us-china",
-        "america",
-        "american",
-        "washington",
-    
-        # Regional security
-        "indo-pacific",
-        "asia-pacific",
-        "regional security",
-        "territorial security",
-        "maritime security",
-        "defense cooperation",
-        "defence cooperation",
-        "national defense",
-        "national defence",
-        "military",
-        "defense",
-        "defence",
-    
-        # Sovereignty / strategic control
-        "sovereignty",
-        "sovereign",
-        "territorial",
-        "strategic infrastructure",
-        "critical infrastructure",
-        "security architecture",
-        "security cooperation",
-    
-        # Supply-chain security
-        "supply chain security",
-        "coercive dependencies",
-        "coercive dependency",
-        "economic coercion",
-        "strategic dependencies",
-        "trusted partners",
-        "strategic supply chain"
     ],
 }
 
 
-# ---------------------------------------------------------
-# STANCE CLASSIFICATION
-# ---------------------------------------------------------
 SUPPORTIVE_WORDS = [
-    "boost",
-    "growth",
-    "opportunity",
-    "partnership",
-    "investment surge",
-    "milestone",
+    "support",
+    "supports",
+    "supported",
+    "back",
+    "backs",
+    "backed",
+    "welcome",
+    "welcomes",
     "welcomed",
-    "progress",
-    "modernization",
-    "development",
+    "approve",
+    "approved",
+    "benefit",
+    "benefits",
+    "opportunity",
+    "opportunities",
+    "growth",
+    "investment",
     "job creation",
-    "breakthrough"
+    "development",
+    "expansion",
 ]
+
 
 CRITICAL_WORDS = [
-    "displacement",
-    "protest",
+    "oppose",
+    "opposes",
+    "opposed",
+    "criticize",
+    "criticizes",
+    "criticized",
+    "criticism",
     "concern",
-    "threat",
-    "backlash",
-    "depletion",
-    "violation",
-    "harm",
+    "concerns",
     "risk",
-    "opposition",
-    "exploitation",
-    "controversy",
-    "outcry",
-    "worse"
+    "risks",
+    "threat",
+    "threatens",
+    "environmental damage",
+    "displacement",
+    "pollution",
+    "depletion",
+    "moratorium",
+    "protest",
+    "protests",
+    "protested",
+    "reject",
+    "rejected",
 ]
 
 
-# ---------------------------------------------------------
-# THEME CLASSIFIER
-# ---------------------------------------------------------
-def classify_themes(text: str) -> str:
+# ============================================================
+# RELEVANCE FILTER
+# ============================================================
 
-    text_lower = text.lower()
-
-    matched = [
-        theme
-        for theme, kws in THEME_KEYWORDS.items()
-        if any(k in text_lower for k in kws)
-    ]
-
-    return ", ".join(matched) if matched else "Uncategorized"
-
-
-# ---------------------------------------------------------
-# STANCE CLASSIFIER
-# ---------------------------------------------------------
-def classify_stance(text: str) -> str:
-
-    text_lower = text.lower()
-
-    support = sum(
-        w in text_lower
-        for w in SUPPORTIVE_WORDS
-    )
-
-    critical = sum(
-        w in text_lower
-        for w in CRITICAL_WORDS
-    )
-
-    if support > critical:
-        return "Supportive"
-
-    elif critical > support:
-        return "Critical"
-
-    return "Neutral"
-
-
-# ---------------------------------------------------------
-# RELEVANCE FILTER (layered / funnel approach)
-# ---------------------------------------------------------
 ANCHOR_TERMS = [
     "pax silica",
 ]
 
 EXCLUDE_TERMS = [
-    "cayetano", "cebu pacific", "condo for sale", "house and lot",
-    "job vacancy", "job opening", "hiring now", "flight promo",
-    "concert", "basketball", "showbiz",
+    "cayetano",
+    "cebu pacific",
+    "condo for sale",
+    "house and lot",
+    "job vacancy",
+    "job opening",
+    "hiring now",
+    "flight promo",
+    "concert",
+    "basketball",
+    "showbiz",
 ]
 
 SECONDARY_TERMS = [
@@ -433,523 +295,591 @@ SECONDARY_TERMS = [
     "aeta ancestral domain",
     "semiconductor hub",
     "data center philippines",
-
-    # Geopolitical / security relevance
-    "geopolitics",
-    "geopolitical",
-    "national security",
-    "economic security",
-    "strategic alignment",
-    "strategic partnership",
-    "strategic cooperation",
-    "strategic dependence",
-    "strategic dependency",
-    "security implications",
-    "security cooperation",
-    "defense cooperation",
-    "defence cooperation",
-    "indo-pacific",
-    "us-china",
-    "u.s.-china",
-    "united states",
-    "china",
-    "beijing",
-    "washington",
-    "sovereignty",
-    "critical infrastructure",
 ]
 
+
 def is_relevant(row) -> bool:
-
-    combined = (
-        f"{row['title']} "
-        f"{row['description']}"
-    ).lower()
-
-    # ---------------------------------------------------------
-    # Explicit exclusions
-    # ---------------------------------------------------------
-
-    if any(
-        term in combined
-        for term in EXCLUDE_TERMS
-    ):
-        return False
-
-    # ---------------------------------------------------------
-    # Strongest signal:
-    # Pax Silica is explicitly mentioned
-    # ---------------------------------------------------------
-
-    if any(
-        term in combined
-        for term in ANCHOR_TERMS
-    ):
-        return True
-
-    # ---------------------------------------------------------
-    # Standard Pax Silica ecosystem terms
-    # Require at least TWO
-    # ---------------------------------------------------------
-
-    standard_terms = [
-        "new clark city",
-        "clark freeport",
-        "tarlac ai hub",
-        "economic security zone",
-        "bcda",
-        "aeta ancestral domain",
-        "semiconductor hub",
-        "data center philippines",
-    ]
-
-    standard_hits = sum(
-        term in combined
-        for term in standard_terms
-    )
-
-    if standard_hits >= 2:
-        return True
-
-    # ---------------------------------------------------------
-    # Geopolitical/security terms
-    # Require a geopolitical term PLUS a
-    # Pax Silica ecosystem term
-    # ---------------------------------------------------------
-
-    geopolitical_terms = [
-        "geopolitics",
-        "geopolitical",
-        "national security",
-        "economic security",
-        "strategic alignment",
-        "strategic partnership",
-        "strategic cooperation",
-        "strategic dependence",
-        "strategic dependency",
-        "security implications",
-        "security cooperation",
-        "defense cooperation",
-        "defence cooperation",
-        "indo-pacific",
-        "us-china",
-        "u.s.-china",
-        "united states",
-        "china",
-        "beijing",
-        "washington",
-        "sovereignty",
-        "critical infrastructure",
-    ]
-
-    geopolitical_hits = sum(
-        term in combined
-        for term in geopolitical_terms
-    )
-
-    ecosystem_hits = sum(
-        term in combined
-        for term in standard_terms
-    )
-
-    if (
-        geopolitical_hits >= 1
-        and ecosystem_hits >= 1
-    ):
-        return True
-
-    return False
-
-
-# ---------------------------------------------------------
-# WORLD NEWS API
-# ---------------------------------------------------------
-def fetch_news(
-    topics,
-    days_back=20,
-    page_size=20
-):
-    """Fetch news from World News API's search-news endpoint,
-    filtered to Philippine sources.
+    """
+    Determines whether an article is sufficiently related
+    to Pax Silica / its Philippine economic-security ecosystem.
     """
 
-    print("Starting World News API fetch...")
+    combined = (
+        f"{row.get('title', '')} "
+        f"{row.get('description', '')}"
+    ).lower()
 
-    from_date = (
-        datetime.now() - timedelta(days=days_back)
-    ).strftime("%Y-%m-%d")
+    # Exclude clearly unrelated content.
+    if any(term in combined for term in EXCLUDE_TERMS):
+        return False
 
-    all_articles = []
+    # Direct Pax Silica mention.
+    if any(term in combined for term in ANCHOR_TERMS):
+        return True
 
-    for topic in topics:
+    # Otherwise require at least two secondary indicators.
+    secondary_hits = sum(
+        term in combined
+        for term in SECONDARY_TERMS
+    )
+
+    return secondary_hits >= 2
+
+
+# ============================================================
+# CLASSIFIERS
+# ============================================================
+
+def classify_themes(text):
+    text = str(text or "").lower()
+
+    matched_themes = []
+
+    for theme, keywords in THEME_KEYWORDS.items():
+        if any(keyword.lower() in text for keyword in keywords):
+            matched_themes.append(theme)
+
+    if not matched_themes:
+        return "Uncategorized"
+
+    return ", ".join(matched_themes)
+
+
+def classify_stance(text):
+    text = str(text or "").lower()
+
+    supportive_hits = sum(
+        keyword in text
+        for keyword in SUPPORTIVE_WORDS
+    )
+
+    critical_hits = sum(
+        keyword in text
+        for keyword in CRITICAL_WORDS
+    )
+
+    if supportive_hits > critical_hits:
+        return "Supportive"
+
+    if critical_hits > supportive_hits:
+        return "Critical"
+
+    return "Neutral"
+
+
+# ============================================================
+# GOOGLE SHEETS
+# ============================================================
+
+EXPECTED_COLUMNS = [
+    "topic",
+    "title",
+    "description",
+    "source",
+    "url",
+    "published_at",
+    "themes",
+    "stance",
+    "fetched_at",
+]
+
+
+def get_google_sheet():
+    """
+    Connect to the Google Spreadsheet and explicitly return
+    the Clean_Data worksheet.
+    """
+
+    service_account_json = os.environ.get(
+        "GOOGLE_SERVICE_ACCOUNT_JSON"
+    )
+
+    sheet_id = os.environ.get(
+        "GOOGLE_SHEET_ID"
+    )
+
+    if not service_account_json:
+        raise RuntimeError(
+            "GOOGLE_SERVICE_ACCOUNT_JSON environment variable is missing."
+        )
+
+    if not sheet_id:
+        raise RuntimeError(
+            "GOOGLE_SHEET_ID environment variable is missing."
+        )
+
+    credentials_info = json.loads(service_account_json)
+
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    credentials = Credentials.from_service_account_info(
+        credentials_info,
+        scopes=scopes,
+    )
+
+    gc = gspread.authorize(credentials)
+
+    spreadsheet = gc.open_by_key(sheet_id)
+
+    # --------------------------------------------------------
+    # IMPORTANT:
+    # Explicitly use Clean_Data instead of spreadsheet.sheet1
+    # --------------------------------------------------------
+
+    try:
+        worksheet = spreadsheet.worksheet(SHEET_TAB_NAME)
+
+    except gspread.WorksheetNotFound:
+        print(
+            f"Worksheet '{SHEET_TAB_NAME}' not found. "
+            f"Creating it now..."
+        )
+
+        worksheet = spreadsheet.add_worksheet(
+            title=SHEET_TAB_NAME,
+            rows=1000,
+            cols=len(EXPECTED_COLUMNS),
+        )
+
+        worksheet.append_row(
+            EXPECTED_COLUMNS,
+            value_input_option="USER_ENTERED",
+        )
+
+    return worksheet
+
+
+def ensure_headers(sheet):
+    """
+    Make sure Clean_Data has the expected headers.
+    """
+
+    first_row = sheet.row_values(1)
+
+    if not first_row:
+        sheet.append_row(
+            EXPECTED_COLUMNS,
+            value_input_option="USER_ENTERED",
+        )
+        return
+
+    # If the sheet exists but has no expected header structure,
+    # initialize the first row.
+    if first_row[:len(EXPECTED_COLUMNS)] != EXPECTED_COLUMNS:
+        print(
+            "Warning: Clean_Data headers do not match expected "
+            "column structure."
+        )
 
         print(
-            f"Searching World News API: {topic}"
+            f"Existing headers: {first_row}"
+        )
+
+        print(
+            f"Expected headers: {EXPECTED_COLUMNS}"
+        )
+
+
+# ============================================================
+# WORLD NEWS API
+# ============================================================
+
+def fetch_world_news():
+    api_key = os.environ.get(
+        "WORLD_NEWS_API_KEY"
+    )
+
+    if not api_key:
+        raise RuntimeError(
+            "WORLD_NEWS_API_KEY environment variable is missing."
+        )
+
+    articles = []
+
+    for topic in DEFAULT_TOPICS:
+
+        print(
+            f"Fetching World News API topic: {topic}"
         )
 
         params = {
-            "api-key": WORLD_NEWS_API_KEY,
             "text": topic,
-            "source-country": "ph",
             "language": "en",
-            "earliest-publish-date": from_date,
-            "number": page_size,
+            "number": 50,
+        }
+
+        headers = {
+            "x-api-key": api_key,
         }
 
         try:
-
-            resp = requests.get(
+            response = requests.get(
                 WORLD_NEWS_URL,
                 params=params,
-                timeout=10
+                headers=headers,
+                timeout=30,
             )
 
-        except requests.exceptions.RequestException as e:
+            response.raise_for_status()
 
+            data = response.json()
+
+        except Exception as e:
             print(
-                f"Request failed for '{topic}': {e}"
+                f"World News API error for '{topic}': {e}"
             )
-
             continue
 
-        if resp.status_code != 200:
+        for article in data.get("news", []):
 
-            print(
-                f"World News API error for '{topic}' "
-                f"(status {resp.status_code}): "
-                f"{resp.text[:150]}"
-            )
+            title = (
+                article.get("title")
+                or ""
+            ).strip()
 
-            continue
-
-        data = resp.json()
-
-        articles = data.get("news", [])
-
-        print(
-            f"  → {len(articles)} articles returned"
-        )
-
-        for article in articles:
-
-            title = article.get("title") or ""
-
-            text_snippet = (
+            description = (
                 article.get("summary")
-                or (
-                    article.get("text", "") or ""
-                )[:300]
-            )
+                or article.get("text")
+                or ""
+            ).strip()
+
+            url = (
+                article.get("url")
+                or ""
+            ).strip()
+
+            if not title or not url:
+                continue
+
+            row = {
+                "topic": topic,
+                "title": title,
+                "description": description,
+                "source": (
+                    article.get("source")
+                    or article.get("author")
+                    or "World News API"
+                ),
+                "url": url,
+                "published_at": (
+                    article.get("publish_date")
+                    or article.get("published")
+                    or ""
+                ),
+            }
+
+            if not is_relevant(row):
+                continue
 
             full_text = (
-                f"{title} {text_snippet}"
+                f"{title} {description}"
             )
 
-            all_articles.append({
+            row["themes"] = classify_themes(
+                full_text
+            )
 
-                "topic": topic,
+            row["stance"] = classify_stance(
+                full_text
+            )
 
-                "title": title,
+            row["fetched_at"] = datetime.now(
+                timezone.utc
+            ).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
 
-                "description": text_snippet,
+            articles.append(row)
 
-                "source": article.get(
-                    "source_country",
-                    "Unknown"
-                ),
-
-                "url": article.get("url"),
-
-                "published_at": article.get(
-                    "publish_date"
-                ),
-
-                "themes": classify_themes(
-                    full_text
-                ),
-
-                "stance": classify_stance(
-                    full_text
-                ),
-
-                "fetched_at": datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                ),
-            })
-
-    return pd.DataFrame(all_articles)
+    return articles
 
 
-# ---------------------------------------------------------
-# RSS FEEDS (multi-source)
-# ---------------------------------------------------------
-def fetch_rss_feed(
-    source_name: str,
-    feed_url: str,
-    days_back: int = 20
-) -> pd.DataFrame:
-    """Fetch and keyword-filter a single RSS feed for
-    Pax Silica-related coverage.
-    """
+# ============================================================
+# RSS
+# ============================================================
 
-    print(f"Starting {source_name} RSS fetch...")
+def fetch_rss_articles():
+    articles = []
 
-    cutoff_date = datetime.now() - timedelta(days=days_back)
-
-    all_articles = []
-
-    try:
-
-        feed = feedparser.parse(feed_url)
+    for source_name, feed_url in RSS_FEEDS.items():
 
         print(
-            f"{source_name} RSS: found "
-            f"{len(feed.entries)} feed entries."
+            f"Fetching RSS: {source_name}"
         )
+
+        try:
+            feed = feedparser.parse(feed_url)
+
+        except Exception as e:
+            print(
+                f"RSS error for {source_name}: {e}"
+            )
+            continue
 
         for entry in feed.entries:
 
-            title = entry.get("title") or ""
-            description = entry.get("summary") or ""
-            url = entry.get("link")
+            title = (
+                entry.get("title")
+                or ""
+            ).strip()
 
-            full_text = f"{title} {description}".lower()
+            description = (
+                entry.get("summary")
+                or entry.get("description")
+                or ""
+            ).strip()
 
-            matched_keywords = [
-                keyword
-                for keyword in RSS_KEYWORDS
-                if keyword in full_text
-            ]
+            url = (
+                entry.get("link")
+                or ""
+            ).strip()
 
-            if not matched_keywords:
+            if not title or not url:
                 continue
 
-            published_at = entry.get("published")
-            published_datetime = None
+            combined = (
+                f"{title} {description}"
+            ).lower()
 
-            if entry.get("published_parsed"):
-
-                try:
-
-                    published_datetime = datetime(
-                        *entry.published_parsed[:6]
-                    )
-
-                except Exception:
-
-                    published_datetime = None
-
-            if (
-                published_datetime
-                and published_datetime < cutoff_date
+            # RSS feed keyword filter.
+            if not any(
+                keyword.lower() in combined
+                for keyword in RSS_KEYWORDS
             ):
                 continue
 
-            themes = classify_themes(full_text)
-            stance = classify_stance(full_text)
-
-            all_articles.append({
-
-                "topic": ", ".join(matched_keywords),
-
+            row = {
+                "topic": "RSS",
                 "title": title,
-
                 "description": description,
-
                 "source": source_name,
-
                 "url": url,
-
-                "published_at": published_at,
-
-                "themes": themes,
-
-                "stance": stance,
-
-                "fetched_at": datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
+                "published_at": (
+                    entry.get("published")
+                    or entry.get("updated")
+                    or ""
                 ),
-            })
+            }
 
-    except Exception as e:
+            if not is_relevant(row):
+                continue
 
-        print(f"{source_name} RSS request failed: {e}")
+            full_text = (
+                f"{title} {description}"
+            )
 
-    print(
-        f"{source_name} RSS returned "
-        f"{len(all_articles)} relevant recent articles."
-    )
+            row["themes"] = classify_themes(
+                full_text
+            )
 
-    return pd.DataFrame(all_articles)
+            row["stance"] = classify_stance(
+                full_text
+            )
+
+            row["fetched_at"] = datetime.now(
+                timezone.utc
+            ).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
+            articles.append(row)
+
+    return articles
 
 
-def fetch_all_rss_news(days_back: int = 20) -> pd.DataFrame:
-    """Fetch and combine all configured RSS sources."""
+# ============================================================
+# NORMALIZE DATA
+# ============================================================
 
-    dfs = [
-        fetch_rss_feed(name, url, days_back)
-        for name, url in RSS_SOURCES.items()
-    ]
-
-    return pd.concat(dfs, ignore_index=True)
-
-
-# ---------------------------------------------------------
-# APPEND NEW ARTICLES TO GOOGLE SHEETS
-# ---------------------------------------------------------
-def append_new_articles_to_sheet(
-    df: pd.DataFrame
-):
-
-    if df.empty:
-
-        print(
-            "No articles fetched."
+def normalize_articles(articles):
+    if not articles:
+        return pd.DataFrame(
+            columns=EXPECTED_COLUMNS
         )
 
-        return
+    df = pd.DataFrame(articles)
 
-    columns = [
-        "topic",
-        "title",
-        "description",
-        "source",
-        "url",
-        "published_at",
-        "themes",
-        "stance",
-        "fetched_at",
+    for column in EXPECTED_COLUMNS:
+        if column not in df.columns:
+            df[column] = ""
+
+    df = df[EXPECTED_COLUMNS]
+
+    # Remove rows without URLs.
+    df = df[
+        df["url"].fillna("").astype(str).str.strip() != ""
     ]
 
-    df = df[columns]
-
-    print(
-        "Checking existing Google Sheets records..."
+    # Remove duplicate URLs within this fetch.
+    df = df.drop_duplicates(
+        subset=["url"],
+        keep="first",
     )
 
-    existing = sheet.get_all_records()
+    return df
 
-    existing_urls = (
-        {
-            row["url"]
-            for row in existing
-            if row.get("url")
-        }
-        if existing
-        else set()
-    )
+
+# ============================================================
+# APPEND ONLY NEW ARTICLES
+# ============================================================
+
+def append_new_articles_to_sheet(df, sheet):
+
+    if df.empty:
+        print(
+            "No relevant articles found."
+        )
+        return
+
+    ensure_headers(sheet)
 
     print(
-        f"Existing URLs in Google Sheets: "
+        f"Reading existing URLs from {SHEET_TAB_NAME}..."
+    )
+
+    existing_records = sheet.get_all_records()
+
+    existing_urls = set()
+
+    for record in existing_records:
+        url = str(
+            record.get("url", "")
+        ).strip()
+
+        if url:
+            existing_urls.add(url)
+
+    print(
+        f"Existing articles in {SHEET_TAB_NAME}: "
         f"{len(existing_urls)}"
     )
 
-    before_dedup = len(df)
-
-    df = df.drop_duplicates(
-        subset=["url"],
-        keep="first"
-    )
-
-    print(
-        f"Removed "
-        f"{before_dedup - len(df)} "
-        f"duplicate URLs from current fetch."
-    )
-
-    before_existing_filter = len(df)
-
-    df = df[
+    # Keep only articles not already in Clean_Data.
+    new_df = df[
         ~df["url"].isin(existing_urls)
-    ]
+    ].copy()
 
-    print(
-        f"Removed "
-        f"{before_existing_filter - len(df)} "
-        f"articles already in Google Sheets."
-    )
-
-    if df.empty:
-
+    if new_df.empty:
         print(
-            "No new unique articles to append."
+            "No new articles to append."
         )
-
         return
 
-    if not existing:
-
-        sheet.append_row(
-            columns
-        )
+    rows = new_df[
+        EXPECTED_COLUMNS
+    ].fillna("").values.tolist()
 
     sheet.append_rows(
-        df.fillna("").values.tolist()
+        rows,
+        value_input_option="USER_ENTERED",
     )
 
     print(
-        f"Appended {len(df)} "
-        f"new articles to Google Sheets."
+        f"Appended {len(rows)} new articles "
+        f"to '{SHEET_TAB_NAME}'."
     )
 
+    print(
+        "Themes found in appended articles:"
+    )
 
-# ---------------------------------------------------------
+    theme_counts = (
+        new_df["themes"]
+        .fillna("")
+        .str.split(", ")
+        .explode()
+        .value_counts()
+    )
+
+    for theme, count in theme_counts.items():
+        print(
+            f"  {theme}: {count}"
+        )
+
+
+# ============================================================
 # MAIN
-# ---------------------------------------------------------
-if __name__ == "__main__":
+# ============================================================
+
+def main():
+
+    print("=" * 60)
+    print("PAX SILICA PHILIPPINE NEWS FETCH")
+    print("=" * 60)
 
     print(
-        "Fetching news from World News API..."
+        f"Target Google Sheets tab: {SHEET_TAB_NAME}"
     )
 
-    api_df = fetch_news(
-        default_topics
+    # --------------------------------------------------------
+    # Connect directly to Clean_Data
+    # --------------------------------------------------------
+
+    sheet = get_google_sheet()
+
+    ensure_headers(sheet)
+
+    # --------------------------------------------------------
+    # Fetch World News API
+    # --------------------------------------------------------
+
+    world_news_articles = fetch_world_news()
+
+    print(
+        f"World News relevant articles: "
+        f"{len(world_news_articles)}"
+    )
+
+    # --------------------------------------------------------
+    # Fetch RSS
+    # --------------------------------------------------------
+
+    rss_articles = fetch_rss_articles()
+
+    print(
+        f"RSS relevant articles: "
+        f"{len(rss_articles)}"
+    )
+
+    # --------------------------------------------------------
+    # Combine
+    # --------------------------------------------------------
+
+    all_articles = (
+        world_news_articles
+        + rss_articles
     )
 
     print(
-        f"World News API returned "
-        f"{len(api_df)} articles."
+        f"Total relevant articles before "
+        f"deduplication: {len(all_articles)}"
+    )
+
+    df = normalize_articles(
+        all_articles
     )
 
     print(
-        "Fetching news from RSS feeds..."
+        f"Unique relevant articles: "
+        f"{len(df)}"
     )
 
-    rss_df = fetch_all_rss_news()
-
-    print(
-        f"RSS feeds returned "
-        f"{len(rss_df)} relevant recent articles total."
-    )
-
-    df = pd.concat(
-        [
-            api_df,
-            rss_df
-        ],
-        ignore_index=True
-    )
-
-    print(
-        f"Total articles before "
-        f"relevance filtering: {len(df)}"
-    )
-
-    before_relevance_filter = len(df)
-
-    if not df.empty:
-        df = df[df.apply(is_relevant, axis=1)]
-
-    print(
-        f"Removed "
-        f"{before_relevance_filter - len(df)} "
-        f"articles that did not pass the relevance filter."
-    )
-
-    print(
-        f"Total articles before deduplication: {len(df)}"
-    )
+    # --------------------------------------------------------
+    # Append to Clean_Data
+    # --------------------------------------------------------
 
     append_new_articles_to_sheet(
-        df
+        df,
+        sheet,
     )
+
+    print("=" * 60)
+    print("FETCH COMPLETE")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
