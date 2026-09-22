@@ -253,7 +253,8 @@ THEME_KEYWORDS = {
         "supply chain security",
         "geopolitics",
         "national security",
-        "strategic"
+        "strategic",
+        "China"
     ],
 }
 
