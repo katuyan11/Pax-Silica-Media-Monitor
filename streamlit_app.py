@@ -214,6 +214,10 @@ def get_top_terms(
 # LOAD DATA
 # ============================================================
 
+if st.button("Refresh Data"):
+    st.cache_data.clear()
+    st.rerun()
+
 df = load_data()
 
 
