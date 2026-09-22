@@ -1,1 +1,29 @@
-name: Daily News Fetch on: schedule: - cron: '0 1 * * *' # 1:00 AM UTC = 9:00 AM Manila time - cron: '0 11 * * *' # 11:00 AM UTC = 7:00 PM Manila time workflow_dispatch: jobs: fetch: runs-on: ubuntu-latest steps: - uses: actions/checkout@v4 - name: Set up Python uses: actions/setup-python@v5 with: python-version: '3.11' - name: Install dependencies run: pip install -r requirements.txt - name: Run fetch script env: WORLD_NEWS_API_KEY: ${{ secrets.WORLD_NEWS_API_KEY }} GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }} GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }} run: python fetch_and_append.py
+name: Daily News Fetch
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # 1:00 AM UTC = 9:00 AM Manila time
+    - cron: '0 11 * * *'  # 11:00 AM UTC = 7:00 PM Manila time
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run fetch script
+        env:
+          WORLD_NEWS_API_KEY: ${{ secrets.WORLD_NEWS_API_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python fetch_and_append.py
