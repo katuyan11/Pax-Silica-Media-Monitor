@@ -250,17 +250,85 @@ THEME_KEYWORDS = {
     ],
 
     "Geopolitical Security": [
-        "coercive dependencies",
-        "civilian industrial zone",
-        "supply chain security",
+        # Geopolitical concepts
         "geopolitics",
+        "geopolitical",
+        "geopolitical security",
         "national security",
+        "economic security",
+        "security implications",
+        "security concern",
+        "security concerns",
+    
+        # Strategic concepts
         "strategic alignment",
+        "strategic partnership",
+        "strategic partner",
+        "strategic cooperation",
         "strategic dependence",
         "strategic dependency",
-        "security implications",
-        "economic security",
-        "China",
+        "strategic interests",
+        "strategic importance",
+        "strategic position",
+        "strategic advantage",
+        "strategic autonomy",
+        "strategic competition",
+        "strategic rival",
+    
+        # Alliances / international relations
+        "alliance",
+        "allied",
+        "ally",
+        "bilateral relations",
+        "international relations",
+        "foreign policy",
+        "diplomatic relations",
+        "diplomatic",
+        "bilateral partnership",
+        "bilateral cooperation",
+    
+        # Major geopolitical actors
+        "china",
+        "beijing",
+        "united states",
+        "u.s.",
+        "u.s.-china",
+        "us-china",
+        "america",
+        "american",
+        "washington",
+    
+        # Regional security
+        "indo-pacific",
+        "asia-pacific",
+        "regional security",
+        "territorial security",
+        "maritime security",
+        "defense cooperation",
+        "defence cooperation",
+        "national defense",
+        "national defence",
+        "military",
+        "defense",
+        "defence",
+    
+        # Sovereignty / strategic control
+        "sovereignty",
+        "sovereign",
+        "territorial",
+        "strategic infrastructure",
+        "critical infrastructure",
+        "security architecture",
+        "security cooperation",
+    
+        # Supply-chain security
+        "supply chain security",
+        "coercive dependencies",
+        "coercive dependency",
+        "economic coercion",
+        "strategic dependencies",
+        "trusted partners",
+        "strategic supply chain"
     ],
 }
 
