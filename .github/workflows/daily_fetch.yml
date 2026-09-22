@@ -3,8 +3,8 @@ name: Daily News Fetch
 
 on:
   schedule:
-    - cron: '0 1 * * *'   # 1:00 AM UTC = 9:00 AM Manila time
-    - cron: '0 11 * * *'  # 11:00 AM UTC = 7:00 PM Manila time
+    - cron: '0 1 * * *'
+    - cron: '0 11 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,10 +28,5 @@ jobs:
           WORLD_NEWS_API_KEY: ${{ secrets.WORLD_NEWS_API_KEY }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
-
-          # Set to "true" temporarily for a one-time historical backfill.
-          # Leave as "false" for normal daily news collection.
-          BACKFILL: "false"
-
         run: python fetch_and_append.py
 ```
