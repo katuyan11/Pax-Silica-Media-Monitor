@@ -135,7 +135,8 @@ CRITICAL_WORDS = [
     "criticized", "criticism", "concern", "concerns", "risk", "risks",
     "threat", "threatens", "environmental damage", "displacement",
     "pollution", "depletion", "moratorium", "protest", "protests",
-    "protested", "reject", "rejected",
+    "protested", "reject", "rejected", "limbo", "fear", "misplaced",
+    "against", "protests", "protested", "derail",
 ]
 
 
