@@ -99,26 +99,46 @@ THEME_ORDER = [
 # ============================================================
 
 THEME_DESCRIPTIONS = {
-    "Economic Development":
-        "Investment, industry, and high-value manufacturing.",
 
-    "Technological Advancement":
-        "Semiconductors, AI, data centers, and technology transfer.",
+    "Economic Development":
+        "Pax Silica as an economic opportunity through investment, "
+        "industrial growth, high-value manufacturing, the Luzon Economic "
+        "Corridor, and concerns over potential economic dependency on "
+        "foreign partners.",
 
     "Human Capital & Employment":
-        "Workforce skills, training, and technical jobs.",
-
-    "Supply-Chain Resilience":
-        "Market diversification and critical supply chains.",
+        "Job creation, workforce readiness, technical training, labor "
+        "standards, and whether Pax Silica-related employment will benefit "
+        "local communities or depend on imported skilled labor.",
 
     "Environmental & Resource Impact":
-        "Energy, water, land, mining, and ecological impacts.",
-
-    "Institutional Governance":
-        "Regulation, accountability, and civil society responses.",
+        "Pax Silica’s impacts on energy, water, land, mining, food security, "
+        "displacement of indigenous peoples, and ecological conditions, "
+        "including concerns over power and water demand, critical-mineral "
+        "extraction, and environmental contamination.",
 
     "Geopolitical Security":
-        "Strategic alignment, sovereignty, and security."
+        "Coverage of Pax Silica as a strategic response to China, including "
+        "Philippine-US alliance dynamics, sovereignty and territorial "
+        "concerns, and the security vulnerabilities of critical "
+        "infrastructure and data centers.",
+
+    "Technological Advancement":
+        "Pax Silica’s development of semiconductors, AI, data centers, "
+        "advanced manufacturing, and technology transfer from international "
+        "partners.",
+
+    "Supply-Chain Resilience":
+        "Efforts to diversify and secure critical supply chains by reducing "
+        "dependence on China for semiconductors, rare earths, and advanced "
+        "manufacturing inputs while strengthening the Philippines’ role "
+        "in the coalition.",
+
+    "Institutional Governance":
+        "Coverage of government regulation, transparency, legislative "
+        "scrutiny, community and Indigenous opposition, civil society "
+        "mobilization, land and resource rights, policy critiques, and "
+        "competing pro- and anti-Pax Silica interpretations."
 }
 
 
@@ -235,34 +255,38 @@ if df.empty:
 else:
 
     # ========================================================
-    # RESEARCH QUESTION 1 + THEME DESCRIPTIONS
+    # RESEARCH QUESTION 1
     # ========================================================
 
     st.markdown(
-        "*Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?*"
+        """
+        <div style="
+            font-size: 22px;
+            font-weight: 500;
+            font-style: italic;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        ">
+        Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
-    st.markdown("")
 
-    desc_col1, desc_col2 = st.columns(2)
+    # ========================================================
+    # THEME DESCRIPTIONS — ONE COLUMN
+    # ========================================================
 
-    for i, theme in enumerate(THEME_ORDER):
+    for theme in THEME_ORDER:
 
-        col = (
-            desc_col1
-            if i % 2 == 0
-            else desc_col2
+        st.markdown(
+            f"**{theme}**"
         )
 
-        with col:
-
-            st.markdown(
-                f"**{theme}**"
-            )
-
-            st.caption(
-                THEME_DESCRIPTIONS[theme]
-            )
+        st.caption(
+            THEME_DESCRIPTIONS[theme]
+        )
 
 
     # ========================================================
@@ -280,10 +304,19 @@ else:
     # ========================================================
 
     st.markdown(
-        "*Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?*"
+        """
+        <div style="
+            font-size: 22px;
+            font-weight: 500;
+            font-style: italic;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        ">
+        Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-
-    st.markdown("")
 
 
     # ========================================================
@@ -372,10 +405,6 @@ else:
 
     # --------------------------------------------------------
     # FORCE THEME COLUMN INTO FIXED CATEGORY ORDER
-    #
-    # This is important because all seven themes need to
-    # remain part of the categorical axis, even when one
-    # has zero associated articles.
     # --------------------------------------------------------
 
     bubble_df["themes"] = pd.Categorical(
@@ -388,9 +417,6 @@ else:
     # --------------------------------------------------------
     # Calculate total articles per theme
     # across the entire monitoring period
-    #
-    # observed=False ensures categorical themes are retained
-    # during grouping.
     # --------------------------------------------------------
 
     theme_totals = (
@@ -418,10 +444,7 @@ else:
 
 
     # --------------------------------------------------------
-    # Complete list of theme labels.
-    #
-    # This explicitly defines all seven possible Y-axis
-    # categories, including themes with zero articles.
+    # Complete list of theme labels
     # --------------------------------------------------------
 
     all_theme_labels = [
@@ -433,9 +456,6 @@ else:
     # --------------------------------------------------------
     # Aggregate articles by:
     # date + theme + stance
-    #
-    # observed=False preserves the complete categorical
-    # theme structure.
     # --------------------------------------------------------
 
     bubble_data = (
@@ -743,7 +763,7 @@ else:
     )
 
     st.markdown("""
-    New articles are automatically collected and added to the list every day at 9:00 AM and 7:00 PM Philippine time.
+    New articles are automatically collected through RSS feeds six times daily at 7:00 AM, 10:00 AM, 1:00 PM, 4:00 PM, 7:00 PM, and 10:00 PM Philippine time. World News API is additionally queried at 7:00 AM and 7:00 PM.
     """)
 
     st.dataframe(
