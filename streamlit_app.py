@@ -35,8 +35,12 @@ st.set_page_config(
 st.title("Pax Silica NLP News Monitor")
 
 st.markdown("""
+<div style="
+    text-align: justify;
+">
 This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. Coverage has been tracked daily since September 17, 2026, using Python and Streamlit.
-""")
+</div>
+""", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -265,7 +269,7 @@ else:
             font-weight: 500;
             font-style: italic;
             margin-top: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         ">
         Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?
         </div>
@@ -273,28 +277,81 @@ else:
         unsafe_allow_html=True
     )
 
+    st.markdown(
+        """
+        <div style="
+            color: black;
+            text-align: justify;
+            font-size: 14px;
+            margin-bottom: 20px;
+        ">
+        <strong>Note:</strong> The categories were defined based on recurring topics and issues identified in the corpus and subsequently operationalized through keyword-based classification. The thematic categories were developed inductively from patterns observed in the collected news coverage.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
     # ========================================================
-    # THEME DESCRIPTIONS — ONE COLUMN
+    # THEME DESCRIPTIONS — TWO COLUMNS
     # ========================================================
 
-    for theme in THEME_ORDER:
+    left_themes = THEME_ORDER[:4]
+    right_themes = THEME_ORDER[4:]
 
-        st.markdown(
-            f"**{theme}**"
-        )
+    col1, col2 = st.columns(2)
 
-        st.markdown(
-            f"""
-            <div style="
-                color: black;
-                margin-bottom: 10px;
-            ">
-                {THEME_DESCRIPTIONS[theme]}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+
+    # --------------------------------------------------------
+    # LEFT COLUMN
+    # --------------------------------------------------------
+
+    with col1:
+
+        for theme in left_themes:
+
+            st.markdown(
+                f"**{theme}**"
+            )
+
+            st.markdown(
+                f"""
+                <div style="
+                    color: black;
+                    text-align: justify;
+                    margin-bottom: 18px;
+                ">
+                    {THEME_DESCRIPTIONS[theme]}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+
+    # --------------------------------------------------------
+    # RIGHT COLUMN
+    # --------------------------------------------------------
+
+    with col2:
+
+        for theme in right_themes:
+
+            st.markdown(
+                f"**{theme}**"
+            )
+
+            st.markdown(
+                f"""
+                <div style="
+                    color: black;
+                    text-align: justify;
+                    margin-bottom: 18px;
+                ">
+                    {THEME_DESCRIPTIONS[theme]}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
     # ========================================================
@@ -326,6 +383,7 @@ else:
         unsafe_allow_html=True
     )
 
+
     # --------------------------------------------------------
     # COMBINED BUBBLE MATRIX NOTE
     # --------------------------------------------------------
@@ -334,6 +392,7 @@ else:
         """
         <div style="
             color: black;
+            text-align: justify;
             font-size: 14px;
             margin-bottom: 20px;
         ">
@@ -616,6 +675,7 @@ else:
             use_container_width=True
         )
 
+
     else:
 
         st.info(
@@ -651,9 +711,18 @@ else:
             "Detected Article-Level Stance"
         )
 
-        st.caption(
-            """Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral.
-            This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position."""
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position.
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
         stance_counts = (
@@ -768,9 +837,17 @@ else:
         "Articles Collected by the Monitor"
     )
 
-    st.markdown("""
-    New articles are automatically collected through RSS feeds six times daily at 7:00 AM, 10:00 AM, 1:00 PM, 4:00 PM, 7:00 PM, and 10:00 PM Philippine time. World News API is additionally queried at 7:00 AM and 7:00 PM.
-    """)
+    st.markdown(
+        """
+        <div style="
+            text-align: justify;
+            color: black;
+        ">
+        New articles are automatically collected through RSS feeds six times daily at 7:00 AM, 10:00 AM, 1:00 PM, 4:00 PM, 7:00 PM, and 10:00 PM Philippine time. World News API is additionally queried at 7:00 AM and 7:00 PM.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.dataframe(
         df[
