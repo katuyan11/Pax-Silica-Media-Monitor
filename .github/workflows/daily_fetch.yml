@@ -2,8 +2,24 @@ name: Daily News Fetch
 
 on:
   schedule:
-    - cron: '0 1 * * *'   # 1:00 AM UTC = 9:00 AM Manila time
-    - cron: '0 11 * * *'  # 11:00 AM UTC = 7:00 PM Manila time
+    # RSS: 7:00 AM Manila = 11:00 PM UTC (previous day)
+    - cron: '0 23 * * *'
+
+    # RSS: 10:00 AM Manila = 2:00 AM UTC
+    - cron: '0 2 * * *'
+
+    # RSS: 1:00 PM Manila = 5:00 AM UTC
+    - cron: '0 5 * * *'
+
+    # RSS: 4:00 PM Manila = 8:00 AM UTC
+    - cron: '0 8 * * *'
+
+    # RSS + World News API: 7:00 PM Manila = 11:00 AM UTC
+    - cron: '0 11 * * *'
+
+    # RSS: 10:00 PM Manila = 2:00 PM UTC
+    - cron: '0 14 * * *'
+
   workflow_dispatch:
 
 jobs:
@@ -27,8 +43,8 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
 
-          # Set to "true" temporarily for a one-time historical backfill. 
-          # Leave as "false" for normal daily news collection. 
+          # Set to "true" temporarily for a one-time historical backfill.
+          # Leave as "false" for normal daily news collection.
           BACKFILL: "false"
-          
+
         run: python fetch_and_append.py
