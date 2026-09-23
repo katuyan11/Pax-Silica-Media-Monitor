@@ -41,7 +41,7 @@ st.markdown(
         text-align: justify;
         color: black;
         font-size: 16px;
-        margin-bottom: 18px;
+        margin-bottom: 30px;
     ">
     This prototype monitors Philippine news coverage related to Pax Silica using automated
     news ingestion and rule-based Natural Language Processing (NLP), including keyword-based
@@ -74,7 +74,7 @@ def load_data():
     ]
 
     credentials = Credentials.from_service_account_info(
-        st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON"],
+        dict(st.secrets["gcp_service_account"]),
         scopes=scopes
     )
 
@@ -131,10 +131,12 @@ df.loc[
 ] = "Neutral"
 
 # =========================================================
-# RESEARCH QUESTIONS
+# RESEARCH QUESTION 1
 # =========================================================
 
-st.header("RQ1: What themes are represented in Philippine media coverage of Pax Silica?")
+st.header(
+    "RQ1: What themes are represented in Philippine media coverage of Pax Silica?"
+)
 
 st.markdown(
     """
@@ -206,7 +208,7 @@ THEME_DESCRIPTIONS = {
 left_themes = THEME_ORDER[:4]
 right_themes = THEME_ORDER[4:]
 
-# Increased spacing between the two columns
+# Increased space between the two theme-description columns
 col1, spacer, col2 = st.columns([1, 0.20, 1])
 
 with col1:
@@ -246,7 +248,7 @@ with col2:
         )
 
 # =========================================================
-# RQ2
+# RESEARCH QUESTION 2
 # =========================================================
 
 st.header(
@@ -383,7 +385,7 @@ st.plotly_chart(
 )
 
 # =========================================================
-# STANCE DISTRIBUTION
+# DETECTED ARTICLE-LEVEL STANCE
 # =========================================================
 
 st.header("Detected Article-Level Stance")
@@ -432,7 +434,7 @@ st.markdown(
         color: black;
         font-size: 14px;
         margin-top: 5px;
-        margin-bottom: 55px;
+        margin-bottom: 80px;
     ">
     The stance classification identifies whether individual articles are predominantly
     supportive, critical, or neutral toward Pax Silica-related developments based on
@@ -445,7 +447,7 @@ st.markdown(
 )
 
 # =========================================================
-# WORD FREQUENCY
+# FREQUENTLY MENTIONED WORDS
 # =========================================================
 
 st.header("Frequently Mentioned Words in Coverage")
@@ -473,21 +475,34 @@ st.markdown(
 text_columns = []
 
 if "title" in df.columns:
+
     text_columns.extend(
-        df["title"].fillna("").astype(str).tolist()
+        df["title"]
+        .fillna("")
+        .astype(str)
+        .tolist()
     )
 
 if "description" in df.columns:
+
     text_columns.extend(
-        df["description"].fillna("").astype(str).tolist()
+        df["description"]
+        .fillna("")
+        .astype(str)
+        .tolist()
     )
 
-full_text = " ".join(text_columns)
+full_text = " ".join(
+    text_columns
+)
 
 # Lowercase
 full_text = full_text.lower()
 
-# Preserve selected multi-word terms
+# =========================================================
+# PRESERVE MULTI-WORD TERMS
+# =========================================================
+
 multi_word_terms = [
     "artificial intelligence",
     "new clark city",
@@ -510,12 +525,18 @@ for i, term in enumerate(multi_word_terms):
         placeholder
     )
 
-# Tokenize
+# =========================================================
+# TOKENIZATION
+# =========================================================
+
 tokens = word_tokenize(
     full_text
 )
 
-# Stopwords
+# =========================================================
+# STOPWORDS
+# =========================================================
+
 stop_words = set(
     stopwords.words("english")
 )
@@ -543,7 +564,10 @@ stop_words.update(
     custom_stopwords
 )
 
-# Keep words only
+# =========================================================
+# FILTER TOKENS
+# =========================================================
+
 filtered_tokens = []
 
 for token in tokens:
