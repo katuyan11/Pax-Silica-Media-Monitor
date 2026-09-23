@@ -127,7 +127,7 @@ SUPPORTIVE_WORDS = [
     "support", "supports", "supported", "back", "backs", "backed",
     "welcome", "welcomes", "welcomed", "approve", "approved", "benefit",
     "benefits", "opportunity", "opportunities", "growth", "investment",
-    "job creation", "development", "expansion",
+    "job creation", "development", "expansion", "boost",
 ]
 
 CRITICAL_WORDS = [
@@ -136,7 +136,9 @@ CRITICAL_WORDS = [
     "threat", "threatens", "environmental damage", "displacement",
     "pollution", "depletion", "moratorium", "protest", "protests",
     "protested", "reject", "rejected", "limbo", "fear", "misplaced",
-    "against", "protests", "protested", "derail",
+    "against", "protests", "protested", "derail", "losing", "scrutiny",
+    "scrutinizes", "displaced", "lost", "backlash", "clash", "walkout",
+    "pushback", "worse"
 ]
 
 
