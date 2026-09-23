@@ -436,7 +436,7 @@ def main():
     print("=" * 60)
     print(f"Target Google Sheets tab: {SHEET_TAB_NAME}")
 
-    run_world_news = os.environ.get("RUN_WORLD_NEWS", "true").lower() == "true"
+    run_world_news = os.environ.get("RUN_WORLD_NEWS", "false").lower() == "true"
 
     sheet = get_google_sheet()
     ensure_headers(sheet)
