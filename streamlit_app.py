@@ -235,6 +235,15 @@ if df.empty:
 else:
 
     # ========================================================
+    # RESEARCH QUESTION 2
+    # ========================================================
+
+    st.markdown(
+        "**Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?**"
+    )
+
+
+    # ========================================================
     # THEME × STANCE BUBBLE MATRIX
     # ========================================================
 
@@ -548,6 +557,25 @@ else:
             "Not enough dated theme data available to generate "
             "the bubble matrix."
         )
+
+
+    # ========================================================
+    # SPACE BETWEEN SECTIONS
+    # ========================================================
+
+    st.markdown(
+        "<br>",
+        unsafe_allow_html=True
+    )
+
+
+    # ========================================================
+    # RESEARCH QUESTION 1
+    # ========================================================
+
+    st.markdown(
+        "**Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?**"
+    )
 
 
     # ========================================================
