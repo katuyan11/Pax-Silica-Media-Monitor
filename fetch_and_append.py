@@ -436,11 +436,17 @@ def main():
     print("=" * 60)
     print(f"Target Google Sheets tab: {SHEET_TAB_NAME}")
 
+    run_world_news = os.environ.get("RUN_WORLD_NEWS", "true").lower() == "true"
+
     sheet = get_google_sheet()
     ensure_headers(sheet)
 
-    world_news_articles = fetch_world_news()
-    print(f"World News relevant articles: {len(world_news_articles)}")
+    if run_world_news:
+        world_news_articles = fetch_world_news()
+        print(f"World News relevant articles: {len(world_news_articles)}")
+    else:
+        world_news_articles = []
+        print("Skipping World News API this run (RSS-only schedule).")
 
     rss_articles = fetch_rss_articles()
     print(f"RSS relevant articles: {len(rss_articles)}")
