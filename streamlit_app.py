@@ -3,67 +3,82 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 import plotly.express as px
-
 import re
 import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from collections import Counter
-
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
-
-# ============================================================
-# NLTK SETUP
-# ============================================================
-
-nltk.download("punkt")
-nltk.download("punkt_tab")
-nltk.download("stopwords")
-
-
-# ============================================================
+# =========================================================
 # PAGE CONFIGURATION
-# ============================================================
+# =========================================================
 
 st.set_page_config(
     page_title="Pax Silica NLP News Monitor",
     layout="wide"
 )
 
+# =========================================================
+# NLTK SETUP
+# =========================================================
+
+nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
+nltk.download("stopwords", quiet=True)
+
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+# =========================================================
+# TITLE
+# =========================================================
+
 st.title("Pax Silica NLP News Monitor")
 
-st.markdown("""
-<div style="
-    text-align: justify;
-">
-This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. Coverage has been tracked daily since September 17, 2026, using Python and Streamlit.
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div style="
+        text-align: justify;
+        color: black;
+        font-size: 16px;
+        margin-bottom: 18px;
+    ">
+    This prototype monitors Philippine news coverage related to Pax Silica using automated
+    news ingestion and rule-based Natural Language Processing (NLP), including keyword-based
+    theme classification, stance detection, text preprocessing, and word-frequency analysis
+    to identify dominant themes and stances. Coverage has been tracked daily since September 17, 2026,
+    using Python and Streamlit.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
+# =========================================================
+# REFRESH BUTTON
+# =========================================================
 
-# ============================================================
+if st.button("Refresh Data"):
+    st.cache_data.clear()
+    st.rerun()
+
+# =========================================================
 # GOOGLE SHEETS CONNECTION
-# ============================================================
-
-SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-
+# =========================================================
 
 @st.cache_data(ttl=3600)
 def load_data():
 
-    creds_dict = st.secrets["google_service_account"]
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
 
-    creds = Credentials.from_service_account_info(
-        creds_dict,
-        scopes=SCOPES
+    credentials = Credentials.from_service_account_info(
+        st.secrets["GOOGLE_SERVICE_ACCOUNT_JSON"],
+        scopes=scopes
     )
 
-    gc = gspread.authorize(creds)
+    gc = gspread.authorize(credentials)
 
     sheet = gc.open_by_key(
         st.secrets["GOOGLE_SHEET_ID"]
@@ -71,21 +86,76 @@ def load_data():
 
     records = sheet.get_all_records()
 
-    df = pd.DataFrame(records)
-
-    if not df.empty:
-
-        df["published_at"] = pd.to_datetime(
-            df["published_at"],
-            errors="coerce"
-        )
-
-    return df
+    return pd.DataFrame(records)
 
 
-# ============================================================
-# THEME ORDER
-# ============================================================
+df = load_data()
+
+# =========================================================
+# CHECK DATA
+# =========================================================
+
+if df.empty:
+    st.warning("No article data available yet.")
+    st.stop()
+
+# =========================================================
+# CLEAN DATA
+# =========================================================
+
+df["published_at"] = pd.to_datetime(
+    df["published_at"],
+    errors="coerce"
+)
+
+df["themes"] = df["themes"].fillna("")
+df["stance"] = df["stance"].fillna("Neutral")
+
+# Normalize stance
+df["stance"] = (
+    df["stance"]
+    .astype(str)
+    .str.strip()
+    .str.title()
+)
+
+valid_stances = [
+    "Supportive",
+    "Neutral",
+    "Critical"
+]
+
+df.loc[
+    ~df["stance"].isin(valid_stances),
+    "stance"
+] = "Neutral"
+
+# =========================================================
+# RESEARCH QUESTIONS
+# =========================================================
+
+st.header("RQ1: What themes are represented in Philippine media coverage of Pax Silica?")
+
+st.markdown(
+    """
+    <div style="
+        text-align: justify;
+        color: black;
+        font-size: 14px;
+        margin-bottom: 20px;
+    ">
+    <strong>Note:</strong> The categories were defined based on recurring topics and issues
+    identified in the corpus and subsequently operationalized through keyword-based classification.
+    The thematic categories were developed inductively from patterns observed in the collected
+    news coverage.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# =========================================================
+# THEME DESCRIPTIONS
+# =========================================================
 
 THEME_ORDER = [
     "Economic Development",
@@ -97,800 +167,522 @@ THEME_ORDER = [
     "Geopolitical Security"
 ]
 
-
-# ============================================================
-# THEME DESCRIPTIONS
-# ============================================================
-
 THEME_DESCRIPTIONS = {
 
     "Economic Development":
-        "Pax Silica as an economic opportunity through investment, "
-        "industrial growth, high-value manufacturing, the Luzon Economic "
-        "Corridor, and concerns over potential economic dependency on "
-        "foreign partners.",
+        "Pax Silica as an economic opportunity through investment, industrial growth, "
+        "high-value manufacturing, the Luzon Economic Corridor, and concerns over "
+        "economic dependency on foreign partners.",
 
     "Human Capital & Employment":
-        "Job creation, workforce readiness, technical training, labor "
-        "standards, and whether Pax Silica-related employment will benefit "
-        "local communities or depend on imported skilled labor.",
+        "Job creation, workforce readiness, technical training, labor standards, and "
+        "whether employment benefits local communities or depends on imported skilled labor.",
 
     "Environmental & Resource Impact":
-        "Pax Silica’s impacts on energy, water, land, mining, food security, "
-        "displacement of indigenous peoples, and ecological conditions, "
-        "including concerns over power and water demand, critical-mineral "
-        "extraction, and environmental contamination.",
+        "Impacts on energy, water, land, mining, food security, displacement of indigenous "
+        "peoples, ecological conditions, power and water demand, critical-mineral extraction, "
+        "and contamination.",
 
     "Geopolitical Security":
-        "Coverage of Pax Silica as a strategic response to China, including "
-        "Philippine-US alliance dynamics, sovereignty and territorial "
-        "concerns, and the security vulnerabilities of critical "
-        "infrastructure and data centers.",
+        "Pax Silica as a strategic response to China, Philippine-US alliance dynamics, "
+        "sovereignty and territorial concerns, and security vulnerabilities involving "
+        "critical infrastructure and data centers.",
 
     "Technological Advancement":
-        "Pax Silica’s development of semiconductors, AI, data centers, "
-        "advanced manufacturing, and technology transfer from international "
-        "partners.",
+        "Semiconductors, artificial intelligence, data centers, advanced manufacturing, "
+        "technology transfer, and digital infrastructure.",
 
     "Supply-Chain Resilience":
-        "Efforts to diversify and secure critical supply chains by reducing "
-        "dependence on China for semiconductors, rare earths, and advanced "
-        "manufacturing inputs while strengthening the Philippines’ role "
-        "in the coalition.",
+        "Efforts to diversify and secure supply chains, reduce dependence on China for "
+        "semiconductors, rare earths, and advanced manufacturing inputs, and strengthen "
+        "the Philippines' role in regional supply chains.",
 
     "Institutional Governance":
-        "Coverage of government regulation, transparency, legislative "
-        "scrutiny, community and Indigenous opposition, civil society "
-        "mobilization, land and resource rights, policy critiques, and "
-        "competing pro- and anti-Pax Silica interpretations."
+        "Regulation, transparency, legislative scrutiny, community and Indigenous opposition, "
+        "civil society, land and resource rights, policy critiques, and competing "
+        "pro-development and critical interpretations."
 }
 
+left_themes = THEME_ORDER[:4]
+right_themes = THEME_ORDER[4:]
 
-# ============================================================
-# MULTI-WORD TERMS
-# ============================================================
+# Increased spacing between the two columns
+col1, spacer, col2 = st.columns([1, 0.20, 1])
 
-MULTI_WORD_TERMS = [
+with col1:
+
+    for theme in left_themes:
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align: justify;
+                color: black;
+                margin-bottom: 18px;
+            ">
+            <strong>{theme}</strong><br>
+            {THEME_DESCRIPTIONS[theme]}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+with col2:
+
+    for theme in right_themes:
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align: justify;
+                color: black;
+                margin-bottom: 18px;
+            ">
+            <strong>{theme}</strong><br>
+            {THEME_DESCRIPTIONS[theme]}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+# =========================================================
+# RQ2
+# =========================================================
+
+st.header(
+    "RQ2: How do the themes and stances represented in media coverage "
+    "change over time as new developments emerge?"
+)
+
+st.markdown(
+    """
+    <div style="
+        text-align: justify;
+        color: black;
+        font-size: 14px;
+        margin-bottom: 10px;
+    ">
+    Note: Each bubble shows how many articles tackled a given theme and stance on a specific
+    date — bigger bubbles mean more articles, and the color shows whether the coverage leaned
+    positive, negative, or neutral. The number next to each theme's name is its total article
+    count across the whole monitoring period. Since one article can touch on multiple themes,
+    these totals will add up to more than the overall article count.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# =========================================================
+# PREPARE BUBBLE DATA
+# =========================================================
+
+bubble_df = df.copy()
+
+bubble_df["date"] = bubble_df["published_at"].dt.date
+
+bubble_df = bubble_df.dropna(
+    subset=["date"]
+)
+
+bubble_df["theme_list"] = bubble_df["themes"].apply(
+    lambda x: [
+        t.strip()
+        for t in str(x).split(",")
+        if t.strip() in THEME_ORDER
+    ]
+)
+
+bubble_df = bubble_df.explode(
+    "theme_list"
+)
+
+bubble_df = bubble_df[
+    bubble_df["theme_list"].notna()
+]
+
+theme_totals = (
+    bubble_df
+    .groupby("theme_list", observed=False)
+    .size()
+    .reindex(THEME_ORDER, fill_value=0)
+)
+
+theme_labels = {
+    theme: f"{theme} ({theme_totals[theme]})"
+    for theme in THEME_ORDER
+}
+
+bubble_df["theme_label"] = bubble_df["theme_list"].map(
+    theme_labels
+)
+
+bubble_data = (
+    bubble_df
+    .groupby(
+        ["date", "theme_label", "stance"],
+        observed=False
+    )
+    .size()
+    .reset_index(name="article_count")
+)
+
+# =========================================================
+# BUBBLE CHART
+# =========================================================
+
+fig_bubble = px.scatter(
+    bubble_data,
+    x="date",
+    y="theme_label",
+    size="article_count",
+    color="stance",
+    hover_data={
+        "date": True,
+        "theme_label": True,
+        "stance": True,
+        "article_count": True
+    },
+    category_orders={
+        "theme_label": [
+            theme_labels[theme]
+            for theme in THEME_ORDER
+        ],
+        "stance": [
+            "Supportive",
+            "Neutral",
+            "Critical"
+        ]
+    },
+    size_max=45
+)
+
+fig_bubble.update_layout(
+    height=550,
+    xaxis_title="Date",
+    yaxis_title="Theme",
+    legend_title="Stance",
+    margin=dict(
+        l=20,
+        r=20,
+        t=20,
+        b=20
+    )
+)
+
+fig_bubble.update_yaxes(
+    categoryorder="array",
+    categoryarray=[
+        theme_labels[theme]
+        for theme in THEME_ORDER
+    ]
+)
+
+st.plotly_chart(
+    fig_bubble,
+    use_container_width=True
+)
+
+# =========================================================
+# STANCE DISTRIBUTION
+# =========================================================
+
+st.header("Detected Article-Level Stance")
+
+stance_counts = (
+    df["stance"]
+    .value_counts()
+    .reindex(
+        ["Supportive", "Neutral", "Critical"],
+        fill_value=0
+    )
+    .reset_index()
+)
+
+stance_counts.columns = [
+    "Stance",
+    "Articles"
+]
+
+fig_stance = px.pie(
+    stance_counts,
+    names="Stance",
+    values="Articles",
+    hole=0.35
+)
+
+fig_stance.update_layout(
+    height=450,
+    margin=dict(
+        l=20,
+        r=20,
+        t=20,
+        b=20
+    )
+)
+
+st.plotly_chart(
+    fig_stance,
+    use_container_width=True
+)
+
+st.markdown(
+    """
+    <div style="
+        text-align: justify;
+        color: black;
+        font-size: 14px;
+        margin-top: 5px;
+        margin-bottom: 55px;
+    ">
+    The stance classification identifies whether individual articles are predominantly
+    supportive, critical, or neutral toward Pax Silica-related developments based on
+    predefined keyword patterns. This is a rule-based classification and should be
+    interpreted as an indication of article-level framing rather than a measure of
+    author or public opinion.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# =========================================================
+# WORD FREQUENCY
+# =========================================================
+
+st.header("Frequently Mentioned Words in Coverage")
+
+st.markdown(
+    """
+    <div style="
+        text-align: justify;
+        color: black;
+        font-size: 14px;
+        margin-bottom: 10px;
+    ">
+    The word cloud presents the most frequently mentioned words and terms across the entire
+    news corpus collected by the monitor. The results are cumulative, covering the period
+    from the start of monitoring on September 17, 2026, to the present.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# =========================================================
+# TEXT PREPROCESSING
+# =========================================================
+
+text_columns = []
+
+if "title" in df.columns:
+    text_columns.extend(
+        df["title"].fillna("").astype(str).tolist()
+    )
+
+if "description" in df.columns:
+    text_columns.extend(
+        df["description"].fillna("").astype(str).tolist()
+    )
+
+full_text = " ".join(text_columns)
+
+# Lowercase
+full_text = full_text.lower()
+
+# Preserve selected multi-word terms
+multi_word_terms = [
     "artificial intelligence",
     "new clark city",
     "clark freeport",
     "economic security zone",
     "ancestral domain",
-    "data center",
+    "data center"
 ]
 
+placeholder_map = {}
 
-# ============================================================
-# FREQUENT TERM EXTRACTION
-# ============================================================
+for i, term in enumerate(multi_word_terms):
 
-def get_top_terms(
-    texts: list[str],
-    n: int = 100
-) -> list[tuple[str, int]]:
+    placeholder = f"multiwordterm{i}"
 
-    """
-    Tokenize text, remove stopwords, and return frequent terms.
-    Known multi-word phrases are preserved as single entries.
-    """
+    placeholder_map[placeholder] = term
 
-    stop_words = set(
-        stopwords.words("english")
+    full_text = full_text.replace(
+        term,
+        placeholder
     )
 
-    stop_words.update({
-        "pax",
-        "silica",
-        "said",
-        "philippines"
-    })
+# Tokenize
+tokens = word_tokenize(
+    full_text
+)
 
-    all_words = []
+# Stopwords
+stop_words = set(
+    stopwords.words("english")
+)
 
-    for text in texts:
+custom_stopwords = {
+    "pax",
+    "silica",
+    "said",
+    "philippines",
+    "philippine",
+    "will",
+    "also",
+    "one",
+    "new",
+    "would",
+    "could",
+    "may",
+    "mr",
+    "ms",
+    "according",
+    "including"
+}
 
-        text_lower = text.lower()
+stop_words.update(
+    custom_stopwords
+)
 
-        for phrase in MULTI_WORD_TERMS:
+# Keep words only
+filtered_tokens = []
 
-            joined = phrase.replace(
-                " ",
-                "_"
-            )
+for token in tokens:
 
-            text_lower = re.sub(
-                r"\b" + re.escape(phrase) + r"\b",
-                joined,
-                text_lower
-            )
+    token = re.sub(
+        r"[^a-z0-9]",
+        "",
+        token
+    )
 
-        tokens = word_tokenize(
-            text_lower
+    if not token:
+        continue
+
+    if token in stop_words:
+        continue
+
+    filtered_tokens.append(
+        token
+    )
+
+# =========================================================
+# RESTORE MULTI-WORD TERMS
+# =========================================================
+
+restored_tokens = []
+
+for token in filtered_tokens:
+
+    if token in placeholder_map:
+
+        restored_tokens.append(
+            placeholder_map[token]
         )
 
-        words = [
-            w
-            for w in tokens
-            if (
-                w.isalpha()
-                or "_" in w
-            )
-            and w not in stop_words
-            and len(w) > 2
-        ]
+    else:
 
-        all_words.extend(words)
-
-    counted = Counter(
-        all_words
-    ).most_common(n)
-
-    return [
-        (
-            term.replace("_", " "),
-            count
+        restored_tokens.append(
+            token
         )
-        for term, count in counted
-    ]
 
+# =========================================================
+# WORD FREQUENCY
+# =========================================================
 
-# ============================================================
-# LOAD DATA
-# ============================================================
+word_counts = Counter(
+    restored_tokens
+)
 
-if st.button("Refresh Data"):
+# =========================================================
+# WORD CLOUD
+# =========================================================
 
-    st.cache_data.clear()
-    st.rerun()
+if word_counts:
 
-df = load_data()
+    wordcloud = WordCloud(
+        width=1400,
+        height=700,
+        background_color="white",
+        max_words=100,
+        collocations=False
+    ).generate_from_frequencies(
+        word_counts
+    )
 
+    fig_wc, ax = plt.subplots(
+        figsize=(16, 8)
+    )
 
-# ============================================================
-# MAIN APP
-# ============================================================
+    ax.imshow(
+        wordcloud,
+        interpolation="bilinear"
+    )
 
-if df.empty:
+    ax.axis("off")
 
-    st.info(
-        "No data yet. Check back after the next daily fetch runs."
+    st.pyplot(
+        fig_wc,
+        use_container_width=True
     )
 
 else:
 
-    # ========================================================
-    # RESEARCH QUESTION 1
-    # ========================================================
-
-    st.markdown(
-        """
-        <div style="
-            font-size: 22px;
-            font-weight: 500;
-            font-style: italic;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        ">
-        Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.info(
+        "Not enough text available to generate a word cloud."
     )
 
-    st.markdown(
-        """
-        <div style="
-            color: black;
-            text-align: justify;
-            font-size: 14px;
-            margin-bottom: 20px;
-        ">
-        <strong>Note:</strong> The categories were defined based on recurring topics and issues identified in the corpus and subsequently operationalized through keyword-based classification. The thematic categories were developed inductively from patterns observed in the collected news coverage.
-        </div>
-        """,
-        unsafe_allow_html=True
+# =========================================================
+# ARTICLE COLLECTION
+# =========================================================
+
+st.header("Article Collection")
+
+st.markdown(
+    """
+    <div style="
+        text-align: justify;
+        color: black;
+        font-size: 14px;
+        margin-bottom: 15px;
+    ">
+    New articles are automatically collected through RSS feeds six times daily while
+    World News API is queried at 7:00 AM and 7:00 PM.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# =========================================================
+# ARTICLE TABLE
+# =========================================================
+
+display_columns = [
+    "published_at",
+    "title",
+    "source",
+    "themes",
+    "stance",
+    "url"
+]
+
+available_columns = [
+    col
+    for col in display_columns
+    if col in df.columns
+]
+
+article_display = df[
+    available_columns
+].copy()
+
+if "published_at" in article_display.columns:
+
+    article_display["published_at"] = (
+        article_display["published_at"]
+        .dt.strftime("%Y-%m-%d %H:%M:%S")
     )
 
-
-    # ========================================================
-    # THEME DESCRIPTIONS — TWO COLUMNS
-    # ========================================================
-
-    left_themes = THEME_ORDER[:4]
-    right_themes = THEME_ORDER[4:]
-
-    # Wider gap between the two theme-description columns
-    col1, spacer, col2 = st.columns(
-        [1, 0.15, 1]
-    )
-
-
-    # --------------------------------------------------------
-    # LEFT COLUMN
-    # --------------------------------------------------------
-
-    with col1:
-
-        for theme in left_themes:
-
-            st.markdown(
-                f"**{theme}**"
-            )
-
-            st.markdown(
-                f"""
-                <div style="
-                    color: black;
-                    text-align: justify;
-                    margin-bottom: 18px;
-                ">
-                    {THEME_DESCRIPTIONS[theme]}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-
-    # --------------------------------------------------------
-    # SPACER
-    # --------------------------------------------------------
-
-    with spacer:
-
-        st.markdown(
-            "<div style='height: 1px;'></div>",
-            unsafe_allow_html=True
-        )
-
-
-    # --------------------------------------------------------
-    # RIGHT COLUMN
-    # --------------------------------------------------------
-
-    with col2:
-
-        for theme in right_themes:
-
-            st.markdown(
-                f"**{theme}**"
-            )
-
-            st.markdown(
-                f"""
-                <div style="
-                    color: black;
-                    text-align: justify;
-                    margin-bottom: 18px;
-                ">
-                    {THEME_DESCRIPTIONS[theme]}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-
-    # ========================================================
-    # SPACE BETWEEN SECTIONS
-    # ========================================================
-
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
-
-
-    # ========================================================
-    # RESEARCH QUESTION 2
-    # ========================================================
-
-    st.markdown(
-        """
-        <div style="
-            font-size: 22px;
-            font-weight: 500;
-            font-style: italic;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        ">
-        Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    # --------------------------------------------------------
-    # COMBINED BUBBLE MATRIX NOTE
-    # --------------------------------------------------------
-
-    st.markdown(
-        """
-        <div style="
-            color: black;
-            text-align: justify;
-            font-size: 14px;
-            margin-bottom: 20px;
-        ">
-        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. The number next to each theme's name is its total article count across the whole monitoring period. Since one article can touch on multiple themes, these totals will add up to more than the overall article count.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    # ========================================================
-    # THEME × STANCE BUBBLE MATRIX
-    # ========================================================
-
-    bubble_df = df.copy()
-
-
-    # --------------------------------------------------------
-    # Clean stance labels
-    # --------------------------------------------------------
-
-    bubble_df["stance"] = (
-        bubble_df["stance"]
-        .fillna("Neutral")
-        .astype(str)
-        .str.strip()
-        .str.title()
-    )
-
-    bubble_df = bubble_df[
-        bubble_df["stance"].isin(
-            [
-                "Supportive",
-                "Neutral",
-                "Critical"
-            ]
-        )
-    ]
-
-
-    # --------------------------------------------------------
-    # Convert publication timestamp to date
-    # --------------------------------------------------------
-
-    bubble_df["date"] = pd.to_datetime(
-        bubble_df["published_at"],
-        errors="coerce"
-    ).dt.date
-
-
-    # --------------------------------------------------------
-    # Split multi-label themes
-    # --------------------------------------------------------
-
-    bubble_df["themes"] = (
-        bubble_df["themes"]
-        .fillna("")
-        .astype(str)
-        .str.split(", ")
-    )
-
-    bubble_df = bubble_df.explode(
-        "themes"
-    )
-
-
-    # --------------------------------------------------------
-    # Keep only defined themes
-    # --------------------------------------------------------
-
-    bubble_df = bubble_df[
-        bubble_df["themes"].isin(
-            THEME_ORDER
-        )
-    ]
-
-
-    # --------------------------------------------------------
-    # Remove rows without usable dates
-    # --------------------------------------------------------
-
-    bubble_df = bubble_df[
-        bubble_df["date"].notna()
-    ]
-
-
-    # --------------------------------------------------------
-    # FORCE THEME COLUMN INTO FIXED CATEGORY ORDER
-    # --------------------------------------------------------
-
-    bubble_df["themes"] = pd.Categorical(
-        bubble_df["themes"],
-        categories=THEME_ORDER,
-        ordered=True
-    )
-
-
-    # --------------------------------------------------------
-    # Calculate total articles per theme
-    # across the entire monitoring period
-    # --------------------------------------------------------
-
-    theme_totals = (
-        bubble_df
-        .groupby(
-            "themes",
-            observed=False
-        )
-        .size()
-        .reindex(
-            THEME_ORDER,
-            fill_value=0
-        )
-    )
-
-
-    # --------------------------------------------------------
-    # Create Y-axis labels with theme totals
-    # --------------------------------------------------------
-
-    theme_labels = {
-        theme: f"{theme} ({theme_totals[theme]})"
-        for theme in THEME_ORDER
-    }
-
-
-    # --------------------------------------------------------
-    # Complete list of theme labels
-    # --------------------------------------------------------
-
-    all_theme_labels = [
-        theme_labels[theme]
-        for theme in THEME_ORDER
-    ]
-
-
-    # --------------------------------------------------------
-    # Aggregate articles by:
-    # date + theme + stance
-    # --------------------------------------------------------
-
-    bubble_data = (
-        bubble_df
-        .groupby(
-            [
-                "date",
-                "themes",
-                "stance"
-            ],
-            observed=False
-        )
-        .size()
-        .reset_index(
-            name="article_count"
-        )
-    )
-
-
-    # --------------------------------------------------------
-    # Add total article count for each theme
-    # --------------------------------------------------------
-
-    bubble_data["theme_total"] = (
-        bubble_data["themes"]
-        .map(theme_totals)
-    )
-
-
-    # --------------------------------------------------------
-    # Create theme labels
-    # --------------------------------------------------------
-
-    bubble_data["theme_label"] = (
-        bubble_data["themes"]
-        .map(theme_labels)
-    )
-
-
-    # --------------------------------------------------------
-    # Force theme labels into fixed categorical order
-    # --------------------------------------------------------
-
-    bubble_data["theme_label"] = pd.Categorical(
-        bubble_data["theme_label"],
-        categories=all_theme_labels,
-        ordered=True
-    )
-
-
-    # --------------------------------------------------------
-    # Sort data
-    # --------------------------------------------------------
-
-    bubble_data = bubble_data.sort_values(
-        [
-            "themes",
-            "date"
-        ]
-    )
-
-
-    # --------------------------------------------------------
-    # Generate bubble matrix
-    # --------------------------------------------------------
-
-    if not bubble_data.empty:
-
-        fig_bubble = px.scatter(
-            bubble_data,
-
-            x="date",
-
-            y="theme_label",
-
-            size="article_count",
-
-            color="stance",
-
-            size_max=45,
-
-            hover_name="theme_label",
-
-            hover_data={
-                "date": True,
-                "theme_label": False,
-                "stance": True,
-                "article_count": True,
-                "theme_total": True
-            },
-
-            category_orders={
-                "theme_label": all_theme_labels,
-
-                "stance": [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ]
-            },
-
-            labels={
-                "date": "Publication Date",
-                "theme_label": "Theme",
-                "stance": "Stance",
-                "article_count": "Articles",
-                "theme_total": "Theme Total"
-            }
-        )
-
-
-        # ----------------------------------------------------
-        # Explicitly force all seven themes onto Y-axis
-        # ----------------------------------------------------
-
-        fig_bubble.update_yaxes(
-            categoryorder="array",
-            categoryarray=all_theme_labels
-        )
-
-
-        # ----------------------------------------------------
-        # Layout
-        # ----------------------------------------------------
-
-        fig_bubble.update_layout(
-            height=600,
-            xaxis_title="Publication Date",
-            yaxis_title="Theme",
-            legend_title="Stance",
-            hovermode="closest"
-        )
-
-
-        # ----------------------------------------------------
-        # Display chart
-        # ----------------------------------------------------
-
-        st.plotly_chart(
-            fig_bubble,
-            use_container_width=True
-        )
-
-
-    else:
-
-        st.info(
-            "Not enough dated theme data available to generate "
-            "the bubble matrix."
-        )
-
-
-    # ========================================================
-    # SPACE BETWEEN SECTIONS
-    # ========================================================
-
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
-
-
-    # ========================================================
-    # DETECTED ARTICLE-LEVEL STANCE + WORD CLOUD
-    # ========================================================
-
-    col1, col2 = st.columns(2)
-
-
-    # ========================================================
-    # DETECTED ARTICLE-LEVEL STANCE
-    # ========================================================
-
-    with col1:
-
-        st.subheader(
-            "Detected Article-Level Stance"
-        )
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        stance_counts = (
-            df["stance"]
-            .fillna("Neutral")
-            .astype(str)
-            .str.strip()
-            .str.title()
-            .value_counts()
-            .reset_index()
-        )
-
-        stance_counts.columns = [
-            "stance",
-            "count"
-        ]
-
-        fig_stance = px.pie(
-            stance_counts,
-
-            names="stance",
-
-            values="count",
-
-            category_orders={
-                "stance": [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ]
-            }
-        )
-
-        st.plotly_chart(
-            fig_stance,
-            use_container_width=True
-        )
-
-
-    # ========================================================
-    # WORD CLOUD
-    # ========================================================
-
-    with col2:
-
-        st.subheader(
-            "Frequently Mentioned Words in Coverage"
-        )
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring on September 17, 2026, to the present.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        combined_texts = (
-            df["title"].fillna("")
-            + " "
-            + df["description"].fillna("")
-        ).tolist()
-
-        top_terms = get_top_terms(
-            combined_texts,
-            n=100
-        )
-
-        word_frequencies = dict(
-            top_terms
-        )
-
-        if word_frequencies:
-
-            wordcloud = WordCloud(
-                width=900,
-                height=500,
-                background_color="white",
-                max_words=60,
-                min_font_size=10,
-                max_font_size=70,
-                collocations=False
-            ).generate_from_frequencies(
-                word_frequencies
-            )
-
-            fig_wordcloud, ax = plt.subplots(
-                figsize=(10, 5)
-            )
-
-            ax.imshow(
-                wordcloud,
-                interpolation="bilinear"
-            )
-
-            ax.axis("off")
-
-            st.pyplot(
-                fig_wordcloud,
-                use_container_width=True
-            )
-
-            plt.close(
-                fig_wordcloud
-            )
-
-        else:
-
-            st.info(
-                "Not enough text available to generate "
-                "a word cloud."
-            )
-
-
-    # ========================================================
-    # ARTICLES COLLECTED
-    # ========================================================
-
-    st.subheader(
-        "Articles Collected by the Monitor"
-    )
-
-    st.markdown(
-        """
-        <div style="
-            text-align: justify;
-            color: black;
-        ">
-        New articles are automatically collected through RSS feeds six times daily at 7:00 AM, 10:00 AM, 1:00 PM, 4:00 PM, 7:00 PM, and 10:00 PM Philippine time. World News API is additionally queried at 7:00 AM and 7:00 PM.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.dataframe(
-        df[
-            [
-                "published_at",
-                "source",
-                "title",
-                "themes",
-                "stance",
-                "url"
-            ]
-        ].sort_values(
-            "published_at",
-            ascending=False
-        ),
-        use_container_width=True
-    )
+st.dataframe(
+    article_display,
+    use_container_width=True,
+    hide_index=True
+)
