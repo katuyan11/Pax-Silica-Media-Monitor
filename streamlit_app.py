@@ -299,7 +299,10 @@ else:
     left_themes = THEME_ORDER[:4]
     right_themes = THEME_ORDER[4:]
 
-    col1, col2 = st.columns(2)
+    # Wider gap between the two theme-description columns
+    col1, spacer, col2 = st.columns(
+        [1, 0.15, 1]
+    )
 
 
     # --------------------------------------------------------
@@ -326,6 +329,18 @@ else:
                 """,
                 unsafe_allow_html=True
             )
+
+
+    # --------------------------------------------------------
+    # SPACER
+    # --------------------------------------------------------
+
+    with spacer:
+
+        st.markdown(
+            "<div style='height: 1px;'></div>",
+            unsafe_allow_html=True
+        )
 
 
     # --------------------------------------------------------
@@ -770,6 +785,20 @@ else:
 
         st.subheader(
             "Frequently Mentioned Words in Coverage"
+        )
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring on September 17, 2026, to the present.
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
         combined_texts = (
