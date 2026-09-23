@@ -436,12 +436,14 @@ def main():
     print("=" * 60)
     print(f"Target Google Sheets tab: {SHEET_TAB_NAME}")
 
+    # Fail-safe: World News API is OFF unless explicitly enabled
     run_world_news = os.environ.get("RUN_WORLD_NEWS", "false").lower() == "true"
 
     sheet = get_google_sheet()
     ensure_headers(sheet)
 
     if run_world_news:
+        print("Running World News API...")
         world_news_articles = fetch_world_news()
         print(f"World News relevant articles: {len(world_news_articles)}")
     else:
