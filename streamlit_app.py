@@ -284,8 +284,16 @@ else:
             f"**{theme}**"
         )
 
-        st.caption(
-            THEME_DESCRIPTIONS[theme]
+        st.markdown(
+            f"""
+            <div style="
+                color: black;
+                margin-bottom: 10px;
+            ">
+                {THEME_DESCRIPTIONS[theme]}
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
 
@@ -310,9 +318,26 @@ else:
             font-weight: 500;
             font-style: italic;
             margin-top: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         ">
         Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # --------------------------------------------------------
+    # COMBINED BUBBLE MATRIX NOTE
+    # --------------------------------------------------------
+
+    st.markdown(
+        """
+        <div style="
+            color: black;
+            font-size: 14px;
+            margin-bottom: 20px;
+        ">
+        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. The number next to each theme's name is its total article count across the whole monitoring period. Since one article can touch on multiple themes, these totals will add up to more than the overall article count.
         </div>
         """,
         unsafe_allow_html=True
@@ -322,14 +347,6 @@ else:
     # ========================================================
     # THEME × STANCE BUBBLE MATRIX
     # ========================================================
-
-    st.caption(
-        "Bubble size represents the number of articles. "
-        "Bubble color represents stance. The number in "
-        "parentheses beside each theme is the total number "
-        "of articles associated with that theme across the "
-        "monitoring period."
-    )
 
     bubble_df = df.copy()
 
@@ -597,17 +614,6 @@ else:
         st.plotly_chart(
             fig_bubble,
             use_container_width=True
-        )
-
-
-        st.caption(
-            "Each bubble represents the number of articles "
-            "associated with a theme and stance on a given date. "
-            "The number in parentheses beside each theme is the "
-            "total number of articles associated with that theme "
-            "across the monitoring period. Articles may contribute "
-            "to more than one theme, so theme totals are not "
-            "mutually exclusive."
         )
 
     else:
