@@ -2,22 +2,22 @@ name: Daily News Fetch
 
 on:
   schedule:
-    # RSS: 7:00 AM Manila = 11:00 PM UTC (previous day)
+    # RSS + World News API: 7:00 AM Manila = 11:00 PM UTC (previous day)
     - cron: '0 23 * * *'
 
-    # RSS: 10:00 AM Manila = 2:00 AM UTC
+    # RSS only: 10:00 AM Manila = 2:00 AM UTC
     - cron: '0 2 * * *'
 
-    # RSS: 1:00 PM Manila = 5:00 AM UTC
+    # RSS only: 1:00 PM Manila = 5:00 AM UTC
     - cron: '0 5 * * *'
 
-    # RSS: 4:00 PM Manila = 8:00 AM UTC
+    # RSS only: 4:00 PM Manila = 8:00 AM UTC
     - cron: '0 8 * * *'
 
     # RSS + World News API: 7:00 PM Manila = 11:00 AM UTC
     - cron: '0 11 * * *'
 
-    # RSS: 10:00 PM Manila = 2:00 PM UTC
+    # RSS only: 10:00 PM Manila = 2:00 PM UTC
     - cron: '0 14 * * *'
 
   workflow_dispatch:
@@ -42,6 +42,10 @@ jobs:
           WORLD_NEWS_API_KEY: ${{ secrets.WORLD_NEWS_API_KEY }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+
+          # True only on the 7am and 7pm Manila runs, or when manually triggered.
+          # False on the 4 RSS-only runs, so World News API's quota is preserved.
+          RUN_WORLD_NEWS: ${{ github.event.schedule == '0 23 * * *' || github.event.schedule == '0 11 * * *' || github.event_name == 'workflow_dispatch' }}
 
           # Set to "true" temporarily for a one-time historical backfill.
           # Leave as "false" for normal daily news collection.
