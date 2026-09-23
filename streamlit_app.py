@@ -37,6 +37,7 @@ st.title("Pax Silica NLP News Monitor")
 st.markdown("""
 <div style="
     text-align: justify;
+    margin-bottom: 30px;
 ">
 This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. Coverage has been tracked daily since September 17, 2026, using Python and Streamlit.
 </div>
@@ -713,7 +714,10 @@ else:
     # DETECTED ARTICLE-LEVEL STANCE + WORD CLOUD
     # ========================================================
 
-    col1, col2 = st.columns(2)
+    # Increased horizontal space between the two sections
+    col1, spacer, col2 = st.columns(
+        [1, 0.20, 1]
+    )
 
 
     # ========================================================
@@ -774,6 +778,18 @@ else:
         st.plotly_chart(
             fig_stance,
             use_container_width=True
+        )
+
+
+    # ========================================================
+    # SPACER
+    # ========================================================
+
+    with spacer:
+
+        st.markdown(
+            "<div style='height: 1px;'></div>",
+            unsafe_allow_html=True
         )
 
 
@@ -872,7 +888,7 @@ else:
             text-align: justify;
             color: black;
         ">
-        New articles are automatically collected through RSS feeds six times daily at 7:00 AM, 10:00 AM, 1:00 PM, 4:00 PM, 7:00 PM, and 10:00 PM Philippine time. World News API is additionally queried at 7:00 AM and 7:00 PM.
+        New articles are automatically collected through RSS feeds six times daily while World News API is queried at 7:00 AM and 7:00 PM.
         </div>
         """,
         unsafe_allow_html=True
