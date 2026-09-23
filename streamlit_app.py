@@ -235,21 +235,60 @@ if df.empty:
 else:
 
     # ========================================================
+    # RESEARCH QUESTION 1 + THEME DESCRIPTIONS
+    # ========================================================
+
+    st.markdown(
+        "*Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?*"
+    )
+
+    st.markdown("")
+
+    desc_col1, desc_col2 = st.columns(2)
+
+    for i, theme in enumerate(THEME_ORDER):
+
+        col = (
+            desc_col1
+            if i % 2 == 0
+            else desc_col2
+        )
+
+        with col:
+
+            st.markdown(
+                f"**{theme}**"
+            )
+
+            st.caption(
+                THEME_DESCRIPTIONS[theme]
+            )
+
+
+    # ========================================================
+    # SPACE BETWEEN SECTIONS
+    # ========================================================
+
+    st.markdown(
+        "<br>",
+        unsafe_allow_html=True
+    )
+
+
+    # ========================================================
     # RESEARCH QUESTION 2
     # ========================================================
 
     st.markdown(
-        "**Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?**"
+        "*Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?*"
     )
+
+    st.markdown("")
 
 
     # ========================================================
     # THEME × STANCE BUBBLE MATRIX
     # ========================================================
-
-    st.subheader(
-        "Theme × Stance Over Time"
-    )
 
     st.caption(
         "Bubble size represents the number of articles. "
@@ -557,54 +596,6 @@ else:
             "Not enough dated theme data available to generate "
             "the bubble matrix."
         )
-
-
-    # ========================================================
-    # SPACE BETWEEN SECTIONS
-    # ========================================================
-
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
-
-
-    # ========================================================
-    # RESEARCH QUESTION 1
-    # ========================================================
-
-    st.markdown(
-        "**Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?**"
-    )
-
-
-    # ========================================================
-    # THEME DESCRIPTIONS
-    # ========================================================
-
-    st.subheader(
-        "Theme Descriptions"
-    )
-
-    desc_col1, desc_col2 = st.columns(2)
-
-    for i, theme in enumerate(THEME_ORDER):
-
-        col = (
-            desc_col1
-            if i % 2 == 0
-            else desc_col2
-        )
-
-        with col:
-
-            st.markdown(
-                f"**{theme}**"
-            )
-
-            st.caption(
-                THEME_DESCRIPTIONS[theme]
-            )
 
 
     # ========================================================
