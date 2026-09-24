@@ -606,7 +606,7 @@ else:
         )
 
 
-    # ========================================================
+        # ========================================================
     # THEME × STANCE HEAT MAP
     # ========================================================
 
@@ -632,7 +632,10 @@ else:
 
         heatmap_df = df.copy()
 
+        # ----------------------------------------------------
         # Normalize stance labels
+        # ----------------------------------------------------
+
         heatmap_df["stance"] = (
             heatmap_df["stance"]
             .fillna("Neutral")
@@ -651,7 +654,10 @@ else:
             )
         ]
 
+        # ----------------------------------------------------
         # Split multi-label themes
+        # ----------------------------------------------------
+
         heatmap_df["themes"] = (
             heatmap_df["themes"]
             .fillna("")
@@ -663,20 +669,47 @@ else:
             "themes"
         )
 
+        # ----------------------------------------------------
         # Keep only defined themes
+        # ----------------------------------------------------
+
         heatmap_df = heatmap_df[
             heatmap_df["themes"].isin(
                 THEME_ORDER
             )
-        ]
+        ].copy()
 
-        # Count articles by theme and stance
-        heatmap_data = pd.crosstab(
-            heatmap_df["themes"],
-            heatmap_df["stance"]
+        # ----------------------------------------------------
+        # Reset index to avoid duplicate-index problems
+        # ----------------------------------------------------
+
+        heatmap_df = heatmap_df.reset_index(
+            drop=True
         )
 
+        # ----------------------------------------------------
+        # Count articles by theme and stance
+        # ----------------------------------------------------
+
+        heatmap_data = (
+            heatmap_df
+            .groupby(
+                [
+                    "themes",
+                    "stance"
+                ],
+                observed=False
+            )
+            .size()
+            .unstack(
+                fill_value=0
+            )
+        )
+
+        # ----------------------------------------------------
         # Force all themes and stances to appear
+        # ----------------------------------------------------
+
         heatmap_data = heatmap_data.reindex(
             index=THEME_ORDER,
             columns=[
@@ -686,6 +719,10 @@ else:
             ],
             fill_value=0
         )
+
+        # ----------------------------------------------------
+        # Generate heat map
+        # ----------------------------------------------------
 
         fig_heatmap = px.imshow(
             heatmap_data,
@@ -717,7 +754,6 @@ else:
             fig_heatmap,
             use_container_width=True
         )
-
 
     # ========================================================
     # SPACE BETWEEN SECTIONS
