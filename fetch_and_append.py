@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import requests
 import pandas as pd
@@ -189,6 +190,45 @@ def get_outlet_name(url: str) -> str:
         return domain.split(".")[0].replace("-", " ").title()
     except Exception:
         return "Unknown"
+
+
+# ============================================================
+# GOOGLE NEWS RSS HELPERS
+# ============================================================
+
+def clean_html(raw_html: str) -> str:
+    """Strip HTML tags from Google News RSS's summary field,
+    which contains markup rather than real snippet text."""
+    return re.sub(r"<[^>]+>", "", raw_html or "").replace("&nbsp;", " ").strip()
+
+
+def resolve_google_news_url(google_url: str) -> str:
+    """Follow Google News' redirect to get the real publisher URL.
+    Falls back to the original Google URL if the request fails."""
+    try:
+        response = requests.get(google_url, timeout=10, allow_redirects=True)
+        return response.url
+    except Exception:
+        return google_url
+
+
+def strip_source_from_title(title: str, source_name: str) -> str:
+    """Google News RSS titles are formatted 'Article Title - Source Name'.
+    Remove the trailing source name so it doesn't pollute word-frequency
+    analysis (e.g. 'Philstar.com' or 'GMA News' showing up as a top term)."""
+    if not title:
+        return title
+    if source_name:
+        title = re.sub(
+            rf"\s*[-–]\s*{re.escape(source_name)}\s*$",
+            "",
+            title,
+            flags=re.IGNORECASE,
+        )
+    # Fallback: also strip a generic trailing " - Something" segment
+    # in case the source name didn't match exactly
+    title = re.sub(r"\s*[-–]\s*[A-Za-z0-9.\s]{2,30}$", "", title) if source_name else title
+    return title.strip()
 
 
 # ============================================================
@@ -395,23 +435,38 @@ def fetch_google_news_rss():
             continue
 
         for entry in feed.entries:
-            title = (entry.get("title") or "").strip()
-            description = (entry.get("summary") or "").strip()
-            url = (entry.get("link") or "").strip()
+            raw_title = (entry.get("title") or "").strip()
+            raw_summary = entry.get("summary") or ""
+            google_url = (entry.get("link") or "").strip()
 
-            if not title or not url:
+            if not raw_title or not google_url:
                 continue
 
-            source_name = "Google News"
+            # Resolve to the real publisher URL instead of Google's redirect
+            resolved_url = resolve_google_news_url(google_url)
+
+            # Get the outlet name Google News reports for this entry
+            source_name = ""
             if entry.get("source"):
-                source_name = entry.get("source", {}).get("title", "Google News")
+                source_name = entry.get("source", {}).get("title", "")
+            if not source_name:
+                source_name = get_outlet_name(resolved_url)
+
+            # Strip the outlet name off the end of the title so it doesn't
+            # pollute word-frequency analysis
+            title = strip_source_from_title(raw_title, source_name)
+
+            # Google's "summary" field is just HTML markup, not real
+            # snippet text — strip tags; description is often blank after
+            # this, which is expected, not a bug
+            description = clean_html(raw_summary)
 
             row = {
                 "topic": topic,
                 "title": title,
                 "description": description,
-                "source": source_name,
-                "url": url,
+                "source": source_name or "Google News",
+                "url": resolved_url,
                 "published_at": entry.get("published") or "",
             }
 
