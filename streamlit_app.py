@@ -177,14 +177,6 @@ SIGNIFICANT_EVENTS = [
         )
     },
 
-    {
-        "date": "2026-04-23",
-        "label": "DND discusses Pax Silica",
-        "description": (
-            "Defense Secretary Gilberto Teodoro discussed Pax Silica in relation "
-            "to Philippine resilience and industrialization."
-        )
-    },
 
     {
         "date": "2026-05-04",
@@ -204,15 +196,6 @@ SIGNIFICANT_EVENTS = [
         )
     },
 
-    {
-        "date": "2026-07-20",
-        "label": "Safeguards concerns addressed",
-        "description": (
-            "The government addressed concerns involving national interests, "
-            "environmental protection, water resources, and possible community "
-            "displacement."
-        )
-    },
 
     {
         "date": "2026-07-27",
@@ -231,16 +214,6 @@ SIGNIFICANT_EVENTS = [
             "BCDA and DTI officials provided further details on the proposed Pax "
             "Silica hub, including its development timeline and planned initial "
             "site development."
-        )
-    },
-
-    {
-        "date": "2026-08-10",
-        "label": "BCDA clarifies project concerns",
-        "description": (
-            "BCDA publicly addressed misconceptions concerning the Pax Silica "
-            "project's scale, data-center characterization, environmental impacts, "
-            "and possible displacement."
         )
     },
 
@@ -625,6 +598,29 @@ else:
 
 
     # --------------------------------------------------------
+    # Prepare article title and publication date for hover
+    # --------------------------------------------------------
+
+    bubble_df["article_title"] = (
+        bubble_df["title"]
+        .fillna("Untitled article")
+        .astype(str)
+    )
+
+    bubble_df["published_date_display"] = pd.to_datetime(
+        bubble_df["published_at"],
+        errors="coerce"
+    ).dt.strftime("%d %b %Y")
+
+    bubble_df["article_hover"] = (
+        "<strong>Article Title:</strong> "
+        + bubble_df["article_title"]
+        + "<br><strong>Date Published:</strong> "
+        + bubble_df["published_date_display"]
+    )
+
+
+    # --------------------------------------------------------
     # Split multi-label themes
     # --------------------------------------------------------
 
@@ -689,32 +685,6 @@ else:
 
 
     # --------------------------------------------------------
-    # Prepare article information for hover
-    # --------------------------------------------------------
-
-    bubble_df["article_title"] = (
-        bubble_df["title"]
-        .fillna("Untitled article")
-        .astype(str)
-    )
-
-    bubble_df["published_date_display"] = (
-        pd.to_datetime(
-            bubble_df["published_at"],
-            errors="coerce"
-        )
-        .dt.strftime("%d %b %Y")
-    )
-
-    bubble_df["hover_detail"] = (
-        "<strong>Article Title:</strong> "
-        + bubble_df["article_title"]
-        + "<br><strong>Date Published:</strong> "
-        + bubble_df["published_date_display"]
-    )
-
-
-    # --------------------------------------------------------
     # Aggregate articles by:
     # date + theme + stance
     # --------------------------------------------------------
@@ -729,16 +699,45 @@ else:
             ],
             observed=False
         )
-        .agg(
-            article_count=("date", "size"),
-            hover_detail=(
-                "hover_detail",
-                lambda x: "<br><br>".join(
-                    x.astype(str)
-                )
+        .size()
+        .reset_index(
+            name="article_count"
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # Prepare hover information for each bubble
+    # --------------------------------------------------------
+
+    hover_data = (
+        bubble_df
+        .groupby(
+            [
+                "date",
+                "themes",
+                "stance"
+            ],
+            observed=False
+        )["article_hover"]
+        .apply(
+            lambda x: "<br><br>".join(
+                x.astype(str)
             )
         )
-        .reset_index()
+        .reset_index(
+            name="article_hover"
+        )
+    )
+
+    bubble_data = bubble_data.merge(
+        hover_data,
+        on=[
+            "date",
+            "themes",
+            "stance"
+        ],
+        how="left"
     )
 
 
@@ -804,7 +803,7 @@ else:
             size_max=45,
 
             custom_data=[
-                "hover_detail"
+                "article_hover"
             ],
 
             category_orders={
@@ -829,9 +828,8 @@ else:
         # ----------------------------------------------------
         # Hover information
         # ----------------------------------------------------
-        # Show only article title and date published.
-        # Do not show theme, stance, article count, or other
-        # default Plotly hover fields.
+        # Only article title and date published are shown.
+        # Theme, stance, and article count are hidden.
 
         fig_bubble.update_traces(
             hovertemplate="%{customdata[0]}<extra></extra>"
@@ -872,4 +870,662 @@ else:
         # ----------------------------------------------------
         #
         # Domestic events are labelled above the chart.
-        # International events are labelled below the chart
+        # International events are labelled below the chart.
+        #
+        # Labels are distributed across multiple rows based on
+        # their horizontal spacing so that labels do not overlap.
+
+        if not events_df.empty:
+
+            chart_min_date = pd.to_datetime(
+                bubble_data["date"]
+            ).min()
+
+            chart_max_date = pd.to_datetime(
+                bubble_data["date"]
+            ).max()
+
+            visible_events = events_df[
+                (events_df["date"] >= chart_min_date)
+                & (events_df["date"] <= chart_max_date)
+            ].reset_index(drop=True)
+
+
+            # ====================================================
+            # EVENT LABEL PLACEMENT
+            # ====================================================
+            #
+            # Domestic events:
+            #   placed above the chart
+            #
+            # International events:
+            #   placed below the chart
+            #
+            # Each group has its own rows, preventing domestic and
+            # international labels from competing for the same space.
+
+            domestic_events = visible_events[
+                visible_events["event_type"] == "Domestic"
+            ].copy()
+
+            international_events = visible_events[
+                visible_events["event_type"] == "International"
+            ].copy()
+
+
+            # ----------------------------------------------------
+            # Label positioning settings
+            # ----------------------------------------------------
+
+            domestic_label_rows = [
+                1.015,
+                1.065,
+                1.115,
+                1.165
+            ]
+
+            international_label_rows = [
+                -0.115,
+                -0.175,
+                -0.235,
+                -0.295
+            ]
+
+
+            # ----------------------------------------------------
+            # Estimate label width
+            # ----------------------------------------------------
+            # This is used only to determine whether another label
+            # can safely occupy the same row.
+
+            def estimate_label_width(label):
+
+                return max(
+                    4,
+                    len(str(label)) * 0.42
+                )
+
+
+            # ----------------------------------------------------
+            # Assign labels to rows without overlap
+            # ----------------------------------------------------
+
+            def assign_event_rows(
+                event_subset,
+                label_rows
+            ):
+
+                row_last_date = [
+                    None
+                    for _ in label_rows
+                ]
+
+                row_last_width = [
+                    0
+                    for _ in label_rows
+                ]
+
+                assignments = []
+
+                for _, event in event_subset.iterrows():
+
+                    event_date = event["date"]
+
+                    label = str(
+                        event["label"]
+                    )
+
+                    current_width = (
+                        estimate_label_width(label)
+                    )
+
+                    selected_row = None
+
+
+                    # --------------------------------------------
+                    # Try each row until sufficient space is found
+                    # --------------------------------------------
+
+                    for row_index in range(
+                        len(label_rows)
+                    ):
+
+                        if row_last_date[row_index] is None:
+
+                            selected_row = row_index
+                            break
+
+
+                        previous_date = (
+                            row_last_date[row_index]
+                        )
+
+                        previous_width = (
+                            row_last_width[row_index]
+                        )
+
+
+                        # ----------------------------------------
+                        # Required distance between label centers.
+                        #
+                        # The extra 2.0 days provides additional
+                        # breathing room between labels.
+                        # ----------------------------------------
+
+                        required_gap = (
+                            (previous_width + current_width) / 2
+                            + 2.0
+                        )
+
+                        actual_gap = abs(
+                            (
+                                event_date
+                                - previous_date
+                            ).days
+                        )
+
+
+                        if actual_gap >= required_gap:
+
+                            selected_row = row_index
+                            break
+
+
+                    # --------------------------------------------
+                    # If no row is completely free, use the row
+                    # with the greatest available spacing.
+                    # --------------------------------------------
+
+                    if selected_row is None:
+
+                        available_gaps = []
+
+                        for row_index in range(
+                            len(label_rows)
+                        ):
+
+                            previous_date = (
+                                row_last_date[row_index]
+                            )
+
+                            previous_width = (
+                                row_last_width[row_index]
+                            )
+
+                            required_gap = (
+                                (
+                                    previous_width
+                                    + current_width
+                                ) / 2
+                                + 2.0
+                            )
+
+                            actual_gap = abs(
+                                (
+                                    event_date
+                                    - previous_date
+                                ).days
+                            )
+
+                            available_gaps.append(
+                                actual_gap
+                                - required_gap
+                            )
+
+                        selected_row = (
+                            available_gaps.index(
+                                max(available_gaps)
+                            )
+                        )
+
+
+                    # --------------------------------------------
+                    # Store row assignment
+                    # --------------------------------------------
+
+                    assignments.append(
+                        (
+                            event,
+                            selected_row
+                        )
+                    )
+
+                    row_last_date[
+                        selected_row
+                    ] = event_date
+
+                    row_last_width[
+                        selected_row
+                    ] = current_width
+
+
+                return assignments
+
+
+            domestic_assignments = assign_event_rows(
+                domestic_events,
+                domestic_label_rows
+            )
+
+            international_assignments = assign_event_rows(
+                international_events,
+                international_label_rows
+            )
+
+
+            # ====================================================
+            # ADD EVENT MARKERS AND LABELS
+            # ====================================================
+
+            all_assignments = []
+
+
+            for event, row_index in domestic_assignments:
+
+                all_assignments.append(
+                    (
+                        event,
+                        domestic_label_rows[row_index],
+                        "top"
+                    )
+                )
+
+
+            for event, row_index in international_assignments:
+
+                all_assignments.append(
+                    (
+                        event,
+                        international_label_rows[row_index],
+                        "bottom"
+                    )
+                )
+
+
+            # ----------------------------------------------------
+            # Add each event to the chart
+            # ----------------------------------------------------
+
+            for event, label_y, label_position in all_assignments:
+
+                event_date = event["date"]
+
+                label = str(
+                    event["label"]
+                )
+
+
+                # ------------------------------------------------
+                # Vertical event marker
+                # ------------------------------------------------
+
+                fig_bubble.add_shape(
+                    type="line",
+                    x0=event_date,
+                    x1=event_date,
+                    y0=0.04,
+                    y1=0.94,
+                    xref="x",
+                    yref="paper",
+                    line=dict(
+                        width=0.8,
+                        dash="dot",
+                        color="gray"
+                    )
+                )
+
+
+                # ------------------------------------------------
+                # Event label
+                # ------------------------------------------------
+
+                annotation_kwargs = dict(
+                    x=event_date,
+                    y=label_y,
+                    xref="x",
+                    yref="paper",
+                    text=label,
+                    showarrow=False,
+                    font=dict(
+                        size=10,
+                        color="black"
+                    ),
+                    xanchor="center",
+                    yanchor="bottom"
+                    if label_position == "top"
+                    else "top",
+                    align="center",
+                    bgcolor="rgba(255,255,255,0.85)",
+                    borderpad=1
+                )
+
+
+                if str(
+                    event["description"]
+                ).strip():
+
+                    annotation_kwargs["hovertext"] = (
+                        event["description"]
+                    )
+
+                    annotation_kwargs["hoverlabel"] = dict(
+                        bgcolor="white"
+                    )
+
+
+                fig_bubble.add_annotation(
+                    **annotation_kwargs
+                )
+
+
+            # ----------------------------------------------------
+            # Give the event labels enough space above and below
+            # the matrix.
+            # ----------------------------------------------------
+
+            fig_bubble.update_layout(
+                margin=dict(
+                    l=10,
+                    r=20,
+                    t=175,
+                    b=155
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # Display chart
+        # ----------------------------------------------------
+
+        st.plotly_chart(
+            fig_bubble,
+            use_container_width=True
+        )
+
+
+        # ----------------------------------------------------
+        # Significant events shown below the matrix
+        # ----------------------------------------------------
+        # This provides the reader with the exact event dates and
+        # descriptions, rather than requiring them to interpret
+        # the vertical markers alone.
+
+        if not events_df.empty:
+
+            visible_events = events_df[
+                (events_df["date"] >= pd.to_datetime(
+                    bubble_data["date"]
+                ).min())
+                & (events_df["date"] <= pd.to_datetime(
+                    bubble_data["date"]
+                ).max())
+            ].copy()
+
+            if not visible_events.empty:
+
+                st.markdown(
+                    "**Significant events during the monitoring period**"
+                )
+
+                event_display = visible_events.copy()
+
+                event_display["date"] = (
+                    event_display["date"]
+                    .dt.strftime("%d %b %Y")
+                )
+
+                event_display = event_display.rename(
+                    columns={
+                        "date": "Date",
+                        "label": "Event",
+                        "description": "Description"
+                    }
+                )
+
+                st.dataframe(
+                    event_display[
+                        ["Date", "Event", "Description"]
+                    ],
+                    hide_index=True,
+                    use_container_width=True
+                )
+
+
+    else:
+
+        st.info(
+            "Not enough dated theme data available to generate "
+            "the bubble matrix."
+        )
+
+
+    # ========================================================
+    # SPACE BETWEEN SECTIONS
+    # ========================================================
+
+    st.markdown(
+        "<br>",
+        unsafe_allow_html=True
+    )
+
+
+    # ========================================================
+    # DETECTED ARTICLE-LEVEL STANCE + WORD CLOUD
+    # ========================================================
+
+    # Increased horizontal space between the two sections
+    col1, spacer, col2 = st.columns(
+        [1, 0.15, 1]
+    )
+
+
+    # ========================================================
+    # DETECTED ARTICLE-LEVEL STANCE
+    # ========================================================
+
+    with col1:
+
+        st.subheader(
+            "Detected Article-Level Stance"
+        )
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        stance_counts = (
+            df["stance"]
+            .fillna("Neutral")
+            .astype(str)
+            .str.strip()
+            .str.title()
+            .value_counts()
+            .reset_index()
+        )
+
+        stance_counts.columns = [
+            "stance",
+            "count"
+        ]
+
+        fig_stance = px.pie(
+            stance_counts,
+
+            names="stance",
+
+            values="count",
+
+            category_orders={
+                "stance": [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ]
+            }
+        )
+
+        st.plotly_chart(
+            fig_stance,
+            use_container_width=True
+        )
+
+
+    # ========================================================
+    # SPACER
+    # ========================================================
+
+    with spacer:
+
+        st.markdown(
+            "<div style='height: 1px;'></div>",
+            unsafe_allow_html=True
+        )
+
+
+    # ========================================================
+    # WORD CLOUD
+    # ========================================================
+
+    with col2:
+
+        st.subheader(
+            "Frequently Mentioned Words in Coverage"
+        )
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring period to the present.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        combined_texts = (
+            df["title"].fillna("")
+            + " "
+            + df["description"].fillna("")
+        ).tolist()
+
+        top_terms = get_top_terms(
+            combined_texts,
+            n=100
+        )
+
+        word_frequencies = dict(
+            top_terms
+        )
+
+        if word_frequencies:
+
+            wordcloud = WordCloud(
+                width=900,
+                height=500,
+                background_color="white",
+                max_words=60,
+                min_font_size=10,
+                max_font_size=70,
+                collocations=False
+            ).generate_from_frequencies(
+                word_frequencies
+            )
+
+            fig_wordcloud, ax = plt.subplots(
+                figsize=(10, 5)
+            )
+
+            ax.imshow(
+                wordcloud,
+                interpolation="bilinear"
+            )
+
+            ax.axis("off")
+
+            st.pyplot(
+                fig_wordcloud,
+                use_container_width=True
+            )
+
+            plt.close(
+                fig_wordcloud
+            )
+
+        else:
+
+            st.info(
+                "Not enough text available to generate "
+                "a word cloud."
+            )
+
+
+    # ========================================================
+    # RESEARCH QUESTION 3
+    # ========================================================
+
+    st.markdown(
+        """
+        <div style="
+            font-size: 22px;
+            font-weight: 500;
+            font-style: italic;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        ">
+        Research Question 3: Which themes receive the most media attention?
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # ========================================================
+    # ARTICLES COLLECTED
+    # ========================================================
+
+    st.subheader(
+        "Articles Collected by the Monitor"
+    )
+
+    st.markdown(
+        """
+        <div style="
+            text-align: justify;
+            color: black;
+        ">
+        New articles are collected through Google and media outlets' RSS feeds six times daily.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.dataframe(
+        df[
+            [
+                "published_at",
+                "source",
+                "title",
+                "themes",
+                "stance",
+                "url"
+            ]
+        ].sort_values(
+            "published_at",
+            ascending=False
+        ),
+        use_container_width=True
+    )
