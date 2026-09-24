@@ -777,13 +777,13 @@ else:
             # Identify current leading themes
             # ------------------------------------------------
 
-            ranked_recent_themes = sorted(
+        ranked_recent_themes = sorted(
                 recent_theme_counts.items(),
                 key=lambda x: x[1],
                 reverse=True
             )
 
-            leading_themes = [
+        leading_themes = [
                 item
                 for item in ranked_recent_themes
                 if item[1] > 0
@@ -793,7 +793,7 @@ else:
             # Recent stance distribution
             # ------------------------------------------------
 
-            recent_stance_counts = (
+        recent_stance_counts = (
                 recent_df["stance"]
                 .fillna("Neutral")
                 .astype(str)
@@ -814,20 +814,20 @@ else:
             # Determine current stance pattern
             # ------------------------------------------------
 
-            if recent_stance_counts.sum() > 0:
+        if recent_stance_counts.sum() > 0:
 
                 dominant_stance = (
                     recent_stance_counts
                     .idxmax()
                 )
 
-                dominant_stance_count = (
+        dominant_stance_count = (
                     recent_stance_counts[
                         dominant_stance
                     ]
                 )
 
-                dominant_stance_share = (
+        dominant_stance_share = (
                     dominant_stance_count
                     / recent_stance_counts.sum()
                     * 100
@@ -835,15 +835,15 @@ else:
 
             else:
 
-                dominant_stance = "Neutral"
-                dominant_stance_share = 0
+        dominant_stance = "Neutral"
+        dominant_stance_share = 0
 
             # ------------------------------------------------
             # Generate analytical blurb
             # ------------------------------------------------
 
 
-            stance_summary = (
+        stance_summary = (
                 f"{dominant_stance.lower()} coverage accounts for "
                 f"{dominant_stance_share:.1f}% of recent articles"
             )
