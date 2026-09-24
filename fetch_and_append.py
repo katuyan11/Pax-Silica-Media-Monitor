@@ -9,80 +9,8 @@ import urllib.parse
 
 from urllib.parse import urlparse
 from google.oauth2.service_account import Credentials
-
 from datetime import datetime, timezone, timedelta
 
-# No genuine Pax Silica coverage can predate this — anything older is
-# necessarily about an unrelated historical BCDA/New Clark City story.
-MIN_PUBLISH_DATE = datetime(2025, 6, 1, tzinfo=timezone.utc)
-
-
-def fetch_google_news_rss():
-    """Search Google News RSS, filtered to Philippine edition, for each topic.
-    Free and unlimited — no quota, unlike World News API."""
-
-    articles = []
-
-    for topic in DEFAULT_TOPICS:
-        print(f"Fetching Google News RSS: {topic}")
-
-        encoded_query = urllib.parse.quote(topic)
-        feed_url = f"https://news.google.com/rss/search?q={encoded_query}&hl=en-PH&gl=PH&ceid=PH:en"
-
-        try:
-            feed = feedparser.parse(feed_url)
-        except Exception as e:
-            print(f"Google News RSS error for '{topic}': {e}")
-            continue
-
-        for entry in feed.entries:
-            raw_title = (entry.get("title") or "").strip()
-            raw_summary = entry.get("summary") or ""
-            google_url = (entry.get("link") or "").strip()
-
-            if not raw_title or not google_url:
-                continue
-
-            # --- Date filter: skip anything published before Pax Silica existed ---
-            published_parsed = entry.get("published_parsed")
-            if published_parsed:
-                published_dt = datetime(*published_parsed[:6], tzinfo=timezone.utc)
-                if published_dt < MIN_PUBLISH_DATE:
-                    continue
-            # If there's no parseable date at all, we can't confirm it's old,
-            # so it's allowed through to the relevance filter as before.
-
-            resolved_url = resolve_google_news_url(google_url)
-
-            source_name = ""
-            if entry.get("source"):
-                source_name = entry.get("source", {}).get("title", "")
-            if not source_name:
-                source_name = get_outlet_name(resolved_url)
-
-            title = strip_source_from_title(raw_title, source_name)
-            description = clean_html(raw_summary)
-
-            row = {
-                "topic": topic,
-                "title": title,
-                "description": description,
-                "source": source_name or "Google News",
-                "url": resolved_url,
-                "published_at": entry.get("published") or "",
-            }
-
-            if not is_relevant(row):
-                continue
-
-            full_text = f"{title} {description}"
-            row["themes"] = classify_themes(full_text)
-            row["stance"] = classify_stance(full_text)
-            row["fetched_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-
-            articles.append(row)
-
-    return articles
 
 # ============================================================
 # CONFIG
@@ -91,6 +19,10 @@ def fetch_google_news_rss():
 WORLD_NEWS_URL = "https://api.worldnewsapi.com/search-news"
 
 SHEET_TAB_NAME = "Clean_Data"
+
+# No genuine Pax Silica coverage can predate this — anything older is
+# necessarily about an unrelated historical BCDA/New Clark City story.
+MIN_PUBLISH_DATE = datetime(2025, 6, 1, tzinfo=timezone.utc)
 
 RSS_FEEDS = {
     "GMA News": "https://www.gmanetwork.com/news/rss/",
@@ -491,7 +423,14 @@ def fetch_rss_articles():
 
 def fetch_google_news_rss():
     """Search Google News RSS, filtered to Philippine edition, for each topic.
-    Free and unlimited — no quota, unlike World News API."""
+    Free and unlimited — no quota, unlike World News API.
+
+    Google's keyword search is looser than World News API's, so generic
+    BCDA/New Clark City stories unrelated to Pax Silica can otherwise slip
+    through. To compensate, this source requires the article to literally
+    name "Pax Silica" — the shared is_relevant() secondary-term rule is not
+    applied here, since it's too permissive for this particular source.
+    """
 
     articles = []
 
@@ -515,24 +454,35 @@ def fetch_google_news_rss():
             if not raw_title or not google_url:
                 continue
 
-            # Resolve to the real publisher URL instead of Google's redirect
+            # --- Date filter: skip anything published before Pax Silica existed ---
+            published_parsed = entry.get("published_parsed")
+            if published_parsed:
+                published_dt = datetime(*published_parsed[:6], tzinfo=timezone.utc)
+                if published_dt < MIN_PUBLISH_DATE:
+                    continue
+            # No parseable date at all — can't confirm it's old, so let it
+            # through to the relevance check below instead of dropping it blind.
+
             resolved_url = resolve_google_news_url(google_url)
 
-            # Get the outlet name Google News reports for this entry
             source_name = ""
             if entry.get("source"):
                 source_name = entry.get("source", {}).get("title", "")
             if not source_name:
                 source_name = get_outlet_name(resolved_url)
 
-            # Strip the outlet name off the end of the title so it doesn't
-            # pollute word-frequency analysis
             title = strip_source_from_title(raw_title, source_name)
-
-            # Google's "summary" field is just HTML markup, not real
-            # snippet text — strip tags; description is often blank after
-            # this, which is expected, not a bug
             description = clean_html(raw_summary)
+
+            # --- Strict relevance check for this source specifically ---
+            # Require the literal anchor term; do NOT fall back to the
+            # secondary-term co-occurrence rule used elsewhere, since that
+            # rule is what let generic BCDA/NCC stories through here.
+            combined_text = f"{title} {description}".lower()
+            if not any(term in combined_text for term in ANCHOR_TERMS):
+                continue
+            if any(term in combined_text for term in EXCLUDE_TERMS):
+                continue
 
             row = {
                 "topic": topic,
@@ -542,9 +492,6 @@ def fetch_google_news_rss():
                 "url": resolved_url,
                 "published_at": entry.get("published") or "",
             }
-
-            if not is_relevant(row):
-                continue
 
             full_text = f"{title} {description}"
             row["themes"] = classify_themes(full_text)
