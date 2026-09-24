@@ -256,6 +256,19 @@ SIGNIFICANT_EVENTS = [
 ]
 
 
+# ============================================================
+# EVENT CLASSIFICATION
+# ============================================================
+# International events are placed below the chart.
+# All other configured events are treated as domestic events
+# and are placed above the chart.
+
+INTERNATIONAL_EVENT_LABELS = {
+    "PH-Israel cooperation",
+    "PH-UAE AI infrastructure talks"
+}
+
+
 def prepare_significant_events(events):
     """Convert configured event dates into a clean DataFrame."""
     if not events:
@@ -282,8 +295,15 @@ def prepare_significant_events(events):
         events_df["date"].notna()
     ].copy()
 
+    events_df["event_type"] = events_df["label"].apply(
+        lambda label:
+            "International"
+            if label in INTERNATIONAL_EVENT_LABELS
+            else "Domestic"
+    )
+
     return events_df[
-        ["date", "label", "description"]
+        ["date", "label", "description", "event_type"]
     ].sort_values("date")
 
 
@@ -808,10 +828,11 @@ else:
         # Add significant-event markers
         # ----------------------------------------------------
         #
-        # Each event is shown as a vertical dotted line with
-        # an annotation at the top of the chart. This lets the
-        # viewer relate changes in themes/stances to real-world
-        # developments.
+        # Domestic events are labelled above the chart.
+        # International events are labelled below the chart.
+        #
+        # Labels are distributed across multiple rows based on
+        # their horizontal spacing so that labels do not overlap.
 
         if not events_df.empty:
 
@@ -829,90 +850,271 @@ else:
             ].reset_index(drop=True)
 
 
+            # ====================================================
+            # EVENT LABEL PLACEMENT
+            # ====================================================
+            #
+            # Domestic events:
+            #   placed above the chart
+            #
+            # International events:
+            #   placed below the chart
+            #
+            # Each group has its own rows, preventing domestic and
+            # international labels from competing for the same space.
+
+            domestic_events = visible_events[
+                visible_events["event_type"] == "Domestic"
+            ].copy()
+
+            international_events = visible_events[
+                visible_events["event_type"] == "International"
+            ].copy()
+
+
             # ----------------------------------------------------
-            # Assign event labels to rows based on horizontal spacing
+            # Label positioning settings
             # ----------------------------------------------------
-            # Labels are placed on the first row where they have
-            # sufficient horizontal distance from the previous label.
-            # This prevents closely spaced events from overlapping.
 
-            label_rows = [1.015, 1.065, 1.115, 1.165]
+            domestic_label_rows = [
+                1.015,
+                1.065,
+                1.115,
+                1.165
+            ]
 
-            # Keep track of the approximate horizontal footprint
-            # of the last label placed on each row.
-            row_last_date = [None] * len(label_rows)
-            row_last_width = [0] * len(label_rows)
+            international_label_rows = [
+                -0.115,
+                -0.175,
+                -0.235,
+                -0.295
+            ]
 
-            # Approximate label width in days.
-            # Longer labels receive more horizontal space.
+
+            # ----------------------------------------------------
+            # Estimate label width
+            # ----------------------------------------------------
+            # This is used only to determine whether another label
+            # can safely occupy the same row.
+
             def estimate_label_width(label):
-                return max(4, len(str(label)) * 0.42)
 
-            for event_index, event in visible_events.iterrows():
+                return max(
+                    4,
+                    len(str(label)) * 0.42
+                )
 
-                event_date = event["date"]
-                label = str(event["label"])
 
-                current_width = estimate_label_width(label)
+            # ----------------------------------------------------
+            # Assign labels to rows without overlap
+            # ----------------------------------------------------
 
-                selected_row = None
+            def assign_event_rows(
+                event_subset,
+                label_rows
+            ):
 
-                for row_index in range(len(label_rows)):
+                row_last_date = [
+                    None
+                    for _ in label_rows
+                ]
 
-                    if row_last_date[row_index] is None:
-                        selected_row = row_index
-                        break
+                row_last_width = [
+                    0
+                    for _ in label_rows
+                ]
 
-                    previous_date = row_last_date[row_index]
-                    previous_width = row_last_width[row_index]
+                assignments = []
 
-                    # Minimum distance required between the centers
-                    # of two labels on the same row.
-                    required_gap = (
-                        (previous_width + current_width) / 2
-                        + 1.5
+                for _, event in event_subset.iterrows():
+
+                    event_date = event["date"]
+
+                    label = str(
+                        event["label"]
                     )
 
-                    actual_gap = abs(
-                        (event_date - previous_date).days
+                    current_width = (
+                        estimate_label_width(label)
                     )
 
-                    if actual_gap >= required_gap:
-                        selected_row = row_index
-                        break
+                    selected_row = None
 
-                # If all rows are occupied, place the label on the
-                # row with the greatest available spacing.
-                if selected_row is None:
 
-                    available_gaps = []
+                    # --------------------------------------------
+                    # Try each row until sufficient space is found
+                    # --------------------------------------------
 
-                    for row_index in range(len(label_rows)):
+                    for row_index in range(
+                        len(label_rows)
+                    ):
 
-                        previous_date = row_last_date[row_index]
-                        previous_width = row_last_width[row_index]
+                        if row_last_date[row_index] is None:
+
+                            selected_row = row_index
+                            break
+
+
+                        previous_date = (
+                            row_last_date[row_index]
+                        )
+
+                        previous_width = (
+                            row_last_width[row_index]
+                        )
+
+
+                        # Required distance between label centers.
+                        #
+                        # The extra 2.0 days provides additional
+                        # breathing room between labels.
 
                         required_gap = (
                             (previous_width + current_width) / 2
-                            + 1.5
+                            + 2.0
                         )
+
 
                         actual_gap = abs(
-                            (event_date - previous_date).days
+                            (
+                                event_date
+                                - previous_date
+                            ).days
                         )
 
-                        available_gaps.append(
-                            actual_gap - required_gap
+
+                        if actual_gap >= required_gap:
+
+                            selected_row = row_index
+                            break
+
+
+                    # --------------------------------------------
+                    # If no row is completely free, use the row
+                    # with the greatest available spacing.
+                    # --------------------------------------------
+
+                    if selected_row is None:
+
+                        available_gaps = []
+
+                        for row_index in range(
+                            len(label_rows)
+                        ):
+
+                            previous_date = (
+                                row_last_date[row_index]
+                            )
+
+                            previous_width = (
+                                row_last_width[row_index]
+                            )
+
+
+                            required_gap = (
+                                (
+                                    previous_width
+                                    + current_width
+                                ) / 2
+                                + 2.0
+                            )
+
+
+                            actual_gap = abs(
+                                (
+                                    event_date
+                                    - previous_date
+                                ).days
+                            )
+
+
+                            available_gaps.append(
+                                actual_gap
+                                - required_gap
+                            )
+
+
+                        selected_row = (
+                            available_gaps.index(
+                                max(available_gaps)
+                            )
                         )
 
-                    selected_row = available_gaps.index(
-                        max(available_gaps)
+
+                    # --------------------------------------------
+                    # Store row assignment
+                    # --------------------------------------------
+
+                    assignments.append(
+                        (
+                            event,
+                            selected_row
+                        )
                     )
 
-                label_y = label_rows[selected_row]
+                    row_last_date[
+                        selected_row
+                    ] = event_date
 
-                row_last_date[selected_row] = event_date
-                row_last_width[selected_row] = current_width
+                    row_last_width[
+                        selected_row
+                    ] = current_width
+
+
+                return assignments
+
+
+            domestic_assignments = assign_event_rows(
+                domestic_events,
+                domestic_label_rows
+            )
+
+            international_assignments = assign_event_rows(
+                international_events,
+                international_label_rows
+            )
+
+
+            # ====================================================
+            # ADD EVENT MARKERS AND LABELS
+            # ====================================================
+
+            all_assignments = []
+
+
+            for event, row_index in domestic_assignments:
+
+                all_assignments.append(
+                    (
+                        event,
+                        domestic_label_rows[row_index],
+                        "top"
+                    )
+                )
+
+
+            for event, row_index in international_assignments:
+
+                all_assignments.append(
+                    (
+                        event,
+                        international_label_rows[row_index],
+                        "bottom"
+                    )
+                )
+
+
+            # ----------------------------------------------------
+            # Add each event to the chart
+            # ----------------------------------------------------
+
+            for event, label_y, label_position in all_assignments:
+
+                event_date = event["date"]
+
+                label = str(
+                    event["label"]
+                )
 
 
                 # ------------------------------------------------
@@ -951,13 +1153,18 @@ else:
                         color="black"
                     ),
                     xanchor="center",
-                    yanchor="bottom",
+                    yanchor="bottom"
+                    if label_position == "top"
+                    else "top",
                     align="center",
-                    bgcolor="rgba(255,255,255,0.75)",
+                    bgcolor="rgba(255,255,255,0.85)",
                     borderpad=1
                 )
 
-                if str(event["description"]).strip():
+
+                if str(
+                    event["description"]
+                ).strip():
 
                     annotation_kwargs["hovertext"] = (
                         event["description"]
@@ -967,18 +1174,23 @@ else:
                         bgcolor="white"
                     )
 
+
                 fig_bubble.add_annotation(
                     **annotation_kwargs
                 )
 
 
-            # Give the staggered event labels more vertical room.
+            # ----------------------------------------------------
+            # Give the event labels enough space above and below
+            # the matrix.
+            # ----------------------------------------------------
+
             fig_bubble.update_layout(
                 margin=dict(
                     l=10,
                     r=20,
                     t=175,
-                    b=70
+                    b=155
                 )
             )
 
