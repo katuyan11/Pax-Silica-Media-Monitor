@@ -873,7 +873,24 @@ else:
                 "a word cloud."
             )
 
+    # ========================================================
+    # RESEARCH QUESTION 3
+    # ========================================================
 
+    st.markdown(
+        """
+        <div style="
+            font-size: 22px;
+            font-weight: 500;
+            font-style: italic;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        ">
+        Research Question 3: Which themes receive the most media attention?
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     # ========================================================
     # ARTICLES COLLECTED
     # ========================================================
