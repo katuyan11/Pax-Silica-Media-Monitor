@@ -532,7 +532,7 @@ else:
 
 
     # ========================================================
-    # RESEARCH QUESTION 3
+    # RESEARCH QUESTION 2
     # ========================================================
 
     st.markdown(
@@ -544,7 +544,7 @@ else:
             margin-top: 10px;
             margin-bottom: 10px;
         ">
-        Research Question 3: Which themes receive the most media attention?
+        Research Question 2: Which themes receive the most media attention?
         </div>
         """,
         unsafe_allow_html=True
@@ -562,7 +562,7 @@ else:
 
 
     # ========================================================
-    # RESEARCH QUESTION 2
+    # RESEARCH QUESTION 3
     # ========================================================
 
     st.markdown(
@@ -574,7 +574,7 @@ else:
             margin-top: 10px;
             margin-bottom: 10px;
         ">
-        Research Question 2: How do the themes and stances represented in media coverage change over time as new developments emerge?
+        Research Question 3: How do the themes and stances represented in media coverage change over time as new developments emerge?
         </div>
         """,
         unsafe_allow_html=True
