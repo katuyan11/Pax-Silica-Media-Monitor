@@ -4,6 +4,7 @@ import requests
 import pandas as pd
 import gspread
 import feedparser
+import urllib.parse
 
 from urllib.parse import urlparse
 from google.oauth2.service_account import Credentials
@@ -277,7 +278,7 @@ def fetch_world_news():
         params = {
             "text": topic,
             "language": "en",
-            "source-country": "ph",   # restored — was missing, causing non-PH results
+            "source-country": "ph",
             "number": 20,
         }
         headers = {"x-api-key": api_key}
@@ -302,7 +303,7 @@ def fetch_world_news():
                 "topic": topic,
                 "title": title,
                 "description": description,
-                "source": get_outlet_name(url),   # parsed from domain, not a nonexistent API field
+                "source": get_outlet_name(url),
                 "url": url,
                 "published_at": (article.get("publish_date") or article.get("published") or ""),
             }
@@ -354,6 +355,62 @@ def fetch_rss_articles():
                 "source": source_name,
                 "url": url,
                 "published_at": (entry.get("published") or entry.get("updated") or ""),
+            }
+
+            if not is_relevant(row):
+                continue
+
+            full_text = f"{title} {description}"
+            row["themes"] = classify_themes(full_text)
+            row["stance"] = classify_stance(full_text)
+            row["fetched_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+            articles.append(row)
+
+    return articles
+
+
+# ============================================================
+# GOOGLE NEWS RSS (free, no quota — Philippine edition search)
+# ============================================================
+
+def fetch_google_news_rss():
+    """Search Google News RSS, filtered to Philippine edition, for each topic.
+    Free and unlimited — no quota, unlike World News API."""
+
+    articles = []
+
+    for topic in DEFAULT_TOPICS:
+        print(f"Fetching Google News RSS: {topic}")
+
+        encoded_query = urllib.parse.quote(topic)
+        feed_url = f"https://news.google.com/rss/search?q={encoded_query}&hl=en-PH&gl=PH&ceid=PH:en"
+
+        try:
+            feed = feedparser.parse(feed_url)
+        except Exception as e:
+            print(f"Google News RSS error for '{topic}': {e}")
+            continue
+
+        for entry in feed.entries:
+            title = (entry.get("title") or "").strip()
+            description = (entry.get("summary") or "").strip()
+            url = (entry.get("link") or "").strip()
+
+            if not title or not url:
+                continue
+
+            source_name = "Google News"
+            if entry.get("source"):
+                source_name = entry.get("source", {}).get("title", "Google News")
+
+            row = {
+                "topic": topic,
+                "title": title,
+                "description": description,
+                "source": source_name,
+                "url": url,
+                "published_at": entry.get("published") or "",
             }
 
             if not is_relevant(row):
@@ -454,7 +511,10 @@ def main():
     rss_articles = fetch_rss_articles()
     print(f"RSS relevant articles: {len(rss_articles)}")
 
-    all_articles = world_news_articles + rss_articles
+    google_news_articles = fetch_google_news_rss()
+    print(f"Google News RSS relevant articles: {len(google_news_articles)}")
+
+    all_articles = world_news_articles + rss_articles + google_news_articles
     print(f"Total relevant articles before deduplication: {len(all_articles)}")
 
     df = normalize_articles(all_articles)
