@@ -177,14 +177,6 @@ SIGNIFICANT_EVENTS = [
         )
     },
 
-    {
-        "date": "2026-04-23",
-        "label": "DND discusses Pax Silica",
-        "description": (
-            "Defense Secretary Gilberto Teodoro discussed Pax Silica in relation "
-            "to Philippine resilience and industrialization."
-        )
-    },
 
     {
         "date": "2026-05-04",
@@ -205,16 +197,6 @@ SIGNIFICANT_EVENTS = [
     },
 
     {
-        "date": "2026-07-20",
-        "label": "Safeguards concerns addressed",
-        "description": (
-            "The government addressed concerns involving national interests, "
-            "environmental protection, water resources, and possible community "
-            "displacement."
-        )
-    },
-
-    {
         "date": "2026-07-27",
         "label": "Pax Silica highlighted in SONA",
         "description": (
@@ -231,16 +213,6 @@ SIGNIFICANT_EVENTS = [
             "BCDA and DTI officials provided further details on the proposed Pax "
             "Silica hub, including its development timeline and planned initial "
             "site development."
-        )
-    },
-
-    {
-        "date": "2026-08-10",
-        "label": "BCDA clarifies project concerns",
-        "description": (
-            "BCDA publicly addressed misconceptions concerning the Pax Silica "
-            "project's scale, data-center characterization, environmental impacts, "
-            "and possible displacement."
         )
     },
 
