@@ -150,7 +150,7 @@ THEME_KEYWORDS = {
         "investment", "jobs", "gdp", "economic zone", "supply chain",
         "semiconductor", "hub", "trade", "manufacturing", "corridor",
         "value chain", "industrial corridor", "real estate", "economy",
-        "power demand",
+        "power demand", "business groups",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
