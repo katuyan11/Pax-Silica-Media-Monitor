@@ -28,8 +28,7 @@ nltk.download("stopwords")
 # ============================================================
 
 st.set_page_config(
-    page_title="Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
-",
+    page_title="Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines",
     layout="wide"
 )
 
