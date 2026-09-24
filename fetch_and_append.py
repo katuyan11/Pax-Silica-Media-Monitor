@@ -277,7 +277,7 @@ def fetch_world_news():
             "text": topic,
             "language": "en",
             "source-country": "ph",   # restored — was missing, causing non-PH results
-            "number": 50,
+            "number": 20,
         }
         headers = {"x-api-key": api_key}
 
