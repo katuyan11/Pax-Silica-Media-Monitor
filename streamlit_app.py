@@ -39,7 +39,7 @@ st.markdown("""
     text-align: justify;
     margin-bottom: 30px;
 ">
-This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. Coverage has been tracked since late August 2026, using Python and Streamlit.
+This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. Coverage has been tracked since March 2026.
 </div>
 """, unsafe_allow_html=True)
 
