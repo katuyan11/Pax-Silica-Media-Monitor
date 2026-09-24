@@ -516,12 +516,84 @@ else:
             margin-top: 10px;
             margin-bottom: 10px;
         ">
-        Research Question 2: Which themes receive the most media attention?
+        Research Question 2: Which themes receive the most media attention, and what stance do articles take toward them?
         </div>
         """,
         unsafe_allow_html=True
     )
 
+    
+    # ========================================================
+    # DETECTED ARTICLE-LEVEL STANCE
+    # ========================================================
+
+    with col1:
+
+        st.subheader(
+            "Detected Article-Level Stance"
+        )
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        stance_counts = (
+            df["stance"]
+            .fillna("Neutral")
+            .astype(str)
+            .str.strip()
+            .str.title()
+            .value_counts()
+            .reset_index()
+        )
+
+        stance_counts.columns = [
+            "stance",
+            "count"
+        ]
+
+        fig_stance = px.pie(
+            stance_counts,
+
+            names="stance",
+
+            values="count",
+
+            category_orders={
+                "stance": [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ]
+            }
+        )
+
+        st.plotly_chart(
+            fig_stance,
+            use_container_width=True
+        )
+
+
+    # ========================================================
+    # SPACER
+    # ========================================================
+
+    with spacer:
+
+        st.markdown(
+            "<div style='height: 1px;'></div>",
+            unsafe_allow_html=True
+        )
 
     # ========================================================
     # SPACE BETWEEN SECTIONS
@@ -1335,81 +1407,6 @@ else:
     col1, spacer, col2 = st.columns(
         [1, 0.15, 1]
     )
-
-
-    # ========================================================
-    # DETECTED ARTICLE-LEVEL STANCE
-    # ========================================================
-
-    with col1:
-
-        st.subheader(
-            "Detected Article-Level Stance"
-        )
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        stance_counts = (
-            df["stance"]
-            .fillna("Neutral")
-            .astype(str)
-            .str.strip()
-            .str.title()
-            .value_counts()
-            .reset_index()
-        )
-
-        stance_counts.columns = [
-            "stance",
-            "count"
-        ]
-
-        fig_stance = px.pie(
-            stance_counts,
-
-            names="stance",
-
-            values="count",
-
-            category_orders={
-                "stance": [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ]
-            }
-        )
-
-        st.plotly_chart(
-            fig_stance,
-            use_container_width=True
-        )
-
-
-    # ========================================================
-    # SPACER
-    # ========================================================
-
-    with spacer:
-
-        st.markdown(
-            "<div style='height: 1px;'></div>",
-            unsafe_allow_html=True
-        )
-
-
     # ========================================================
     # WORD CLOUD
     # ========================================================
