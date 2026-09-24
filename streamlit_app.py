@@ -361,7 +361,7 @@ else:
 
     # Wider gap between the two theme-description columns
     col1, spacer, col2 = st.columns(
-        [1, 0.15, 1]
+        [1, 0.11, 1]
     )
 
 
@@ -900,7 +900,7 @@ else:
 
     # Increased horizontal space between the two sections
     col1, spacer, col2 = st.columns(
-        [1, 0.20, 1]
+        [1, 0.15, 1]
     )
 
 
@@ -1089,7 +1089,7 @@ else:
             text-align: justify;
             color: black;
         ">
-        New articles are collected through Google and media outlets RSS feeds six times daily.
+        New articles are collected through Google and media outlets' RSS feeds six times daily.
         </div>
         """,
         unsafe_allow_html=True
