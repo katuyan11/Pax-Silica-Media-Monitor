@@ -166,12 +166,93 @@ THEME_DESCRIPTIONS = {
 # event markers.
 
 SIGNIFICANT_EVENTS = [
-    # Example:
-    # {
-    #     "date": "2026-03-15",
-    #     "label": "Major Pax Silica announcement",
-    #     "description": "Brief description of the development."
-    # },
+
+    {
+        "date": "2026-04-17",
+        "label": "PH joins Pax Silica",
+        "description": (
+            "The Philippines formally joined the US-led Pax Silica initiative "
+            "and plans for a 4,000-acre industrial hub in the Luzon Economic "
+            "Corridor were announced."
+        )
+    },
+
+    {
+        "date": "2026-04-23",
+        "label": "DND discusses Pax Silica",
+        "description": (
+            "Defense Secretary Gilberto Teodoro discussed Pax Silica in relation "
+            "to Philippine resilience and industrialization."
+        )
+    },
+
+    {
+        "date": "2026-05-04",
+        "label": "PH-Israel cooperation",
+        "description": (
+            "Philippines-Israel discussions on critical minerals processing and AI "
+            "technology were linked to Pax Silica."
+        )
+    },
+
+    {
+        "date": "2026-05-04",
+        "label": "PH-UAE AI infrastructure talks",
+        "description": (
+            "Philippine officials discussed energy and digital infrastructure "
+            "partnerships with UAE companies in connection with Pax Silica."
+        )
+    },
+
+    {
+        "date": "2026-07-20",
+        "label": "Safeguards concerns addressed",
+        "description": (
+            "The government addressed concerns involving national interests, "
+            "environmental protection, water resources, and possible community "
+            "displacement."
+        )
+    },
+
+    {
+        "date": "2026-07-27",
+        "label": "Pax Silica highlighted in SONA",
+        "description": (
+            "The proposed Pax Silica Industrial Hub was highlighted during the "
+            "President's 2026 State of the Nation Address as part of the Luzon "
+            "Economic Corridor and the country's advanced manufacturing strategy."
+        )
+    },
+
+    {
+        "date": "2026-08-07",
+        "label": "Development timeline announced",
+        "description": (
+            "BCDA and DTI officials provided further details on the proposed Pax "
+            "Silica hub, including its development timeline and planned initial "
+            "site development."
+        )
+    },
+
+    {
+        "date": "2026-08-10",
+        "label": "BCDA clarifies project concerns",
+        "description": (
+            "BCDA publicly addressed misconceptions concerning the Pax Silica "
+            "project's scale, data-center characterization, environmental impacts, "
+            "and possible displacement."
+        )
+    },
+
+    {
+        "date": "2026-09-10",
+        "label": "Luzon Economic Corridor forum",
+        "description": (
+            "The Luzon Economic Corridor Investment Forum generated further "
+            "discussion of the proposed Pax Silica development and its investment "
+            "implications."
+        )
+    }
 ]
 
 
