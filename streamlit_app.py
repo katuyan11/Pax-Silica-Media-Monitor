@@ -605,8 +605,7 @@ else:
             unsafe_allow_html=True
         )
 
-
-        # ========================================================
+    # ========================================================
     # THEME × STANCE HEAT MAP
     # ========================================================
 
@@ -624,7 +623,7 @@ else:
                 font-size: 14px;
                 margin-bottom: 10px;
             ">
-            The heat map shows the number of articles associated with each theme and detected stance across the entire monitoring period. Darker cells indicate a higher number of articles, while lighter cells indicate fewer articles.
+            The heat map shows the number of articles associated with each theme and detected stance across the entire monitoring period. Darker cells indicate a higher number of articles, while lighter cells indicate fewer articles. The total at the right shows the cumulative number of articles associated with each theme.
             </div>
             """,
             unsafe_allow_html=True
@@ -721,6 +720,20 @@ else:
         )
 
         # ----------------------------------------------------
+        # Calculate total for each theme
+        # ----------------------------------------------------
+
+        heatmap_data["Total"] = (
+            heatmap_data[
+                [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ]
+            ].sum(axis=1)
+        )
+
+        # ----------------------------------------------------
         # Generate heat map
         # ----------------------------------------------------
 
@@ -755,15 +768,350 @@ else:
             use_container_width=True
         )
 
-    # ========================================================
-    # SPACE BETWEEN SECTIONS
-    # ========================================================
 
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
+        # ====================================================
+        # CURRENT TREND ANALYSIS
+        # ====================================================
 
+        # Use the most recent 14 days with available articles
+        # and compare them with the preceding 14-day period.
+
+        trend_df = df.copy()
+
+        trend_df["published_date"] = pd.to_datetime(
+            trend_df["published_at"],
+            errors="coerce"
+        )
+
+        trend_df = trend_df[
+            trend_df["published_date"].notna()
+        ].copy()
+
+        trend_blurb = ""
+
+        if not trend_df.empty:
+
+            latest_date = (
+                trend_df["published_date"].max()
+            )
+
+            recent_start = (
+                latest_date
+                - pd.Timedelta(days=13)
+            )
+
+            previous_start = (
+                latest_date
+                - pd.Timedelta(days=27)
+            )
+
+            previous_end = (
+                latest_date
+                - pd.Timedelta(days=14)
+            )
+
+            recent_df = trend_df[
+                trend_df["published_date"] >= recent_start
+            ].copy()
+
+            previous_df = trend_df[
+                (trend_df["published_date"] >= previous_start)
+                & (trend_df["published_date"] <= previous_end)
+            ].copy()
+
+            # ------------------------------------------------
+            # Count recent and previous theme mentions
+            # ------------------------------------------------
+
+            recent_theme_counts = {}
+
+            previous_theme_counts = {}
+
+            for theme in THEME_ORDER:
+
+                recent_theme_counts[theme] = 0
+                previous_theme_counts[theme] = 0
+
+            for themes in recent_df["themes"].fillna("").astype(str):
+
+                for theme in themes.split(", "):
+
+                    if theme in THEME_ORDER:
+
+                        recent_theme_counts[theme] += 1
+
+            for themes in previous_df["themes"].fillna("").astype(str):
+
+                for theme in themes.split(", "):
+
+                    if theme in THEME_ORDER:
+
+                        previous_theme_counts[theme] += 1
+
+            # ------------------------------------------------
+            # Identify current leading themes
+            # ------------------------------------------------
+
+            ranked_recent_themes = sorted(
+                recent_theme_counts.items(),
+                key=lambda x: x[1],
+                reverse=True
+            )
+
+            leading_themes = [
+                item
+                for item in ranked_recent_themes
+                if item[1] > 0
+            ]
+
+            # ------------------------------------------------
+            # Recent stance distribution
+            # ------------------------------------------------
+
+            recent_stance_counts = (
+                recent_df["stance"]
+                .fillna("Neutral")
+                .astype(str)
+                .str.strip()
+                .str.title()
+                .value_counts()
+                .reindex(
+                    [
+                        "Supportive",
+                        "Neutral",
+                        "Critical"
+                    ],
+                    fill_value=0
+                )
+            )
+
+            # ------------------------------------------------
+            # Determine current stance pattern
+            # ------------------------------------------------
+
+            if recent_stance_counts.sum() > 0:
+
+                dominant_stance = (
+                    recent_stance_counts
+                    .idxmax()
+                )
+
+                dominant_stance_count = (
+                    recent_stance_counts[
+                        dominant_stance
+                    ]
+                )
+
+                dominant_stance_share = (
+                    dominant_stance_count
+                    / recent_stance_counts.sum()
+                    * 100
+                )
+
+            else:
+
+                dominant_stance = "Neutral"
+                dominant_stance_share = 0
+
+            # ------------------------------------------------
+            # Compare recent coverage with previous period
+            # ------------------------------------------------
+
+            recent_total = len(
+                recent_df
+            )
+
+            previous_total = len(
+                previous_df
+            )
+
+            if previous_total > 0:
+
+                percentage_change = (
+                    (recent_total - previous_total)
+                    / previous_total
+                    * 100
+                )
+
+            else:
+
+                percentage_change = None
+
+            # ------------------------------------------------
+            # Identify theme movements
+            # ------------------------------------------------
+
+            theme_changes = []
+
+            for theme in THEME_ORDER:
+
+                recent_count = (
+                    recent_theme_counts[theme]
+                )
+
+                previous_count = (
+                    previous_theme_counts[theme]
+                )
+
+                theme_changes.append(
+                    (
+                        theme,
+                        recent_count - previous_count,
+                        recent_count
+                    )
+                )
+
+            rising_themes = sorted(
+                theme_changes,
+                key=lambda x: x[1],
+                reverse=True
+            )
+
+            rising_themes = [
+                item
+                for item in rising_themes
+                if item[1] > 0
+            ]
+
+            # ------------------------------------------------
+            # Generate analytical blurb
+            # ------------------------------------------------
+
+            if leading_themes:
+
+                leading_theme_text = (
+                    leading_themes[0][0]
+                )
+
+                leading_theme_count = (
+                    leading_themes[0][1]
+                )
+
+                if len(leading_themes) >= 2:
+
+                    second_theme_text = (
+                        leading_themes[1][0]
+                    )
+
+                    second_theme_count = (
+                        leading_themes[1][1]
+                    )
+
+                    theme_summary = (
+                        f"{leading_theme_text} "
+                        f"({leading_theme_count} article mentions) "
+                        f"and {second_theme_text} "
+                        f"({second_theme_count} article mentions) "
+                        f"are currently the most visible themes"
+                    )
+
+                else:
+
+                    theme_summary = (
+                        f"{leading_theme_text} "
+                        f"({leading_theme_count} article mentions) "
+                        f"is currently the most visible theme"
+                    )
+
+            else:
+
+                theme_summary = (
+                    "No recent theme activity is available"
+                )
+
+            if percentage_change is not None:
+
+                if percentage_change > 0:
+
+                    coverage_trend = (
+                        f"Overall article volume increased by "
+                        f"{percentage_change:.1f}% compared with the preceding "
+                        f"14-day period"
+                    )
+
+                elif percentage_change < 0:
+
+                    coverage_trend = (
+                        f"Overall article volume decreased by "
+                        f"{abs(percentage_change):.1f}% compared with the "
+                        f"preceding 14-day period"
+                    )
+
+                else:
+
+                    coverage_trend = (
+                        "Overall article volume remained relatively stable "
+                        "compared with the preceding 14-day period"
+                    )
+
+            else:
+
+                coverage_trend = (
+                    "There is not enough earlier-period data to establish "
+                    "a comparable volume trend"
+                )
+
+            stance_summary = (
+                f"{dominant_stance.lower()} coverage accounts for "
+                f"{dominant_stance_share:.1f}% of recent articles"
+            )
+
+            if rising_themes:
+
+                rising_theme_text = (
+                    rising_themes[0][0]
+                )
+
+                rising_theme_change = (
+                    rising_themes[0][1]
+                )
+
+                movement_summary = (
+                    f"The theme showing the largest recent increase "
+                    f"is {rising_theme_text}, with "
+                    f"{rising_theme_change} more article mentions "
+                    f"than in the preceding period."
+                )
+
+            else:
+
+                movement_summary = (
+                    "No theme shows a clear increase relative to "
+                    "the preceding period."
+                )
+
+            trend_blurb = (
+                f"Current trend: {theme_summary}. {coverage_trend}. "
+                f"{stance_summary}. {movement_summary}"
+            )
+
+        else:
+
+            trend_blurb = (
+                "Current trend: There is not enough dated article data "
+                "available to generate a trend summary."
+            )
+
+
+        # ====================================================
+        # LLM-GENERATED / ANALYTICAL BLURB
+        # ====================================================
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            ">
+            <strong>Current Trend:</strong> {trend_blurb}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    
 
     # ========================================================
     # RESEARCH QUESTION 3
