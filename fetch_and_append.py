@@ -23,6 +23,7 @@ RSS_FEEDS = {
     "Inquirer Newsinfo": "https://newsinfo.inquirer.net/feed",
     "Inquirer Business": "https://business.inquirer.net/feed",
     "Inquirer Global Nation": "https://globalnation.inquirer.net/feed",
+    "Inquirer Global Opinion": "https://opinion.inquirer.net/feed",
     "Manila Bulletin": "https://mb.com.ph/feed/",
     "Philstar": "https://www.philstar.com/rss/headlines",
     "Rappler": "https://www.rappler.com/feed/",
