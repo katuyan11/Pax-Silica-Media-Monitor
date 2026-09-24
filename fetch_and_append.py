@@ -76,7 +76,8 @@ THEME_KEYWORDS = {
     "Economic Development": [
         "investment", "jobs", "gdp", "economic zone", "supply chain",
         "semiconductor", "hub", "trade", "manufacturing", "corridor",
-        "value chain", "industrial corridor",
+        "value chain", "industrial corridor", "real estate", "economy",
+        "power demand",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -114,7 +115,7 @@ THEME_KEYWORDS = {
         "summit", "policy", "regulation", "oversight", "legal framework",
         "civil society", "kalikasan", "makabayan", "ibon", "protest",
         "opposition", "moratorium", "activist", "walkout", "dialogue",
-        "multi-stakeholder dialogue", "criticize",
+        "multi-stakeholder dialogue", "criticize", "akbayan", 
     ],
     "Geopolitical Security": [
         "coercive dependencies", "civilian industrial zone",
@@ -129,7 +130,8 @@ SUPPORTIVE_WORDS = [
     "support", "supports", "supported", "back", "backs", "backed",
     "welcome", "welcomes", "welcomed", "approve", "approved", "benefit",
     "benefits", "opportunity", "opportunities", "growth", "investment",
-    "job creation", "development", "expansion", "boost",
+    "job creation", "development", "expansion", "boost", "income",
+    "jobs",
 ]
 
 CRITICAL_WORDS = [
@@ -140,7 +142,7 @@ CRITICAL_WORDS = [
     "protested", "reject", "rejected", "limbo", "fear", "misplaced",
     "against", "protests", "protested", "derail", "losing", "scrutiny",
     "scrutinizes", "displaced", "lost", "backlash", "clash", "walkout",
-    "pushback", "worse"
+    "pushback", "worse", "opposing", "sell out",
 ]
 
 
