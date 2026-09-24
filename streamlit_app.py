@@ -148,6 +148,65 @@ THEME_DESCRIPTIONS = {
 
 
 # ============================================================
+# SIGNIFICANT EVENTS / DEVELOPMENTS
+# ============================================================
+# Add important real-world developments here to provide context
+# for changes in the bubble matrix over time.
+#
+# Format:
+# {
+#     "date": "YYYY-MM-DD",
+#     "label": "Short event label",
+#     "description": "Optional longer description shown on hover"
+# }
+#
+# IMPORTANT: Replace the example entries below with verified
+# dates/events relevant to your monitoring period. If no events
+# are entered, the bubble matrix will display normally without
+# event markers.
+
+SIGNIFICANT_EVENTS = [
+    # Example:
+    # {
+    #     "date": "2026-03-15",
+    #     "label": "Major Pax Silica announcement",
+    #     "description": "Brief description of the development."
+    # },
+]
+
+
+def prepare_significant_events(events):
+    """Convert configured event dates into a clean DataFrame."""
+    if not events:
+        return pd.DataFrame(
+            columns=["date", "label", "description"]
+        )
+
+    events_df = pd.DataFrame(events)
+
+    if "date" not in events_df.columns or "label" not in events_df.columns:
+        return pd.DataFrame(
+            columns=["date", "label", "description"]
+        )
+
+    if "description" not in events_df.columns:
+        events_df["description"] = ""
+
+    events_df["date"] = pd.to_datetime(
+        events_df["date"],
+        errors="coerce"
+    )
+
+    events_df = events_df[
+        events_df["date"].notna()
+    ].copy()
+
+    return events_df[
+        ["date", "label", "description"]
+    ].sort_values("date")
+
+
+# ============================================================
 # MULTI-WORD TERMS
 # ============================================================
 
@@ -412,7 +471,7 @@ else:
             font-size: 14px;
             margin-bottom: 20px;
         ">
-        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. The number next to each theme's name is its total article count across the whole monitoring period. Since one article can touch on multiple themes, these totals will add up to more than the overall article count.
+        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. Vertical dotted markers indicate significant developments that may help contextualize changes in media attention and stance over time. The number next to each theme's name is its total article count across the whole monitoring period. Since one article can touch on multiple themes, these totals will add up to more than the overall article count.
         </div>
         """,
         unsafe_allow_html=True
@@ -611,6 +670,14 @@ else:
 
 
     # --------------------------------------------------------
+    # Prepare significant events for the timeline
+    # --------------------------------------------------------
+
+    events_df = prepare_significant_events(
+        SIGNIFICANT_EVENTS
+    )
+
+    # --------------------------------------------------------
     # Generate bubble matrix
     # --------------------------------------------------------
 
@@ -674,12 +741,82 @@ else:
         # ----------------------------------------------------
 
         fig_bubble.update_layout(
-            height=600,
+            height=650,
             xaxis_title="Publication Date",
             yaxis_title="Theme",
             legend_title="Stance",
-            hovermode="closest"
+            hovermode="closest",
+            margin=dict(
+                l=10,
+                r=20,
+                t=80,
+                b=70
+            )
         )
+
+        # ----------------------------------------------------
+        # Add significant-event markers
+        # ----------------------------------------------------
+        #
+        # Each event is shown as a vertical dotted line with
+        # an annotation at the top of the chart. This lets the
+        # viewer relate changes in themes/stances to real-world
+        # developments.
+
+        if not events_df.empty:
+
+            chart_min_date = pd.to_datetime(
+                bubble_data["date"]
+            ).min()
+
+            chart_max_date = pd.to_datetime(
+                bubble_data["date"]
+            ).max()
+
+            visible_events = events_df[
+                (events_df["date"] >= chart_min_date)
+                & (events_df["date"] <= chart_max_date)
+            ]
+
+            for _, event in visible_events.iterrows():
+
+                event_date = event["date"]
+
+                fig_bubble.add_vline(
+                    x=event_date,
+                    line_width=1.5,
+                    line_dash="dot",
+                    annotation_text=event["label"],
+                    annotation_position="top",
+                    annotation_yshift=8
+                )
+
+                # Add the longer description to the event line's
+                # hover text when a description has been provided.
+                if str(event["description"]).strip():
+
+                    fig_bubble.add_annotation(
+                        x=event_date,
+                        y=1.0,
+                        xref="x",
+                        yref="paper",
+                        text="",
+                        showarrow=False,
+                        hovertext=event["description"],
+                        hoverlabel=dict(
+                            bgcolor="white"
+                        )
+                    )
+
+            # Give event labels a little more room at the top.
+            fig_bubble.update_layout(
+                margin=dict(
+                    l=10,
+                    r=20,
+                    t=120,
+                    b=70
+                )
+            )
 
 
         # ----------------------------------------------------
@@ -690,6 +827,53 @@ else:
             fig_bubble,
             use_container_width=True
         )
+
+        # ----------------------------------------------------
+        # Significant events shown below the matrix
+        # ----------------------------------------------------
+        # This provides the reader with the exact event dates and
+        # descriptions, rather than requiring them to interpret
+        # the vertical markers alone.
+
+        if not events_df.empty:
+
+            visible_events = events_df[
+                (events_df["date"] >= pd.to_datetime(
+                    bubble_data["date"]
+                ).min())
+                & (events_df["date"] <= pd.to_datetime(
+                    bubble_data["date"]
+                ).max())
+            ].copy()
+
+            if not visible_events.empty:
+
+                st.markdown(
+                    "**Significant events during the monitoring period**"
+                )
+
+                event_display = visible_events.copy()
+
+                event_display["date"] = (
+                    event_display["date"]
+                    .dt.strftime("%d %b %Y")
+                )
+
+                event_display = event_display.rename(
+                    columns={
+                        "date": "Date",
+                        "label": "Event",
+                        "description": "Description"
+                    }
+                )
+
+                st.dataframe(
+                    event_display[
+                        ["Date", "Event", "Description"]
+                    ],
+                    hide_index=True,
+                    use_container_width=True
+                )
 
 
     else:
