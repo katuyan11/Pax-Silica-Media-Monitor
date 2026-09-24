@@ -115,7 +115,7 @@ THEME_KEYWORDS = {
         "summit", "policy", "regulation", "oversight", "legal framework",
         "civil society", "kalikasan", "makabayan", "ibon", "protest",
         "opposition", "moratorium", "activist", "walkout", "dialogue",
-        "multi-stakeholder dialogue", "criticize", "akbayan", 
+        "multi-stakeholder dialogue", "criticize", "akbayan", "Government",
     ],
     "Geopolitical Security": [
         "coercive dependencies", "civilian industrial zone",
