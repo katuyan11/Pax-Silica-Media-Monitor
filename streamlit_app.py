@@ -177,7 +177,6 @@ SIGNIFICANT_EVENTS = [
         )
     },
 
-
     {
         "date": "2026-05-04",
         "label": "PH-Israel cooperation",
@@ -513,8 +512,8 @@ else:
             font-size: 22px;
             font-weight: 500;
             font-style: italic;
-            margin-top: 10px;
-            margin-bottom: 10px;
+            margin-top: 20px;
+            margin-bottom: 15px;
         ">
         Research Question 2: Which themes receive the most media attention, and what stance do articles take toward them?
         </div>
@@ -522,7 +521,18 @@ else:
         unsafe_allow_html=True
     )
 
-    
+
+    # ========================================================
+    # DETECTED ARTICLE-LEVEL STANCE + WORD CLOUD
+    # ========================================================
+
+    # Two-column layout:
+    # Stance on the left, frequently mentioned words on the right.
+    col1, spacer, col2 = st.columns(
+        [1, 0.15, 1]
+    )
+
+
     # ========================================================
     # DETECTED ARTICLE-LEVEL STANCE
     # ========================================================
@@ -594,6 +604,88 @@ else:
             "<div style='height: 1px;'></div>",
             unsafe_allow_html=True
         )
+
+
+    # ========================================================
+    # FREQUENTLY MENTIONED WORDS IN COVERAGE
+    # ========================================================
+
+    with col2:
+
+        st.subheader(
+            "Frequently Mentioned Words in Coverage"
+        )
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring period to the present.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        combined_texts = (
+            df["title"].fillna("")
+            + " "
+            + df["description"].fillna("")
+        ).tolist()
+
+        top_terms = get_top_terms(
+            combined_texts,
+            n=100
+        )
+
+        word_frequencies = dict(
+            top_terms
+        )
+
+        if word_frequencies:
+
+            wordcloud = WordCloud(
+                width=900,
+                height=500,
+                background_color="white",
+                max_words=60,
+                min_font_size=10,
+                max_font_size=70,
+                collocations=False
+            ).generate_from_frequencies(
+                word_frequencies
+            )
+
+            fig_wordcloud, ax = plt.subplots(
+                figsize=(10, 5)
+            )
+
+            ax.imshow(
+                wordcloud,
+                interpolation="bilinear"
+            )
+
+            ax.axis("off")
+
+            st.pyplot(
+                fig_wordcloud,
+                use_container_width=True
+            )
+
+            plt.close(
+                fig_wordcloud
+            )
+
+        else:
+
+            st.info(
+                "Not enough text available to generate "
+                "a word cloud."
+            )
+
 
     # ========================================================
     # SPACE BETWEEN SECTIONS
@@ -1102,7 +1194,6 @@ else:
                             + 2.0
                         )
 
-
                         actual_gap = abs(
                             (
                                 event_date
@@ -1387,105 +1478,6 @@ else:
             "Not enough dated theme data available to generate "
             "the bubble matrix."
         )
-
-
-    # ========================================================
-    # SPACE BETWEEN SECTIONS
-    # ========================================================
-
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
-
-
-    # ========================================================
-    # DETECTED ARTICLE-LEVEL STANCE + WORD CLOUD
-    # ========================================================
-
-    # Increased horizontal space between the two sections
-    col1, spacer, col2 = st.columns(
-        [1, 0.15, 1]
-    )
-    # ========================================================
-    # WORD CLOUD
-    # ========================================================
-
-    with col2:
-
-        st.subheader(
-            "Frequently Mentioned Words in Coverage"
-        )
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring period to the present.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        combined_texts = (
-            df["title"].fillna("")
-            + " "
-            + df["description"].fillna("")
-        ).tolist()
-
-        top_terms = get_top_terms(
-            combined_texts,
-            n=100
-        )
-
-        word_frequencies = dict(
-            top_terms
-        )
-
-        if word_frequencies:
-
-            wordcloud = WordCloud(
-                width=900,
-                height=500,
-                background_color="white",
-                max_words=60,
-                min_font_size=10,
-                max_font_size=70,
-                collocations=False
-            ).generate_from_frequencies(
-                word_frequencies
-            )
-
-            fig_wordcloud, ax = plt.subplots(
-                figsize=(10, 5)
-            )
-
-            ax.imshow(
-                wordcloud,
-                interpolation="bilinear"
-            )
-
-            ax.axis("off")
-
-            st.pyplot(
-                fig_wordcloud,
-                use_container_width=True
-            )
-
-            plt.close(
-                fig_wordcloud
-            )
-
-        else:
-
-            st.info(
-                "Not enough text available to generate "
-                "a word cloud."
-            )
 
 
     # ========================================================
