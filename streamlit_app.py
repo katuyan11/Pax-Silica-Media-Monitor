@@ -418,6 +418,7 @@ else:
         unsafe_allow_html=True
     )
 
+
     st.markdown(
         """
         <div style="
@@ -552,7 +553,7 @@ else:
             font-size: 14px;
             margin-bottom: 20px;
         ">
-        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. Vertical dotted markers indicate significant developments that may help contextualize changes in media attention and stance over time. The number next to each theme's name is its total article count across the whole monitoring period. Since one article can touch on multiple themes, these totals will add up to more than the overall article count.
+        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. Vertical dotted markers indicate significant developments that may help contextualize changes in media attention and stance over time.
         </div>
         """,
         unsafe_allow_html=True
@@ -647,30 +648,11 @@ else:
 
 
     # --------------------------------------------------------
-    # Calculate total articles per theme
-    # across the entire monitoring period
-    # --------------------------------------------------------
-
-    theme_totals = (
-        bubble_df
-        .groupby(
-            "themes",
-            observed=False
-        )
-        .size()
-        .reindex(
-            THEME_ORDER,
-            fill_value=0
-        )
-    )
-
-
-    # --------------------------------------------------------
-    # Create Y-axis labels with theme totals
+    # Use theme names only for Y-axis labels
     # --------------------------------------------------------
 
     theme_labels = {
-        theme: f"{theme} ({theme_totals[theme]})"
+        theme: theme
         for theme in THEME_ORDER
     }
 
@@ -679,10 +661,7 @@ else:
     # Complete list of theme labels
     # --------------------------------------------------------
 
-    all_theme_labels = [
-        theme_labels[theme]
-        for theme in THEME_ORDER
-    ]
+    all_theme_labels = THEME_ORDER
 
 
     # --------------------------------------------------------
@@ -704,16 +683,6 @@ else:
         .reset_index(
             name="article_count"
         )
-    )
-
-
-    # --------------------------------------------------------
-    # Add total article count for each theme
-    # --------------------------------------------------------
-
-    bubble_data["theme_total"] = (
-        bubble_data["themes"]
-        .map(theme_totals)
     )
 
 
@@ -758,6 +727,7 @@ else:
         SIGNIFICANT_EVENTS
     )
 
+
     # --------------------------------------------------------
     # Generate bubble matrix
     # --------------------------------------------------------
@@ -783,8 +753,7 @@ else:
                 "date": True,
                 "theme_label": False,
                 "stance": True,
-                "article_count": True,
-                "theme_total": True
+                "article_count": True
             },
 
             category_orders={
@@ -801,8 +770,7 @@ else:
                 "date": "Publication Date",
                 "theme_label": "Theme",
                 "stance": "Stance",
-                "article_count": "Articles",
-                "theme_total": "Theme Total"
+                "article_count": "Articles"
             }
         )
 
@@ -835,6 +803,7 @@ else:
             )
         )
 
+
         # ----------------------------------------------------
         # Add significant-event markers
         # ----------------------------------------------------
@@ -859,18 +828,97 @@ else:
                 & (events_df["date"] <= chart_max_date)
             ].reset_index(drop=True)
 
-            # Stagger event labels across three rows so that closely
-            # spaced developments do not overlap at the top of the chart.
-            label_rows = [1.015, 1.065, 1.115]
+
+            # ----------------------------------------------------
+            # Assign event labels to rows based on horizontal spacing
+            # ----------------------------------------------------
+            # Labels are placed on the first row where they have
+            # sufficient horizontal distance from the previous label.
+            # This prevents closely spaced events from overlapping.
+
+            label_rows = [1.015, 1.065, 1.115, 1.165]
+
+            # Keep track of the approximate horizontal footprint
+            # of the last label placed on each row.
+            row_last_date = [None] * len(label_rows)
+            row_last_width = [0] * len(label_rows)
+
+            # Approximate label width in days.
+            # Longer labels receive more horizontal space.
+            def estimate_label_width(label):
+                return max(4, len(str(label)) * 0.42)
 
             for event_index, event in visible_events.iterrows():
 
                 event_date = event["date"]
-                label_y = label_rows[event_index % len(label_rows)]
+                label = str(event["label"])
 
-                # Use a shorter vertical marker rather than a full-height
-                # vline. This keeps the event context visible without
-                # visually cutting through the entire bubble matrix.
+                current_width = estimate_label_width(label)
+
+                selected_row = None
+
+                for row_index in range(len(label_rows)):
+
+                    if row_last_date[row_index] is None:
+                        selected_row = row_index
+                        break
+
+                    previous_date = row_last_date[row_index]
+                    previous_width = row_last_width[row_index]
+
+                    # Minimum distance required between the centers
+                    # of two labels on the same row.
+                    required_gap = (
+                        (previous_width + current_width) / 2
+                        + 1.5
+                    )
+
+                    actual_gap = abs(
+                        (event_date - previous_date).days
+                    )
+
+                    if actual_gap >= required_gap:
+                        selected_row = row_index
+                        break
+
+                # If all rows are occupied, place the label on the
+                # row with the greatest available spacing.
+                if selected_row is None:
+
+                    available_gaps = []
+
+                    for row_index in range(len(label_rows)):
+
+                        previous_date = row_last_date[row_index]
+                        previous_width = row_last_width[row_index]
+
+                        required_gap = (
+                            (previous_width + current_width) / 2
+                            + 1.5
+                        )
+
+                        actual_gap = abs(
+                            (event_date - previous_date).days
+                        )
+
+                        available_gaps.append(
+                            actual_gap - required_gap
+                        )
+
+                    selected_row = available_gaps.index(
+                        max(available_gaps)
+                    )
+
+                label_y = label_rows[selected_row]
+
+                row_last_date[selected_row] = event_date
+                row_last_width[selected_row] = current_width
+
+
+                # ------------------------------------------------
+                # Vertical event marker
+                # ------------------------------------------------
+
                 fig_bubble.add_shape(
                     type="line",
                     x0=event_date,
@@ -880,23 +928,28 @@ else:
                     xref="x",
                     yref="paper",
                     line=dict(
-                        width=1.5,
+                        width=0.8,
                         dash="dot",
                         color="gray"
                     )
                 )
 
-                # Keep the labels short and staggered. The full event
-                # description remains available on hover and in the
-                # event table below the chart.
+
+                # ------------------------------------------------
+                # Event label
+                # ------------------------------------------------
+
                 annotation_kwargs = dict(
                     x=event_date,
                     y=label_y,
                     xref="x",
                     yref="paper",
-                    text=event["label"],
+                    text=label,
                     showarrow=False,
-                    font=dict(size=10, color="black"),
+                    font=dict(
+                        size=10,
+                        color="black"
+                    ),
                     xanchor="center",
                     yanchor="bottom",
                     align="center",
@@ -905,19 +958,26 @@ else:
                 )
 
                 if str(event["description"]).strip():
-                    annotation_kwargs["hovertext"] = event["description"]
+
+                    annotation_kwargs["hovertext"] = (
+                        event["description"]
+                    )
+
                     annotation_kwargs["hoverlabel"] = dict(
                         bgcolor="white"
                     )
 
-                fig_bubble.add_annotation(**annotation_kwargs)
+                fig_bubble.add_annotation(
+                    **annotation_kwargs
+                )
+
 
             # Give the staggered event labels more vertical room.
             fig_bubble.update_layout(
                 margin=dict(
                     l=10,
                     r=20,
-                    t=155,
+                    t=175,
                     b=70
                 )
             )
@@ -931,6 +991,7 @@ else:
             fig_bubble,
             use_container_width=True
         )
+
 
         # ----------------------------------------------------
         # Significant events shown below the matrix
@@ -1161,6 +1222,7 @@ else:
                 "a word cloud."
             )
 
+
     # ========================================================
     # RESEARCH QUESTION 3
     # ========================================================
@@ -1179,6 +1241,8 @@ else:
         """,
         unsafe_allow_html=True
     )
+
+
     # ========================================================
     # ARTICLES COLLECTED
     # ========================================================
