@@ -857,44 +857,67 @@ else:
             visible_events = events_df[
                 (events_df["date"] >= chart_min_date)
                 & (events_df["date"] <= chart_max_date)
-            ]
+            ].reset_index(drop=True)
 
-            for _, event in visible_events.iterrows():
+            # Stagger event labels across three rows so that closely
+            # spaced developments do not overlap at the top of the chart.
+            label_rows = [1.015, 1.065, 1.115]
+
+            for event_index, event in visible_events.iterrows():
 
                 event_date = event["date"]
+                label_y = label_rows[event_index % len(label_rows)]
 
-                fig_bubble.add_vline(
-                    x=event_date,
-                    line_width=1.5,
-                    line_dash="dot",
-                    annotation_text=event["label"],
-                    annotation_position="top",
-                    annotation_yshift=8
+                # Use a shorter vertical marker rather than a full-height
+                # vline. This keeps the event context visible without
+                # visually cutting through the entire bubble matrix.
+                fig_bubble.add_shape(
+                    type="line",
+                    x0=event_date,
+                    x1=event_date,
+                    y0=0.04,
+                    y1=0.94,
+                    xref="x",
+                    yref="paper",
+                    line=dict(
+                        width=1.5,
+                        dash="dot",
+                        color="gray"
+                    )
                 )
 
-                # Add the longer description to the event line's
-                # hover text when a description has been provided.
-                if str(event["description"]).strip():
+                # Keep the labels short and staggered. The full event
+                # description remains available on hover and in the
+                # event table below the chart.
+                annotation_kwargs = dict(
+                    x=event_date,
+                    y=label_y,
+                    xref="x",
+                    yref="paper",
+                    text=event["label"],
+                    showarrow=False,
+                    font=dict(size=10, color="black"),
+                    xanchor="center",
+                    yanchor="bottom",
+                    align="center",
+                    bgcolor="rgba(255,255,255,0.75)",
+                    borderpad=1
+                )
 
-                    fig_bubble.add_annotation(
-                        x=event_date,
-                        y=1.0,
-                        xref="x",
-                        yref="paper",
-                        text="",
-                        showarrow=False,
-                        hovertext=event["description"],
-                        hoverlabel=dict(
-                            bgcolor="white"
-                        )
+                if str(event["description"]).strip():
+                    annotation_kwargs["hovertext"] = event["description"]
+                    annotation_kwargs["hoverlabel"] = dict(
+                        bgcolor="white"
                     )
 
-            # Give event labels a little more room at the top.
+                fig_bubble.add_annotation(**annotation_kwargs)
+
+            # Give the staggered event labels more vertical room.
             fig_bubble.update_layout(
                 margin=dict(
                     l=10,
                     r=20,
-                    t=120,
+                    t=155,
                     b=70
                 )
             )
