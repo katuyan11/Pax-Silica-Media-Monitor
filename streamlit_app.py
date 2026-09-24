@@ -768,105 +768,75 @@ else:
             use_container_width=True
         )
 
+    # ====================================================
+    # CURRENT TREND ANALYSIS
+    # ====================================================
 
-        # ====================================================
-        # CURRENT TREND ANALYSIS
-        # ====================================================
+    # Identify current leading themes
+    ranked_recent_themes = sorted(
+        recent_theme_counts.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
 
-            # ------------------------------------------------
-            # Identify current leading themes
-            # ------------------------------------------------
+    leading_themes = [
+        item
+        for item in ranked_recent_themes
+        if item[1] > 0
+    ]
 
-        ranked_recent_themes = sorted(
-                recent_theme_counts.items(),
-                key=lambda x: x[1],
-                reverse=True
-            )
+    # Recent stance distribution
+    recent_stance_counts = (
+        recent_df["stance"]
+        .fillna("Neutral")
+        .astype(str)
+        .str.strip()
+        .str.title()
+        .value_counts()
+        .reindex(
+            ["Supportive", "Neutral", "Critical"],
+            fill_value=0
+        )
+    )
 
-        leading_themes = [
-                item
-                for item in ranked_recent_themes
-                if item[1] > 0
-            ]
-
-            # ------------------------------------------------
-            # Recent stance distribution
-            # ------------------------------------------------
-
-        recent_stance_counts = (
-                recent_df["stance"]
-                .fillna("Neutral")
-                .astype(str)
-                .str.strip()
-                .str.title()
-                .value_counts()
-                .reindex(
-                    [
-                        "Supportive",
-                        "Neutral",
-                        "Critical"
-                    ],
-                    fill_value=0
-                )
-            )
-
-            # ------------------------------------------------
-            # Determine current stance pattern
-            # ------------------------------------------------
-
-        if recent_stance_counts.sum() > 0:
-
-                dominant_stance = (
-                    recent_stance_counts
-                    .idxmax()
-                )
-
-        dominant_stance_count = (
-                    recent_stance_counts[
-                        dominant_stance
-                    ]
-                )
-
+    # Determine current stance pattern
+    if recent_stance_counts.sum() > 0:
+        dominant_stance = recent_stance_counts.idxmax()
+        dominant_stance_count = recent_stance_counts[dominant_stance]
         dominant_stance_share = (
-                    dominant_stance_count
-                    / recent_stance_counts.sum()
-                    * 100
-                )
-
-        else:
-
+            dominant_stance_count / recent_stance_counts.sum() * 100
+        )
+    else:
         dominant_stance = "Neutral"
         dominant_stance_share = 0
 
-            # ------------------------------------------------
-            # Generate analytical blurb
-            # ------------------------------------------------
+    # Generate analytical blurb
+    stance_summary = (
+        f"{dominant_stance.lower()} coverage accounts for "
+        f"{dominant_stance_share:.1f}% of recent articles"
+    )
 
+    trend_blurb = stance_summary
 
-        stance_summary = (
-                f"{dominant_stance.lower()} coverage accounts for "
-                f"{dominant_stance_share:.1f}% of recent articles"
-            )
+    # ====================================================
+    # LLM-GENERATED / ANALYTICAL BLURB
+    # ====================================================
 
-        # ====================================================
-        # LLM-GENERATED / ANALYTICAL BLURB
-        # ====================================================
-
-        st.markdown(
-            f"""
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-top: 10px;
-                margin-bottom: 10px;
-            ">
-            <strong>Current Trend:</strong> {trend_blurb}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
+    st.markdown(
+        f"""
+        <div style="
+            text-align: justify;
+            color: black;
+            font-size: 14px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        ">
+        <strong>Current Trend:</strong> {trend_blurb}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+        
 
     # ========================================================
     # RESEARCH QUESTION 3
