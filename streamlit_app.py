@@ -523,11 +523,11 @@ else:
 
 
     # ========================================================
-    # DETECTED ARTICLE-LEVEL STANCE + WORD CLOUD
+    # DETECTED ARTICLE-LEVEL STANCE + THEME × STANCE HEAT MAP
     # ========================================================
 
     # Two-column layout:
-    # Stance on the left, frequently mentioned words on the right.
+    # Stance on the left, heat map on the right.
     col1, spacer, col2 = st.columns(
         [1, 0.15, 1]
     )
@@ -607,13 +607,13 @@ else:
 
 
     # ========================================================
-    # FREQUENTLY MENTIONED WORDS IN COVERAGE
+    # THEME × STANCE HEAT MAP
     # ========================================================
 
     with col2:
 
         st.subheader(
-            "Frequently Mentioned Words in Coverage"
+            "Theme × Stance Heat Map"
         )
 
         st.markdown(
@@ -624,67 +624,99 @@ else:
                 font-size: 14px;
                 margin-bottom: 10px;
             ">
-            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring period to the present.
+            The heat map shows the number of articles associated with each theme and detected stance across the entire monitoring period. Darker cells indicate a higher number of articles, while lighter cells indicate fewer articles.
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        combined_texts = (
-            df["title"].fillna("")
-            + " "
-            + df["description"].fillna("")
-        ).tolist()
+        heatmap_df = df.copy()
 
-        top_terms = get_top_terms(
-            combined_texts,
-            n=100
+        # Normalize stance labels
+        heatmap_df["stance"] = (
+            heatmap_df["stance"]
+            .fillna("Neutral")
+            .astype(str)
+            .str.strip()
+            .str.title()
         )
 
-        word_frequencies = dict(
-            top_terms
+        heatmap_df = heatmap_df[
+            heatmap_df["stance"].isin(
+                [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ]
+            )
+        ]
+
+        # Split multi-label themes
+        heatmap_df["themes"] = (
+            heatmap_df["themes"]
+            .fillna("")
+            .astype(str)
+            .str.split(", ")
         )
 
-        if word_frequencies:
+        heatmap_df = heatmap_df.explode(
+            "themes"
+        )
 
-            wordcloud = WordCloud(
-                width=900,
-                height=500,
-                background_color="white",
-                max_words=60,
-                min_font_size=10,
-                max_font_size=70,
-                collocations=False
-            ).generate_from_frequencies(
-                word_frequencies
+        # Keep only defined themes
+        heatmap_df = heatmap_df[
+            heatmap_df["themes"].isin(
+                THEME_ORDER
             )
+        ]
 
-            fig_wordcloud, ax = plt.subplots(
-                figsize=(10, 5)
+        # Count articles by theme and stance
+        heatmap_data = pd.crosstab(
+            heatmap_df["themes"],
+            heatmap_df["stance"]
+        )
+
+        # Force all themes and stances to appear
+        heatmap_data = heatmap_data.reindex(
+            index=THEME_ORDER,
+            columns=[
+                "Supportive",
+                "Neutral",
+                "Critical"
+            ],
+            fill_value=0
+        )
+
+        fig_heatmap = px.imshow(
+            heatmap_data,
+
+            text_auto=True,
+
+            aspect="auto",
+
+            labels={
+                "x": "Stance",
+                "y": "Theme",
+                "color": "Articles"
+            }
+        )
+
+        fig_heatmap.update_layout(
+            height=500,
+            xaxis_title="Stance",
+            yaxis_title="Theme",
+            margin=dict(
+                l=10,
+                r=20,
+                t=20,
+                b=20
             )
+        )
 
-            ax.imshow(
-                wordcloud,
-                interpolation="bilinear"
-            )
-
-            ax.axis("off")
-
-            st.pyplot(
-                fig_wordcloud,
-                use_container_width=True
-            )
-
-            plt.close(
-                fig_wordcloud
-            )
-
-        else:
-
-            st.info(
-                "Not enough text available to generate "
-                "a word cloud."
-            )
+        st.plotly_chart(
+            fig_heatmap,
+            use_container_width=True
+        )
 
 
     # ========================================================
