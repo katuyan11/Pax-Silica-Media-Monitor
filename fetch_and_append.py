@@ -144,6 +144,7 @@ CRITICAL_WORDS = [
     "against", "protests", "protested", "derail", "losing", "scrutiny",
     "scrutinizes", "displaced", "lost", "backlash", "clash", "walkout",
     "pushback", "worse", "opposing", "sell out", "slams", "massive sellout",
+    "NO",
 ]
 
 
