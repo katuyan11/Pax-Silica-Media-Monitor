@@ -177,6 +177,14 @@ SIGNIFICANT_EVENTS = [
         )
     },
 
+    {
+        "date": "2026-04-23",
+        "label": "DND discusses Pax Silica",
+        "description": (
+            "Defense Secretary Gilberto Teodoro discussed Pax Silica in relation "
+            "to Philippine resilience and industrialization."
+        )
+    },
 
     {
         "date": "2026-05-04",
@@ -196,6 +204,15 @@ SIGNIFICANT_EVENTS = [
         )
     },
 
+    {
+        "date": "2026-07-20",
+        "label": "Safeguards concerns addressed",
+        "description": (
+            "The government addressed concerns involving national interests, "
+            "environmental protection, water resources, and possible community "
+            "displacement."
+        )
+    },
 
     {
         "date": "2026-07-27",
@@ -214,6 +231,16 @@ SIGNIFICANT_EVENTS = [
             "BCDA and DTI officials provided further details on the proposed Pax "
             "Silica hub, including its development timeline and planned initial "
             "site development."
+        )
+    },
+
+    {
+        "date": "2026-08-10",
+        "label": "BCDA clarifies project concerns",
+        "description": (
+            "BCDA publicly addressed misconceptions concerning the Pax Silica "
+            "project's scale, data-center characterization, environmental impacts, "
+            "and possible displacement."
         )
     },
 
@@ -244,9 +271,7 @@ INTERNATIONAL_EVENT_LABELS = {
 
 def prepare_significant_events(events):
     """Convert configured event dates into a clean DataFrame."""
-
     if not events:
-
         return pd.DataFrame(
             columns=["date", "label", "description"]
         )
@@ -254,13 +279,11 @@ def prepare_significant_events(events):
     events_df = pd.DataFrame(events)
 
     if "date" not in events_df.columns or "label" not in events_df.columns:
-
         return pd.DataFrame(
             columns=["date", "label", "description"]
         )
 
     if "description" not in events_df.columns:
-
         events_df["description"] = ""
 
     events_df["date"] = pd.to_datetime(
@@ -509,6 +532,26 @@ else:
 
 
     # ========================================================
+    # RESEARCH QUESTION 3
+    # ========================================================
+
+    st.markdown(
+        """
+        <div style="
+            font-size: 22px;
+            font-weight: 500;
+            font-style: italic;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        ">
+        Research Question 3: Which themes receive the most media attention?
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # ========================================================
     # SPACE BETWEEN SECTIONS
     # ========================================================
 
@@ -613,9 +656,9 @@ else:
     ).dt.strftime("%d %b %Y")
 
     bubble_df["article_hover"] = (
-        "<strong>Article Title:</strong> "
+        "Article Title: "
         + bubble_df["article_title"]
-        + "<br><strong>Date Published:</strong> "
+        + "<br>Date Published: "
         + bubble_df["published_date_display"]
     )
 
@@ -828,7 +871,7 @@ else:
         # ----------------------------------------------------
         # Hover information
         # ----------------------------------------------------
-        # Only article title and date published are shown.
+        # Show only article title and date published.
         # Theme, stance, and article count are hidden.
 
         fig_bubble.update_traces(
@@ -1005,17 +1048,16 @@ else:
                         )
 
 
-                        # ----------------------------------------
                         # Required distance between label centers.
                         #
                         # The extra 2.0 days provides additional
                         # breathing room between labels.
-                        # ----------------------------------------
 
                         required_gap = (
                             (previous_width + current_width) / 2
                             + 2.0
                         )
+
 
                         actual_gap = abs(
                             (
@@ -1052,6 +1094,7 @@ else:
                                 row_last_width[row_index]
                             )
 
+
                             required_gap = (
                                 (
                                     previous_width
@@ -1060,6 +1103,7 @@ else:
                                 + 2.0
                             )
 
+
                             actual_gap = abs(
                                 (
                                     event_date
@@ -1067,10 +1111,12 @@ else:
                                 ).days
                             )
 
+
                             available_gaps.append(
                                 actual_gap
                                 - required_gap
                             )
+
 
                         selected_row = (
                             available_gaps.index(
@@ -1471,26 +1517,6 @@ else:
                 "Not enough text available to generate "
                 "a word cloud."
             )
-
-
-    # ========================================================
-    # RESEARCH QUESTION 3
-    # ========================================================
-
-    st.markdown(
-        """
-        <div style="
-            font-size: 22px;
-            font-weight: 500;
-            font-style: italic;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        ">
-        Research Question 3: Which themes receive the most media attention?
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
 
     # ========================================================
