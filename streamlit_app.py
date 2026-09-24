@@ -833,7 +833,7 @@ else:
                     * 100
                 )
 
-            else:
+        else:
 
         dominant_stance = "Neutral"
         dominant_stance_share = 0
