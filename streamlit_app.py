@@ -768,26 +768,51 @@ else:
             use_container_width=True
         )
 
-    # ====================================================
-    # CURRENT TREND ANALYSIS
+       # ====================================================
+    # BUILD THEME COUNTS (full dataset)
     # ====================================================
 
-    # Identify current leading themes
-    ranked_recent_themes = sorted(
-        recent_theme_counts.items(),
+    themes_df = df.copy()
+
+    themes_df["themes"] = (
+        themes_df["themes"]
+        .fillna("")
+        .astype(str)
+        .str.split(", ")
+    )
+
+    themes_df = themes_df.explode("themes")
+
+    themes_df = themes_df[
+        themes_df["themes"].isin(THEME_ORDER)
+    ]
+
+    theme_counts = (
+        themes_df["themes"]
+        .value_counts()
+        .reindex(THEME_ORDER, fill_value=0)
+    )
+
+    # ====================================================
+    # TREND ANALYSIS
+    # ====================================================
+
+    # Identify leading themes
+    ranked_themes = sorted(
+        theme_counts.items(),
         key=lambda x: x[1],
         reverse=True
     )
 
     leading_themes = [
         item
-        for item in ranked_recent_themes
+        for item in ranked_themes
         if item[1] > 0
     ]
 
-    # Recent stance distribution
-    recent_stance_counts = (
-        recent_df["stance"]
+    # Overall stance distribution
+    stance_counts = (
+        df["stance"]
         .fillna("Neutral")
         .astype(str)
         .str.strip()
@@ -799,12 +824,12 @@ else:
         )
     )
 
-    # Determine current stance pattern
-    if recent_stance_counts.sum() > 0:
-        dominant_stance = recent_stance_counts.idxmax()
-        dominant_stance_count = recent_stance_counts[dominant_stance]
+    # Determine dominant stance pattern
+    if stance_counts.sum() > 0:
+        dominant_stance = stance_counts.idxmax()
+        dominant_stance_count = stance_counts[dominant_stance]
         dominant_stance_share = (
-            dominant_stance_count / recent_stance_counts.sum() * 100
+            dominant_stance_count / stance_counts.sum() * 100
         )
     else:
         dominant_stance = "Neutral"
@@ -813,7 +838,7 @@ else:
     # Generate analytical blurb
     stance_summary = (
         f"{dominant_stance.lower()} coverage accounts for "
-        f"{dominant_stance_share:.1f}% of recent articles"
+        f"{dominant_stance_share:.1f}% of articles"
     )
 
     trend_blurb = stance_summary
@@ -831,7 +856,7 @@ else:
             margin-top: 10px;
             margin-bottom: 10px;
         ">
-        <strong>Current Trend:</strong> {trend_blurb}
+        <strong>Coverage Summary:</strong> {trend_blurb}
         </div>
         """,
         unsafe_allow_html=True
