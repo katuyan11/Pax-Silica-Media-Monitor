@@ -28,7 +28,8 @@ nltk.download("stopwords")
 # ============================================================
 
 st.set_page_config(
-    page_title="Pax Silica NLP News Monitor",
+    page_title="Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
+",
     layout="wide"
 )
 
