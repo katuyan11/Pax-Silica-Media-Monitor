@@ -888,7 +888,7 @@ else:
             text-align: justify;
             color: black;
         ">
-        New articles are automatically collected through RSS feeds six times daily while World News API is queried at 7:00 AM and 7:00 PM.
+        New articles are collected through Google and media outlets RSS feeds six times daily.
         </div>
         """,
         unsafe_allow_html=True
