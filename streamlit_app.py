@@ -811,7 +811,7 @@ else:
                 font-size: 14px;
                 margin-bottom: 10px;
             ">
-            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring on September 17, 2026, to the present.
+            The word cloud presents the most frequently mentioned words and terms across the entire news corpus collected by the monitor. The results are cumulative, covering the period from the start of monitoring period to the present.
             </div>
             """,
             unsafe_allow_html=True
