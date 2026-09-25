@@ -1275,121 +1275,164 @@ else:
 
             monthly_selected_events = pd.DataFrame()
 
-        # ----------------------------------------------------
-        # Identify emerging theme
-        # ----------------------------------------------------
-
-        if not leading_monthly_themes:
-
-            monthly_theme_text = (
-                "No clearly dominant theme was detected in the "
-                "available coverage."
+        # ------------------------------------------------------------
+        # EMERGING THEME: COMPARE CURRENT MONTH WITH PRECEDING MONTHS
+        # ------------------------------------------------------------
+        
+        # Create a theme-level dataset from the full corpus
+        comparison_df = monthly_df.copy()
+        
+        comparison_df["themes"] = (
+            comparison_df["themes"]
+            .fillna("")
+            .astype(str)
+            .str.split(", ")
+        )
+        
+        comparison_df = comparison_df.explode("themes")
+        
+        comparison_df = comparison_df[
+            comparison_df["themes"].isin(THEME_ORDER)
+        ].copy()
+        
+        # Count each article-theme assignment only once
+        comparison_df = comparison_df.drop_duplicates(
+            subset=["article_id", "month", "themes"]
+        )
+        
+        # ------------------------------------------------------------
+        # Calculate monthly theme shares
+        # ------------------------------------------------------------
+        
+        # Number of unique articles in each month
+        monthly_article_totals = (
+            monthly_df
+            .groupby("month")["article_id"]
+            .nunique()
+        )
+        
+        # Number of unique articles mentioning each theme in each month
+        monthly_theme_article_counts = (
+            comparison_df
+            .groupby(["month", "themes"])["article_id"]
+            .nunique()
+            .unstack(fill_value=0)
+        )
+        
+        monthly_theme_article_counts = monthly_theme_article_counts.reindex(
+            columns=THEME_ORDER,
+            fill_value=0
+        )
+        
+        # Convert counts into shares of each month's corpus
+        monthly_theme_shares = (
+            monthly_theme_article_counts
+            .div(monthly_article_totals, axis=0)
+            .fillna(0)
+        )
+        
+        # ------------------------------------------------------------
+        # Current month theme shares
+        # ------------------------------------------------------------
+        
+        if selected_month in monthly_theme_shares.index:
+        
+            current_month_shares = (
+                monthly_theme_shares.loc[selected_month]
+                .reindex(THEME_ORDER, fill_value=0)
             )
-
-        elif len(leading_monthly_themes) == 1:
-
-            theme, count = (
-                leading_monthly_themes[0]
-            )
-
-            monthly_theme_text = (
-                f"{theme} was the most prominent theme, appearing "
-                f"in {count} article"
-                f"{'s' if count != 1 else ''}."
-            )
-
+        
         else:
-
-            theme_1, count_1 = (
-                leading_monthly_themes[0]
+        
+            current_month_shares = pd.Series(
+                0,
+                index=THEME_ORDER,
+                dtype=float
             )
-
-            theme_2, count_2 = (
-                leading_monthly_themes[1]
-            )
-
-            monthly_theme_text = (
-                f"{theme_1} led the coverage with "
-                f"{count_1} article"
-                f"{'s' if count_1 != 1 else ''}, followed by "
-                f"{theme_2} with "
-                f"{count_2} article"
-                f"{'s' if count_2 != 1 else ''}."
-            )
-
-        # ----------------------------------------------------
-        # Event context
-        # ----------------------------------------------------
-
-        if not monthly_selected_events.empty:
-
-            event_labels = (
-                monthly_selected_events["label"]
-                .dropna()
-                .astype(str)
-                .tolist()
-            )
-
-            if len(event_labels) == 1:
-
-                monthly_event_text = (
-                    f"This coverage coincided with "
-                    f"{event_labels[0]}."
+        
+        # ------------------------------------------------------------
+        # Preceding months
+        # ------------------------------------------------------------
+        
+        preceding_months = [
+            month
+            for month in monthly_theme_shares.index
+            if month < selected_month
+        ]
+        
+        # ------------------------------------------------------------
+        # Generate emerging-theme statement
+        # ------------------------------------------------------------
+        
+        if not preceding_months:
+        
+            # No earlier month exists for comparison
+            current_top_theme = current_month_shares.idxmax()
+        
+            if current_month_shares.max() > 0:
+        
+                monthly_theme_text = (
+                    f"The {selected_month_name} corpus is most concentrated "
+                    f"on {current_top_theme}."
                 )
-
+        
             else:
-
-                monthly_event_text = (
-                    "This coverage coincided with "
-                    + ", ".join(event_labels[:-1])
-                    + " and "
-                    + event_labels[-1]
-                    + "."
+        
+                monthly_theme_text = (
+                    f"The {selected_month_name} corpus does not show a "
+                    f"clearly dominant theme."
                 )
-
+        
         else:
-
-            monthly_event_text = (
-                "No significant developments in the event tracker "
-                "were recorded for this month."
+        
+            # Average theme share across all preceding months
+            preceding_average_shares = (
+                monthly_theme_shares
+                .loc[preceding_months]
+                .mean(axis=0)
+                .reindex(THEME_ORDER, fill_value=0)
             )
-
-        # ----------------------------------------------------
-        # Build monthly summary
-        # ----------------------------------------------------
-
-        monthly_summary = (
-            f"In {selected_month_name}, the corpus contained "
-            f"{monthly_article_count} unique article"
-            f"{'s' if monthly_article_count != 1 else ''}. "
-            f"{monthly_theme_text} "
-            f"The detected stance of the coverage was predominantly "
-            f"{monthly_dominant_stance.lower()}, accounting for "
-            f"{monthly_dominant_stance_share:.1f}% of articles. "
-            f"{monthly_event_text}"
-        )
-
-        # ----------------------------------------------------
-        # Display monthly summary
-        # ----------------------------------------------------
-
-        st.markdown(
-            f"""
-            <h3 style="margin-bottom: 0.2rem;">
-                {selected_month_name} — What is the emerging theme?
-            </h3>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            monthly_summary
-        )
-
-        st.caption(
-            "Theme counts are not mutually exclusive because a single "
-            "article may be classified under more than one theme."
-        )
+        
+            # Measure how much each theme increased relative to its
+            # average share in preceding months
+            theme_change = (
+                current_month_shares - preceding_average_shares
+            )
+        
+            # Theme with the largest increase
+            emerging_theme = theme_change.idxmax()
+            emerging_theme_change = theme_change.loc[emerging_theme]
+        
+            # Only describe a theme as "greater attention" when its
+            # current share is actually above the preceding-month average
+            if emerging_theme_change > 0:
+        
+                monthly_theme_text = (
+                    f"Compared with the preceding months, the "
+                    f"{selected_month_name} corpus shows greater attention "
+                    f"to {emerging_theme}."
+                )
+        
+            else:
+        
+                # If no theme increased, use the theme with the highest
+                # current-month share without claiming that attention grew
+                current_top_theme = current_month_shares.idxmax()
+        
+                if current_month_shares.max() > 0:
+        
+                    monthly_theme_text = (
+                        f"Compared with the preceding months, the "
+                        f"{selected_month_name} corpus does not show "
+                        f"greater attention to a single theme."
+                    )
+        
+                else:
+        
+                    monthly_theme_text = (
+                        f"The {selected_month_name} corpus does not show "
+                        f"a clearly dominant theme."
+                    )
 
     # ========================================================
     # THEME × STANCE BUBBLE MATRIX
