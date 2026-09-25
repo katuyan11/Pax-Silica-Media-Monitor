@@ -1519,9 +1519,9 @@ else:
 
         st.markdown(
             f"""
-            <h4 style="margin-bottom: 0.2rem;">
+            <h5 style="margin-bottom: 0.2rem;">
                 {selected_month_name} — What is the dominant theme and stance?
-            </h4>
+            </h5>
             """,
             unsafe_allow_html=True
         )
