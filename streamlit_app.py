@@ -617,97 +617,39 @@ else:
         unsafe_allow_html=True
     )
 
-
+        # ========================================================
+    # THEME DESCRIPTIONS — SINGLE COLUMN, ORDERED BY VOLUME
+    # AND LABELED WITH ARTICLE COUNTS
     # ========================================================
-    # [FIX 4] THEME DESCRIPTIONS — TWO COLUMNS, NOW ORDERED BY
-    # VOLUME AND LABELED WITH ARTICLE COUNTS
-    # ========================================================
 
-    left_themes = THEME_DISPLAY_ORDER[:4]
-    right_themes = THEME_DISPLAY_ORDER[4:]
-
-    col1, spacer, col2 = st.columns(
-        [1, 0.11, 1]
-    )
-
-
-    # --------------------------------------------------------
-    # LEFT COLUMN
-    # --------------------------------------------------------
-
-    with col1:
-
-        for theme in left_themes:
-
-            st.markdown(
-                f"**{theme}** &nbsp;·&nbsp; "
-                f"<span style='color:#555; font-size:13px;'>"
-                f"{theme_counts[theme]:,} article"
-                f"{'s' if theme_counts[theme] != 1 else ''}</span>",
-                unsafe_allow_html=True
-            )
-
-            st.markdown(
-                f"""
-                <div style="
-                    color: black;
-                    text-align: justify;
-                    margin-bottom: 18px;
-                ">
-                    {THEME_DESCRIPTIONS[theme]}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-
-    # --------------------------------------------------------
-    # SPACER
-    # --------------------------------------------------------
-
-    with spacer:
+    for theme in THEME_DISPLAY_ORDER:
 
         st.markdown(
-            "<div style='height: 1px;'></div>",
+            f"**{theme}** &nbsp;·&nbsp; "
+            f"<span style='color:#555; font-size:13px;'>"
+            f"{theme_counts[theme]:,} article"
+            f"{'s' if theme_counts[theme] != 1 else ''}</span>",
             unsafe_allow_html=True
         )
 
-
-    # --------------------------------------------------------
-    # RIGHT COLUMN
-    # --------------------------------------------------------
-
-    with col2:
-
-        for theme in right_themes:
-
-            st.markdown(
-                f"**{theme}** &nbsp;·&nbsp; "
-                f"<span style='color:#555; font-size:13px;'>"
-                f"{theme_counts[theme]:,} article"
-                f"{'s' if theme_counts[theme] != 1 else ''}</span>",
-                unsafe_allow_html=True
-            )
-
-            st.markdown(
-                f"""
-                <div style="
-                    color: black;
-                    text-align: justify;
-                    margin-bottom: 18px;
-                ">
-                    {THEME_DESCRIPTIONS[theme]}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        st.markdown(
+            f"""
+            <div style="
+                color: black;
+                text-align: justify;
+                margin-bottom: 18px;
+            ">
+                {THEME_DESCRIPTIONS[theme]}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 
     st.markdown(
         "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
         unsafe_allow_html=True
     )
-
 
     # ========================================================
     # RESEARCH QUESTION 2
