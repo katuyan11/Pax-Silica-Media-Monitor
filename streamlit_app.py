@@ -1536,9 +1536,8 @@ else:
         </div>
         """,
         unsafe_allow_html=True
-        )
-
-
+        ) 
+    
         # ----------------------------------------------------
         # Hover information
         # ----------------------------------------------------
@@ -1548,7 +1547,6 @@ else:
         fig_bubble.update_traces(
             hovertemplate="%{customdata[0]}<extra></extra>"
         )
-
 
         # ----------------------------------------------------
         # Explicitly force all seven themes onto Y-axis
