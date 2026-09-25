@@ -137,7 +137,8 @@ SUPPORTIVE_WORDS = [
     "benefits", "opportunity", "opportunities", "growth", "investment",
     "job creation", "development", "expansion", "boost", "income",
     "jobs", "bets", "trusted", "trusted partnership", "trust", 
-    "beef up PH resiliency, industrialization"
+    "beef up PH resiliency, industrialization", "keen on",
+    "new global position",
 ]
 
 CRITICAL_WORDS = [
@@ -152,6 +153,7 @@ CRITICAL_WORDS = [
     "No to Pax Silica", "backlash", "exploitation", "scrutiny", "opposition",
     "scraps", "debunks claims", "laban", "kontra", "Scrap Pax Silica", "slammed",
     "slams", "force them off", "force off", "condemns", "condemn", "violent",
+    "dispute", "protest", "protesters",
 ]
 
 
