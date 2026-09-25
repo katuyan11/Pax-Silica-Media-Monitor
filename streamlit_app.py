@@ -1244,26 +1244,6 @@ else:
         "article may be classified under more than one theme."
     )
 
-
-    # --------------------------------------------------------
-    # COMBINED BUBBLE MATRIX NOTE
-    # --------------------------------------------------------
-
-    st.markdown(
-        """
-        <div style="
-            color: black;
-            text-align: justify;
-            font-size: 14px;
-            margin-bottom: 20px;
-        ">
-        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. Vertical dotted markers indicate significant developments that may help contextualize changes in media attention and stance over time.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
     # ========================================================
     # THEME × STANCE BUBBLE MATRIX
     # ========================================================
@@ -1538,6 +1518,24 @@ else:
                 height=600,
                 autosize=True,
                 margin=dict(l=20, r=20, t=70, b=20)
+        )
+
+    # --------------------------------------------------------
+    # COMBINED BUBBLE MATRIX NOTE
+    # --------------------------------------------------------
+
+    st.markdown(
+        """
+        <div style="
+            color: black;
+            text-align: justify;
+            font-size: 14px;
+            margin-bottom: 20px;
+        ">
+        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. Vertical dotted markers indicate significant developments that may help contextualize changes in media attention and stance over time.
+        </div>
+        """,
+        unsafe_allow_html=True
         )
 
 
