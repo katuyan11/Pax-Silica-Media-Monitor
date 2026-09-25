@@ -501,11 +501,15 @@ else:
 
     with overview_cols[2]:
 
-        if "outlet" in df.columns:
+        # [FIX] Now counts unique values from "source" — the same
+        # column the Articles Collected table displays — rather than
+        # "outlet", which isn't a column in this sheet and was
+        # silently falling back to "N/A".
+        if "source" in df.columns:
 
             st.metric(
                 "Outlets monitored",
-                f"{df['outlet'].nunique():,}"
+                f"{df['source'].nunique():,}"
             )
 
         else:
@@ -516,6 +520,11 @@ else:
             )
 
     st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+
+    st.markdown(
+        "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
+        unsafe_allow_html=True
+    )
 
 
     # ========================================================
@@ -692,6 +701,12 @@ else:
                 """,
                 unsafe_allow_html=True
             )
+
+
+    st.markdown(
+        "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
+        unsafe_allow_html=True
+    )
 
 
     # ========================================================
@@ -1134,6 +1149,11 @@ else:
         <strong>Coverage Summary:</strong> {trend_blurb}
         </div>
         """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
         unsafe_allow_html=True
     )
 
@@ -2276,6 +2296,12 @@ else:
                 "No significant events fall within the current "
                 "monitoring period."
             )
+
+
+    st.markdown(
+        "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
+        unsafe_allow_html=True
+    )
 
 
     # ========================================================
