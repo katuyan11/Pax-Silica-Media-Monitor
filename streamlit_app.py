@@ -961,7 +961,7 @@ else:
     monthly_df = df.copy()
     
     # ------------------------------------------------------------
-    # Prepare dates and unique article IDs
+    # Prepare dates
     # ------------------------------------------------------------
     
     monthly_df["published_date"] = pd.to_datetime(
@@ -969,64 +969,72 @@ else:
         errors="coerce"
     )
     
-    # Use URL as the stable article ID when available.
-    # Fall back to the row index when URL is missing.
-    monthly_df["article_id"] = monthly_df["url"].fillna("").astype(str).str.strip()
+    monthly_df["month"] = monthly_df["published_date"].dt.to_period("M")
+    
+    # ------------------------------------------------------------
+    # Create a unique article ID
+    # ------------------------------------------------------------
+    
+    if "url" in monthly_df.columns:
+        monthly_df["article_id"] = (
+            monthly_df["url"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
+    else:
+        monthly_df["article_id"] = ""
     
     missing_id = monthly_df["article_id"].eq("")
+    
     monthly_df.loc[missing_id, "article_id"] = (
         "row_" + monthly_df.index.astype(str)
     )
     
     # Keep one record per article
-    monthly_df = monthly_df.drop_duplicates(subset="article_id")
-    
-    monthly_df["month"] = monthly_df["published_date"].dt.to_period("M")
+    monthly_df = monthly_df.drop_duplicates(
+        subset="article_id"
+    )
     
     # ------------------------------------------------------------
-    # Available months for dropdown
+    # Available months
     # ------------------------------------------------------------
     
-    monthly_available_months = sorted(
+    available_months = sorted(
         monthly_df["month"].dropna().unique(),
         reverse=True
     )
     
-    monthly_month_labels = {
+    month_labels = {
         month: month.strftime("%B %Y")
-        for month in monthly_available_months
+        for month in available_months
     }
     
-    monthly_selected_month = st.selectbox(
+    selected_month = st.selectbox(
         "Select month:",
-        options=monthly_available_months,
-        format_func=lambda x: monthly_month_labels[x]
+        options=available_months,
+        format_func=lambda month: month_labels[month]
     )
     
-    # ------------------------------------------------------------
-    # Filter selected month
-    # ------------------------------------------------------------
-    
-    monthly_selected_df = monthly_df[
-        monthly_df["month"] == monthly_selected_month
+    selected_month_df = monthly_df[
+        monthly_df["month"] == selected_month
     ].copy()
     
-    monthly_selected_month_name = monthly_selected_month.strftime("%B %Y")
+    selected_month_name = selected_month.strftime("%B %Y")
     
     # ------------------------------------------------------------
     # Monthly article count
     # ------------------------------------------------------------
     
-    monthly_article_count = monthly_selected_df["article_id"].nunique()
+    monthly_article_count = selected_month_df["article_id"].nunique()
     
     # ------------------------------------------------------------
     # Monthly theme counts
     # ------------------------------------------------------------
-    # Articles may be tagged with multiple themes.
-    # Therefore, theme counts are NOT mutually exclusive.
-    # One article can contribute to multiple theme counts.
+    # Articles can have more than one theme.
+    # Therefore, theme counts are not mutually exclusive.
     
-    monthly_theme_df = monthly_selected_df.copy()
+    monthly_theme_df = selected_month_df.copy()
     
     monthly_theme_df["themes"] = (
         monthly_theme_df["themes"]
@@ -1041,7 +1049,7 @@ else:
         monthly_theme_df["themes"].isin(THEME_ORDER)
     ]
     
-    # Make sure the same article-theme assignment is counted only once
+    # Count each article-theme assignment only once
     monthly_theme_df = monthly_theme_df.drop_duplicates(
         subset=["article_id", "themes"]
     )
@@ -1053,24 +1061,25 @@ else:
         .reindex(THEME_ORDER, fill_value=0)
     )
     
-    monthly_ranked_themes = sorted(
+    # Rank themes by number of articles
+    ranked_monthly_themes = sorted(
         monthly_theme_counts.items(),
         key=lambda x: x[1],
         reverse=True
     )
     
-    monthly_leading_themes = [
+    leading_monthly_themes = [
         (theme, count)
-        for theme, count in monthly_ranked_themes
+        for theme, count in ranked_monthly_themes
         if count > 0
     ]
     
     # ------------------------------------------------------------
-    # Monthly stance distribution
+    # Monthly stance
     # ------------------------------------------------------------
     
     monthly_stance_counts = (
-        monthly_selected_df["stance"]
+        selected_month_df["stance"]
         .fillna("Neutral")
         .astype(str)
         .str.strip()
@@ -1085,22 +1094,31 @@ else:
         )
     )
     
-    monthly_total_stance_articles = monthly_stance_counts.sum()
+    monthly_stance_total = monthly_stance_counts.sum()
     
-    if monthly_total_stance_articles > 0:
-        monthly_dominant_stance = monthly_stance_counts.idxmax()
-        monthly_dominant_stance_count = monthly_stance_counts.max()
+    if monthly_stance_total > 0:
+    
+        monthly_dominant_stance = (
+            monthly_stance_counts.idxmax()
+        )
+    
+        monthly_dominant_stance_count = (
+            monthly_stance_counts.max()
+        )
+    
         monthly_dominant_stance_share = (
             monthly_dominant_stance_count
-            / monthly_total_stance_articles
+            / monthly_stance_total
             * 100
         )
+    
     else:
+    
         monthly_dominant_stance = "Neutral"
         monthly_dominant_stance_share = 0
     
     # ------------------------------------------------------------
-    # Significant events in the selected month
+    # Significant events for the selected month
     # ------------------------------------------------------------
     
     monthly_events_df = prepare_significant_events(
@@ -1112,20 +1130,24 @@ else:
     )
     
     monthly_selected_events = monthly_events_df[
-        monthly_events_df["event_month"] == monthly_selected_month
+        monthly_events_df["event_month"] == selected_month
     ].copy()
     
     # ------------------------------------------------------------
-    # Emerging-theme wording
+    # Identify emerging theme
     # ------------------------------------------------------------
     
-    if len(monthly_leading_themes) == 0:
+    if not leading_monthly_themes:
+    
         monthly_theme_text = (
-            "No clearly dominant theme was detected in the available coverage."
+            "No clearly dominant theme was detected in the "
+            "available coverage."
         )
     
-    elif len(monthly_leading_themes) == 1:
-        theme, count = monthly_leading_themes[0]
+    elif len(leading_monthly_themes) == 1:
+    
+        theme, count = leading_monthly_themes[0]
+    
         monthly_theme_text = (
             f"{theme} was the most prominent theme, appearing in "
             f"{count} article"
@@ -1133,14 +1155,17 @@ else:
         )
     
     else:
-        top_theme_1, top_count_1 = monthly_leading_themes[0]
-        top_theme_2, top_count_2 = monthly_leading_themes[1]
+    
+        theme_1, count_1 = leading_monthly_themes[0]
+        theme_2, count_2 = leading_monthly_themes[1]
     
         monthly_theme_text = (
-            f"{top_theme_1} led the coverage with {top_count_1} article"
-            f"{'s' if top_count_1 != 1 else ''}, followed by "
-            f"{top_theme_2} with {top_count_2} article"
-            f"{'s' if top_count_2 != 1 else ''}."
+            f"{theme_1} led the coverage with "
+            f"{count_1} article"
+            f"{'s' if count_1 != 1 else ''}, followed by "
+            f"{theme_2} with "
+            f"{count_2} article"
+            f"{'s' if count_2 != 1 else ''}."
         )
     
     # ------------------------------------------------------------
@@ -1149,39 +1174,45 @@ else:
     
     if not monthly_selected_events.empty:
     
-        monthly_event_names = (
-            monthly_selected_events["event"]
+        # IMPORTANT:
+        # prepare_significant_events() uses "label", not "event"
+        event_labels = (
+            monthly_selected_events["label"]
             .dropna()
             .astype(str)
             .tolist()
         )
     
-        if len(monthly_event_names) == 1:
+        if len(event_labels) == 1:
+    
             monthly_event_text = (
-                f"This coverage coincided with {monthly_event_names[0]}."
+                f"This coverage coincided with "
+                f"{event_labels[0]}."
             )
     
         else:
+    
             monthly_event_text = (
                 "This coverage coincided with "
-                + ", ".join(monthly_event_names[:-1])
+                + ", ".join(event_labels[:-1])
                 + " and "
-                + monthly_event_names[-1]
+                + event_labels[-1]
                 + "."
             )
     
     else:
+    
         monthly_event_text = (
-            "No significant developments in the event tracker were recorded "
-            "for this month."
+            "No significant developments in the event tracker "
+            "were recorded for this month."
         )
     
     # ------------------------------------------------------------
-    # Monthly summary
+    # Build monthly summary
     # ------------------------------------------------------------
     
     monthly_summary = (
-        f"In {monthly_selected_month_name}, the corpus contained "
+        f"In {selected_month_name}, the corpus contained "
         f"{monthly_article_count} unique article"
         f"{'s' if monthly_article_count != 1 else ''}. "
         f"{monthly_theme_text} "
@@ -1198,7 +1229,7 @@ else:
     st.markdown(
         f"""
         <h3 style="margin-bottom: 0.2rem;">
-            {monthly_selected_month_name} — What is the emerging theme?
+            {selected_month_name} — What is the emerging theme?
         </h3>
         """,
         unsafe_allow_html=True
@@ -1209,8 +1240,8 @@ else:
     )
     
     st.caption(
-        "Theme counts are not mutually exclusive because a single article may "
-        "be classified under more than one theme."
+        "Theme counts are not mutually exclusive because a single "
+        "article may be classified under more than one theme."
     )
 
 
