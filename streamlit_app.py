@@ -592,7 +592,8 @@ else:
             margin-bottom: 10px;
         ">
         A breakdown of the themes — from jobs to geopolitics —
-        that dominate Pax Silica coverage
+        that dominate Pax Silica coverage, and where the gaps 
+        are for deeper investigation.
         </div>
         """,
         unsafe_allow_html=True
@@ -674,8 +675,9 @@ else:
             color: black;
             margin-bottom: 15px;
         ">
-        Where media attention concentrates, and whether the tone
-        leans supportive, critical, or balanced
+        Where media attention concentrates, and whether the stance
+        leans supportive, critical, or balanced — a guide to which 
+        themes are worth scrutinizing more closely.
         </div>
         """,
         unsafe_allow_html=True
@@ -1122,7 +1124,8 @@ else:
             color: black;
             margin-bottom: 10px;
         ">
-        Tracking shifts in themes and stances over time as real-world events unfold
+        Tracking shifts in themes and stances over time as real-world events unfold, 
+        showing how coverage responds to developments on the ground.
         </div>
         """,
         unsafe_allow_html=True
