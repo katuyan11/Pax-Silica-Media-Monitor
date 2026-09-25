@@ -616,7 +616,10 @@ else:
 
         st.plotly_chart(
             fig_stance,
-            use_container_width=True
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
         )
 
 
@@ -770,6 +773,21 @@ else:
         )
 
         # ----------------------------------------------------
+        # Order themes from highest to lowest total
+        # ----------------------------------------------------
+
+        heatmap_theme_order = (
+            heatmap_data["Total"]
+            .sort_values(ascending=False)
+            .index
+            .tolist()
+        )
+
+        heatmap_data = heatmap_data.reindex(
+            heatmap_theme_order
+        )
+
+        # ----------------------------------------------------
         # Generate heat map
         # ----------------------------------------------------
 
@@ -799,9 +817,19 @@ else:
             )
         )
 
+        fig_heatmap.update_yaxes(
+            categoryorder="array",
+            categoryarray=heatmap_theme_order,
+            autorange="reversed",
+            automargin=True
+        )
+
         st.plotly_chart(
             fig_heatmap,
-            use_container_width=True
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
         )
 
        # ====================================================
@@ -1006,6 +1034,8 @@ else:
         + bubble_df["article_title"]
         + "<br>Date Published: "
         + bubble_df["published_date_display"]
+        + "<br>Stance: "
+        + bubble_df["stance"]
     )
 
 
@@ -1240,7 +1270,8 @@ else:
         # ----------------------------------------------------
 
         fig_bubble.update_layout(
-            height=650,
+            height=600,
+            autosize=True,
             xaxis_title="Publication Date",
             yaxis_title="Theme",
             legend_title="Stance",
@@ -1251,6 +1282,15 @@ else:
                 t=80,
                 b=70
             )
+        )
+
+        fig_bubble.update_xaxes(
+            tickangle=45,
+            automargin=True
+        )
+
+        fig_bubble.update_yaxes(
+            automargin=True
         )
 
 
@@ -1630,7 +1670,10 @@ else:
 
         st.plotly_chart(
             fig_bubble,
-            use_container_width=True
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
         )
 
 
