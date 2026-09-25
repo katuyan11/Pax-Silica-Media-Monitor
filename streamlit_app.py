@@ -432,6 +432,7 @@ else:
 
         st.stop()
 
+
     # ========================================================
     # RESEARCH QUESTION 1
     # ========================================================
@@ -479,6 +480,7 @@ else:
         unsafe_allow_html=True
     )
 
+
     # ========================================================
     # THEME DESCRIPTIONS — TWO COLUMNS
     # ========================================================
@@ -489,6 +491,7 @@ else:
     col1, spacer, col2 = st.columns(
         [1, 0.11, 1]
     )
+
 
     # --------------------------------------------------------
     # LEFT COLUMN
@@ -515,6 +518,7 @@ else:
                 unsafe_allow_html=True
             )
 
+
     # --------------------------------------------------------
     # SPACER
     # --------------------------------------------------------
@@ -525,6 +529,7 @@ else:
             "<div style='height: 1px;'></div>",
             unsafe_allow_html=True
         )
+
 
     # --------------------------------------------------------
     # RIGHT COLUMN
@@ -550,6 +555,7 @@ else:
                 """,
                 unsafe_allow_html=True
             )
+
 
     # ========================================================
     # RESEARCH QUESTION 2
@@ -581,6 +587,7 @@ else:
         unsafe_allow_html=True
     )
 
+
     # ========================================================
     # DETECTED ARTICLE-LEVEL STANCE + HEAT MAP
     # ========================================================
@@ -588,6 +595,7 @@ else:
     col1, spacer, col2 = st.columns(
         [1, 0.15, 1]
     )
+
 
     # ========================================================
     # DETECTED ARTICLE-LEVEL STANCE
@@ -678,6 +686,7 @@ else:
             }
         )
 
+
     # ========================================================
     # SPACER
     # ========================================================
@@ -688,6 +697,7 @@ else:
             "<div style='height: 1px;'></div>",
             unsafe_allow_html=True
         )
+
 
     # ========================================================
     # THEME × STANCE HEAT MAP
@@ -729,10 +739,6 @@ else:
 
         heatmap_df = df.copy()
 
-        # ----------------------------------------------------
-        # Normalize stance labels
-        # ----------------------------------------------------
-
         heatmap_df["stance"] = (
             heatmap_df["stance"]
             .fillna("Neutral")
@@ -755,10 +761,6 @@ else:
             )
         ].copy()
 
-        # ----------------------------------------------------
-        # Split multi-label themes
-        # ----------------------------------------------------
-
         heatmap_df["themes"] = (
             heatmap_df["themes"]
             .fillna("")
@@ -770,27 +772,15 @@ else:
             "themes"
         )
 
-        # ----------------------------------------------------
-        # Keep only defined themes
-        # ----------------------------------------------------
-
         heatmap_df = heatmap_df[
             heatmap_df["themes"].isin(
                 THEME_ORDER
             )
         ].copy()
 
-        # ----------------------------------------------------
-        # Reset index
-        # ----------------------------------------------------
-
         heatmap_df = heatmap_df.reset_index(
             drop=True
         )
-
-        # ----------------------------------------------------
-        # Count articles
-        # ----------------------------------------------------
 
         heatmap_data = (
             heatmap_df
@@ -807,10 +797,6 @@ else:
             )
         )
 
-        # ----------------------------------------------------
-        # Force all themes and stances
-        # ----------------------------------------------------
-
         heatmap_data = heatmap_data.reindex(
             index=THEME_ORDER,
             columns=[
@@ -820,10 +806,6 @@ else:
             ],
             fill_value=0
         )
-
-        # ----------------------------------------------------
-        # Calculate total
-        # ----------------------------------------------------
 
         heatmap_data["Total"] = (
             heatmap_data[
@@ -835,10 +817,6 @@ else:
             ].sum(axis=1)
         )
 
-        # ----------------------------------------------------
-        # Order themes by total
-        # ----------------------------------------------------
-
         heatmap_theme_order = (
             heatmap_data["Total"]
             .sort_values(ascending=False)
@@ -849,10 +827,6 @@ else:
         heatmap_data = heatmap_data.reindex(
             heatmap_theme_order
         )
-
-        # ----------------------------------------------------
-        # Generate heat map
-        # ----------------------------------------------------
 
         fig_heatmap = px.imshow(
             heatmap_data,
@@ -892,6 +866,7 @@ else:
             }
         )
 
+
     # ========================================================
     # BUILD THEME COUNTS
     # ========================================================
@@ -921,6 +896,7 @@ else:
             fill_value=0
         )
     )
+
 
     # ========================================================
     # TREND ANALYSIS
@@ -985,6 +961,7 @@ else:
 
     trend_blurb = stance_summary
 
+
     # ========================================================
     # COVERAGE SUMMARY
     # ========================================================
@@ -1003,6 +980,7 @@ else:
         """,
         unsafe_allow_html=True
     )
+
 
     # ========================================================
     # RESEARCH QUESTION 3
@@ -1032,15 +1010,12 @@ else:
         unsafe_allow_html=True
     )
 
+
     # ========================================================
     # MONTHLY SUMMARY
     # ========================================================
 
     monthly_df = df.copy()
-
-    # --------------------------------------------------------
-    # Prepare dates
-    # --------------------------------------------------------
 
     monthly_df["published_date"] = pd.to_datetime(
         monthly_df["published_at"],
@@ -1064,8 +1039,9 @@ else:
             .dt.to_period("M")
         )
 
+
         # ----------------------------------------------------
-        # Create unique article ID
+        # CREATE UNIQUE ARTICLE ID
         # ----------------------------------------------------
 
         if "url" in monthly_df.columns:
@@ -1091,16 +1067,13 @@ else:
             + monthly_df.index.astype(str)
         )
 
-        # ----------------------------------------------------
-        # Keep one record per article
-        # ----------------------------------------------------
-
         monthly_df = monthly_df.drop_duplicates(
             subset="article_id"
         )
 
+
         # ----------------------------------------------------
-        # Available months
+        # AVAILABLE MONTHS
         # ----------------------------------------------------
 
         available_months = sorted(
@@ -1130,8 +1103,9 @@ else:
             selected_month.strftime("%B %Y")
         )
 
+
         # ----------------------------------------------------
-        # Monthly article count
+        # MONTHLY ARTICLE COUNT
         # ----------------------------------------------------
 
         monthly_article_count = (
@@ -1139,13 +1113,12 @@ else:
             .nunique()
         )
 
+
         # ----------------------------------------------------
-        # Monthly theme counts
+        # MONTHLY THEME COUNTS
         # ----------------------------------------------------
 
-        monthly_theme_df = (
-            selected_month_df.copy()
-        )
+        monthly_theme_df = selected_month_df.copy()
 
         monthly_theme_df["themes"] = (
             monthly_theme_df["themes"]
@@ -1197,8 +1170,9 @@ else:
             if count > 0
         ]
 
+
         # ----------------------------------------------------
-        # Monthly stance
+        # MONTHLY STANCE
         # ----------------------------------------------------
 
         monthly_stance_counts = (
@@ -1247,8 +1221,9 @@ else:
             monthly_dominant_stance = "Neutral"
             monthly_dominant_stance_share = 0
 
+
         # ----------------------------------------------------
-        # Significant events
+        # SIGNIFICANT EVENTS
         # ----------------------------------------------------
 
         monthly_events_df = (
@@ -1275,164 +1250,119 @@ else:
 
             monthly_selected_events = pd.DataFrame()
 
-        # ------------------------------------------------------------
-        # EMERGING THEME: COMPARE CURRENT MONTH WITH PRECEDING MONTHS
-        # ------------------------------------------------------------
-        
-        # Create a theme-level dataset from the full corpus
-        comparison_df = monthly_df.copy()
-        
-        comparison_df["themes"] = (
-            comparison_df["themes"]
-            .fillna("")
-            .astype(str)
-            .str.split(", ")
-        )
-        
-        comparison_df = comparison_df.explode("themes")
-        
-        comparison_df = comparison_df[
-            comparison_df["themes"].isin(THEME_ORDER)
-        ].copy()
-        
-        # Count each article-theme assignment only once
-        comparison_df = comparison_df.drop_duplicates(
-            subset=["article_id", "month", "themes"]
-        )
-        
-        # ------------------------------------------------------------
-        # Calculate monthly theme shares
-        # ------------------------------------------------------------
-        
-        # Number of unique articles in each month
-        monthly_article_totals = (
-            monthly_df
-            .groupby("month")["article_id"]
-            .nunique()
-        )
-        
-        # Number of unique articles mentioning each theme in each month
-        monthly_theme_article_counts = (
-            comparison_df
-            .groupby(["month", "themes"])["article_id"]
-            .nunique()
-            .unstack(fill_value=0)
-        )
-        
-        monthly_theme_article_counts = monthly_theme_article_counts.reindex(
-            columns=THEME_ORDER,
-            fill_value=0
-        )
-        
-        # Convert counts into shares of each month's corpus
-        monthly_theme_shares = (
-            monthly_theme_article_counts
-            .div(monthly_article_totals, axis=0)
-            .fillna(0)
-        )
-        
-        # ------------------------------------------------------------
-        # Current month theme shares
-        # ------------------------------------------------------------
-        
-        if selected_month in monthly_theme_shares.index:
-        
-            current_month_shares = (
-                monthly_theme_shares.loc[selected_month]
-                .reindex(THEME_ORDER, fill_value=0)
+
+        # ----------------------------------------------------
+        # IDENTIFY EMERGING THEME
+        # ----------------------------------------------------
+
+        if not leading_monthly_themes:
+
+            monthly_theme_text = (
+                "No clearly dominant theme was detected in the "
+                "available coverage."
             )
-        
+
+        elif len(leading_monthly_themes) == 1:
+
+            theme, count = leading_monthly_themes[0]
+
+            monthly_theme_text = (
+                f"{theme} was the most prominent theme, appearing in "
+                f"{count} article"
+                f"{'s' if count != 1 else ''}."
+            )
+
         else:
-        
-            current_month_shares = pd.Series(
-                0,
-                index=THEME_ORDER,
-                dtype=float
+
+            theme_1, count_1 = leading_monthly_themes[0]
+            theme_2, count_2 = leading_monthly_themes[1]
+
+            monthly_theme_text = (
+                f"{theme_1} led the coverage with "
+                f"{count_1} article"
+                f"{'s' if count_1 != 1 else ''}, followed by "
+                f"{theme_2} with "
+                f"{count_2} article"
+                f"{'s' if count_2 != 1 else ''}."
             )
-        
-        # ------------------------------------------------------------
-        # Preceding months
-        # ------------------------------------------------------------
-        
-        preceding_months = [
-            month
-            for month in monthly_theme_shares.index
-            if month < selected_month
-        ]
-        
-        # ------------------------------------------------------------
-        # Generate emerging-theme statement
-        # ------------------------------------------------------------
-        
-        if not preceding_months:
-        
-            # No earlier month exists for comparison
-            current_top_theme = current_month_shares.idxmax()
-        
-            if current_month_shares.max() > 0:
-        
-                monthly_theme_text = (
-                    f"The {selected_month_name} corpus is most concentrated "
-                    f"on {current_top_theme}."
+
+
+        # ----------------------------------------------------
+        # EVENT CONTEXT
+        # ----------------------------------------------------
+
+        if not monthly_selected_events.empty:
+
+            event_labels = (
+                monthly_selected_events["label"]
+                .dropna()
+                .astype(str)
+                .tolist()
+            )
+
+            if len(event_labels) == 1:
+
+                monthly_event_text = (
+                    f"This coverage coincided with "
+                    f"{event_labels[0]}."
                 )
-        
+
             else:
-        
-                monthly_theme_text = (
-                    f"The {selected_month_name} corpus does not show a "
-                    f"clearly dominant theme."
+
+                monthly_event_text = (
+                    "This coverage coincided with "
+                    + ", ".join(event_labels[:-1])
+                    + " and "
+                    + event_labels[-1]
+                    + "."
                 )
-        
+
         else:
-        
-            # Average theme share across all preceding months
-            preceding_average_shares = (
-                monthly_theme_shares
-                .loc[preceding_months]
-                .mean(axis=0)
-                .reindex(THEME_ORDER, fill_value=0)
+
+            monthly_event_text = (
+                "No significant developments in the event tracker "
+                "were recorded for this month."
             )
-        
-            # Measure how much each theme increased relative to its
-            # average share in preceding months
-            theme_change = (
-                current_month_shares - preceding_average_shares
-            )
-        
-            # Theme with the largest increase
-            emerging_theme = theme_change.idxmax()
-            emerging_theme_change = theme_change.loc[emerging_theme]
-        
-            # Only describe a theme as "greater attention" when its
-            # current share is actually above the preceding-month average
-            if emerging_theme_change > 0:
-        
-                monthly_theme_text = (
-                    f"Compared with the preceding months, the "
-                    f"{selected_month_name} corpus shows greater attention "
-                    f"to {emerging_theme}."
-                )
-        
-            else:
-        
-                # If no theme increased, use the theme with the highest
-                # current-month share without claiming that attention grew
-                current_top_theme = current_month_shares.idxmax()
-        
-                if current_month_shares.max() > 0:
-        
-                    monthly_theme_text = (
-                        f"Compared with the preceding months, the "
-                        f"{selected_month_name} corpus does not show "
-                        f"greater attention to a single theme."
-                    )
-        
-                else:
-        
-                    monthly_theme_text = (
-                        f"The {selected_month_name} corpus does not show "
-                        f"a clearly dominant theme."
-                    )
+
+
+        # ----------------------------------------------------
+        # BUILD MONTHLY SUMMARY
+        # ----------------------------------------------------
+
+        monthly_summary = (
+            f"In {selected_month_name}, the corpus contained "
+            f"{monthly_article_count} unique article"
+            f"{'s' if monthly_article_count != 1 else ''}. "
+            f"{monthly_theme_text} "
+            f"The detected stance of the coverage was predominantly "
+            f"{monthly_dominant_stance.lower()}, accounting for "
+            f"{monthly_dominant_stance_share:.1f}% of articles. "
+            f"{monthly_event_text}"
+        )
+
+
+        # ----------------------------------------------------
+        # DISPLAY MONTHLY SUMMARY
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"""
+            <h3 style="margin-bottom: 0.2rem;">
+                {selected_month_name} — What is the emerging theme?
+            </h3>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            monthly_summary
+        )
+
+        st.caption(
+            "Theme counts are not mutually exclusive because a single "
+            "article may be classified under more than one theme."
+        )
+
 
     # ========================================================
     # THEME × STANCE BUBBLE MATRIX
@@ -1440,8 +1370,9 @@ else:
 
     bubble_df = df.copy()
 
+
     # --------------------------------------------------------
-    # Clean stance labels
+    # CLEAN STANCE LABELS
     # --------------------------------------------------------
 
     bubble_df["stance"] = (
@@ -1466,8 +1397,9 @@ else:
         )
     ].copy()
 
+
     # --------------------------------------------------------
-    # Convert publication timestamp to datetime
+    # CONVERT PUBLICATION TIMESTAMP TO DATETIME
     # --------------------------------------------------------
 
     bubble_df["date"] = pd.to_datetime(
@@ -1475,8 +1407,9 @@ else:
         errors="coerce"
     )
 
+
     # --------------------------------------------------------
-    # Prepare article title
+    # PREPARE ARTICLE TITLE
     # --------------------------------------------------------
 
     if "title" in bubble_df.columns:
@@ -1493,8 +1426,9 @@ else:
             "Untitled article"
         )
 
+
     # --------------------------------------------------------
-    # Prepare publication date for hover
+    # PREPARE PUBLICATION DATE FOR HOVER
     # --------------------------------------------------------
 
     bubble_df["published_date_display"] = (
@@ -1503,10 +1437,10 @@ else:
         .fillna("Unknown date")
     )
 
+
     # --------------------------------------------------------
-    # Hover text
+    # HOVER TEXT
     # --------------------------------------------------------
-    # Show ONLY article title and publication date.
 
     bubble_df["article_hover"] = (
         "Article Title: "
@@ -1515,8 +1449,9 @@ else:
         + bubble_df["published_date_display"]
     )
 
+
     # --------------------------------------------------------
-    # Split multi-label themes
+    # SPLIT MULTI-LABEL THEMES
     # --------------------------------------------------------
 
     bubble_df["themes"] = (
@@ -1530,8 +1465,9 @@ else:
         "themes"
     )
 
+
     # --------------------------------------------------------
-    # Keep only defined themes
+    # KEEP ONLY DEFINED THEMES
     # --------------------------------------------------------
 
     bubble_df = bubble_df[
@@ -1540,16 +1476,18 @@ else:
         )
     ].copy()
 
+
     # --------------------------------------------------------
-    # Remove rows without usable dates
+    # REMOVE ROWS WITHOUT USABLE DATES
     # --------------------------------------------------------
 
     bubble_df = bubble_df[
         bubble_df["date"].notna()
     ].copy()
 
+
     # --------------------------------------------------------
-    # Force theme column into fixed category order
+    # FORCE THEME COLUMN INTO FIXED CATEGORY ORDER
     # --------------------------------------------------------
 
     bubble_df["themes"] = pd.Categorical(
@@ -1558,10 +1496,6 @@ else:
         ordered=True
     )
 
-    # --------------------------------------------------------
-    # Theme labels
-    # --------------------------------------------------------
-
     all_theme_labels = THEME_ORDER.copy()
 
     theme_labels = {
@@ -1569,9 +1503,9 @@ else:
         for theme in THEME_ORDER
     }
 
+
     # --------------------------------------------------------
-    # Aggregate articles by:
-    # date + theme + stance
+    # AGGREGATE ARTICLES BY DATE + THEME + STANCE
     # --------------------------------------------------------
 
     bubble_data = (
@@ -1590,8 +1524,9 @@ else:
         )
     )
 
+
     # --------------------------------------------------------
-    # Prepare hover information
+    # PREPARE HOVER INFORMATION
     # --------------------------------------------------------
 
     hover_data = (
@@ -1625,8 +1560,9 @@ else:
         how="left"
     )
 
+
     # --------------------------------------------------------
-    # Create theme labels
+    # CREATE THEME LABELS
     # --------------------------------------------------------
 
     bubble_data["theme_label"] = (
@@ -1640,8 +1576,9 @@ else:
         ordered=True
     )
 
+
     # --------------------------------------------------------
-    # Sort data
+    # SORT DATA
     # --------------------------------------------------------
 
     bubble_data = bubble_data.sort_values(
@@ -1653,13 +1590,15 @@ else:
         drop=True
     )
 
+
     # --------------------------------------------------------
-    # Prepare significant events
+    # PREPARE SIGNIFICANT EVENTS
     # --------------------------------------------------------
 
     events_df = prepare_significant_events(
         SIGNIFICANT_EVENTS
     )
+
 
     # ========================================================
     # GENERATE BUBBLE MATRIX
@@ -1702,10 +1641,10 @@ else:
             }
         )
 
+
         # ----------------------------------------------------
-        # Hover information
+        # HOVER INFORMATION
         # ----------------------------------------------------
-        # Show only article title and date published.
 
         fig_bubble.update_traces(
             hovertemplate=(
@@ -1714,8 +1653,9 @@ else:
             )
         )
 
+
         # ----------------------------------------------------
-        # Explicitly force all seven themes onto Y-axis
+        # FORCE ALL SEVEN THEMES ON Y-AXIS
         # ----------------------------------------------------
 
         fig_bubble.update_yaxes(
@@ -1725,8 +1665,9 @@ else:
             automargin=True
         )
 
+
         # ----------------------------------------------------
-        # Base chart layout
+        # BASE CHART LAYOUT
         # ----------------------------------------------------
 
         fig_bubble.update_layout(
@@ -1750,12 +1691,10 @@ else:
             automargin=True
         )
 
+
         # ----------------------------------------------------
-        # Add significant-event markers
+        # ADD SIGNIFICANT-EVENT MARKERS
         # ----------------------------------------------------
-        #
-        # Domestic events are labelled above the chart.
-        # International events are labelled below the chart.
 
         if not events_df.empty:
 
@@ -1778,8 +1717,9 @@ else:
                 )
             ].copy()
 
+
             # =================================================
-            # EVENT LABEL PLACEMENT
+            # EVENT TYPE
             # =================================================
 
             domestic_events = (
@@ -1796,8 +1736,9 @@ else:
                 ].copy()
             )
 
+
             # -------------------------------------------------
-            # Label positioning settings
+            # LABEL POSITIONING
             # -------------------------------------------------
 
             domestic_label_rows = [
@@ -1814,8 +1755,9 @@ else:
                 -0.295
             ]
 
+
             # -------------------------------------------------
-            # Estimate label width
+            # ESTIMATE LABEL WIDTH
             # -------------------------------------------------
 
             def estimate_label_width(label):
@@ -1825,8 +1767,9 @@ else:
                     len(str(label)) * 0.42
                 )
 
+
             # -------------------------------------------------
-            # Assign labels to rows
+            # ASSIGN EVENTS TO LABEL ROWS
             # -------------------------------------------------
 
             def assign_event_rows(
@@ -1862,8 +1805,9 @@ else:
 
                     selected_row = None
 
+
                     # -----------------------------------------
-                    # Try each row
+                    # TRY EACH ROW
                     # -----------------------------------------
 
                     for row_index in range(
@@ -1907,9 +1851,9 @@ else:
                             selected_row = row_index
                             break
 
+
                     # -----------------------------------------
-                    # If no row is free, choose row with
-                    # greatest available spacing.
+                    # IF NO ROW IS FREE, USE GREATEST GAP
                     # -----------------------------------------
 
                     if selected_row is None:
@@ -1955,8 +1899,9 @@ else:
                             )
                         )
 
+
                     # -----------------------------------------
-                    # Store assignment
+                    # STORE ASSIGNMENT
                     # -----------------------------------------
 
                     assignments.append(
@@ -1976,6 +1921,7 @@ else:
 
                 return assignments
 
+
             domestic_assignments = (
                 assign_event_rows(
                     domestic_events,
@@ -1990,8 +1936,9 @@ else:
                 )
             )
 
+
             # =================================================
-            # ADD EVENT MARKERS AND LABELS
+            # COMBINE EVENT ASSIGNMENTS
             # =================================================
 
             all_assignments = []
@@ -2016,9 +1963,10 @@ else:
                     )
                 )
 
-            # -------------------------------------------------
-            # Add each event to chart
-            # -------------------------------------------------
+
+            # =================================================
+            # ADD EVENT MARKERS AND LABELS
+            # =================================================
 
             for (
                 event,
@@ -2032,8 +1980,9 @@ else:
                     event["label"]
                 )
 
+
                 # ---------------------------------------------
-                # Vertical event marker
+                # VERTICAL EVENT MARKER
                 # ---------------------------------------------
 
                 fig_bubble.add_shape(
@@ -2051,8 +2000,9 @@ else:
                     )
                 )
 
+
                 # ---------------------------------------------
-                # Event label
+                # EVENT LABEL
                 # ---------------------------------------------
 
                 annotation_kwargs = dict(
@@ -2079,163 +2029,3 @@ else:
 
                 description = str(
                     event["description"]
-                ).strip()
-
-                if description:
-
-                    annotation_kwargs[
-                        "hovertext"
-                    ] = description
-
-                    annotation_kwargs[
-                        "hoverlabel"
-                    ] = dict(
-                        bgcolor="white"
-                    )
-
-                fig_bubble.add_annotation(
-                    **annotation_kwargs
-                )
-
-            # -------------------------------------------------
-            # Give event labels enough space
-            # -------------------------------------------------
-
-            fig_bubble.update_layout(
-                margin=dict(
-                    l=10,
-                    r=20,
-                    t=175,
-                    b=155
-                )
-            )
-
-        # ====================================================
-        # DISPLAY BUBBLE MATRIX
-        # ====================================================
-
-        st.plotly_chart(
-            fig_bubble,
-            use_container_width=True,
-            config={
-                "responsive": True
-            }
-        )
-
-        # ====================================================
-        # SIGNIFICANT EVENTS TABLE
-        # ====================================================
-
-        if not events_df.empty:
-
-            chart_min_date = (
-                bubble_data["date"].min()
-            )
-
-            chart_max_date = (
-                bubble_data["date"].max()
-            )
-
-            visible_events = events_df[
-                (
-                    events_df["date"]
-                    >= chart_min_date
-                )
-                & (
-                    events_df["date"]
-                    <= chart_max_date
-                )
-            ].copy()
-
-            if not visible_events.empty:
-
-                st.markdown(
-                    "**Significant events during the monitoring period**"
-                )
-
-                event_display = (
-                    visible_events.copy()
-                )
-
-                event_display["date"] = (
-                    event_display["date"]
-                    .dt.strftime("%d %b %Y")
-                )
-
-                event_display = (
-                    event_display.rename(
-                        columns={
-                            "date": "Date",
-                            "label": "Event",
-                            "description": "Description"
-                        }
-                    )
-                )
-
-                st.dataframe(
-                    event_display[
-                        [
-                            "Date",
-                            "Event",
-                            "Description"
-                        ]
-                    ],
-                    hide_index=True,
-                    use_container_width=True
-                )
-
-    else:
-
-        st.info(
-            "Not enough dated theme data available to generate "
-            "the bubble matrix."
-        )
-
-    # ========================================================
-    # ARTICLES COLLECTED
-    # ========================================================
-
-    st.subheader(
-        "Articles Collected by the Monitor"
-    )
-
-    st.markdown(
-        """
-        <div style="
-            text-align: justify;
-            color: black;
-        ">
-        New articles are collected through Google and media outlets'
-        RSS feeds six times daily.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    article_columns = [
-        "published_at",
-        "source",
-        "title",
-        "themes",
-        "stance",
-        "url"
-    ]
-
-    available_article_columns = [
-        column
-        for column in article_columns
-        if column in df.columns
-    ]
-
-    articles_display = (
-        df[available_article_columns]
-        .sort_values(
-            "published_at",
-            ascending=False
-        )
-    )
-
-    st.dataframe(
-        articles_display,
-        use_container_width=True
-    )
