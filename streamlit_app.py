@@ -1122,7 +1122,7 @@ else:
             color: black;
             margin-bottom: 10px;
         ">
-        Tracking shifts in attention and tone as real-world events unfold
+        Tracking shifts in themes and stances over time as real-world events unfold
         </div>
         """,
         unsafe_allow_html=True
