@@ -1544,7 +1544,7 @@ else:
         # ----------------------------------------------------
         # Show only article title and date published.
         # Theme, stance, and article count are hidden.
-
+        
         fig_bubble.update_traces(
             hovertemplate="%{customdata[0]}<extra></extra>"
         )
