@@ -82,7 +82,7 @@ THEME_KEYWORDS = {
         "investment", "jobs", "gdp", "economic zone", "supply chain",
         "semiconductor", "hub", "trade", "manufacturing", "corridor",
         "value chain", "industrial corridor", "real estate", "economy",
-        "power demand", "business groups",
+        "power demand", "business groups", "industrialization",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -136,7 +136,8 @@ SUPPORTIVE_WORDS = [
     "welcome", "welcomes", "welcomed", "approve", "approved", "benefit",
     "benefits", "opportunity", "opportunities", "growth", "investment",
     "job creation", "development", "expansion", "boost", "income",
-    "jobs", "bets", "trusted", "trusted partnership", "trust",
+    "jobs", "bets", "trusted", "trusted partnership", "trust", 
+    "beef up PH resiliency, industrialization"
 ]
 
 CRITICAL_WORDS = [
