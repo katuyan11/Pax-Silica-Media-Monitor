@@ -136,7 +136,7 @@ SUPPORTIVE_WORDS = [
     "welcome", "welcomes", "welcomed", "approve", "approved", "benefit",
     "benefits", "opportunity", "opportunities", "growth", "investment",
     "job creation", "development", "expansion", "boost", "income",
-    "jobs", "bets",
+    "jobs", "bets", "trusted", "trusted partnership", "trust",
 ]
 
 CRITICAL_WORDS = [
