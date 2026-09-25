@@ -2029,3 +2029,4 @@ else:
 
                 description = str(
                     event["description"]
+                )
