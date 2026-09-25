@@ -1516,7 +1516,7 @@ else:
     bubble_df["date"] = pd.to_datetime(
         bubble_df["published_at"],
         errors="coerce"
-    )
+    ).dt.normalize()  # truncate to date, drop time-of-day
 
 
     # --------------------------------------------------------
