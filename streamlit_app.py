@@ -2172,3 +2172,36 @@ else:
                 description = str(
                     event["description"]
                 )
+
+                fig_bubble.add_annotation(
+                    **annotation_kwargs,
+                    hovertext=description,
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=11
+                    )
+                )
+
+
+        # ----------------------------------------------------
+        # [MERGE FIX] DISPLAY THE BUBBLE MATRIX
+        # This call was missing from the source you sent — the
+        # figure was fully built (scatter points, event lines,
+        # event labels) but never rendered to the page, which is
+        # why the chart appeared to have vanished.
+        # ----------------------------------------------------
+
+        st.plotly_chart(
+            fig_bubble,
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
+        )
+
+    else:
+
+        st.info(
+            "No dated, theme-tagged articles are available yet to "
+            "plot on the coverage-over-time chart."
+        )
