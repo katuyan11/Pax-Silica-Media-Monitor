@@ -2245,6 +2245,35 @@ else:
         unsafe_allow_html=True
     )
 
+    # ========================================================
+    # RESEARCH QUESTION 4
+    # ========================================================
+
+    st.markdown(
+        """
+        <div style="
+            font-size: 28px;
+            font-weight: 800;
+            margin-top: 10px;
+            margin-bottom: 4px;
+        ">
+        4. How do domestic and international outlets differ in their coverage of Pax Silica?
+        </div>
+
+        <div style="
+            font-size: 15px;
+            font-style: italic;
+            font-weight: 400;
+            color: black;
+            margin-bottom: 10px;
+        ">
+        If I only monitor from certain outlets, what perspective might I be missing?
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
 
     # ========================================================
     # ARTICLES COLLECTED
