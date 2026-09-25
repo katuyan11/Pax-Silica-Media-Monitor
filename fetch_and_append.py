@@ -136,7 +136,7 @@ SUPPORTIVE_WORDS = [
     "welcome", "welcomes", "welcomed", "approve", "approved", "benefit",
     "benefits", "opportunity", "opportunities", "growth", "investment",
     "job creation", "development", "expansion", "boost", "income",
-    "jobs",
+    "jobs", "bets",
 ]
 
 CRITICAL_WORDS = [
@@ -148,7 +148,8 @@ CRITICAL_WORDS = [
     "against", "protests", "protested", "derail", "losing", "scrutiny",
     "scrutinizes", "displaced", "lost", "backlash", "clash", "walkout",
     "pushback", "worse", "opposing", "sell out", "slams", "massive sellout",
-    "NO",
+    "No to Pax Silica", "backlash", "exploitation", "scrutiny", "opposition",
+    "scraps", "debunks claims", "laban", "kontra", "Scrap Pax Silica"
 ]
 
 
