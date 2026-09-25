@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import gspread
 from google.oauth2.service_account import Credentials
 import plotly.express as px
+import plotly.graph_objects as go
 
 import re
 import nltk
@@ -41,7 +43,7 @@ st.markdown(
     """
     <div style="
         text-align: justify;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     ">
     This prototype monitors Philippine news coverage related to Pax Silica
     using automated news ingestion and rule-based Natural Language Processing
@@ -52,6 +54,23 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+
+# ============================================================
+# STANCE DISPLAY COLORS (kept consistent across all stance charts)
+# ============================================================
+
+STANCE_COLORS = {
+    "Supportive": "#1f77b4",
+    "Neutral": "#a9c6e8",
+    "Critical": "#d62728"
+}
+
+STANCE_ORDER = [
+    "Supportive",
+    "Neutral",
+    "Critical"
+]
 
 
 # ============================================================
@@ -97,7 +116,8 @@ def load_data():
 
 
 # ============================================================
-# THEME ORDER
+# THEME ORDER (fixed reference order — used for stance heatmap
+# and anywhere themes need a stable, non-data-dependent order)
 # ============================================================
 
 THEME_ORDER = [
@@ -434,6 +454,113 @@ else:
 
 
     # ========================================================
+    # [FIX 5] CORPUS OVERVIEW — surfaced immediately, so a
+    # reader can gauge the size/credibility of the dataset
+    # before reading any chart.
+    # ========================================================
+
+    if "url" in df.columns:
+
+        overview_article_count = df["url"].nunique()
+
+    else:
+
+        overview_article_count = len(df)
+
+    valid_dates = pd.to_datetime(
+        df["published_at"],
+        errors="coerce"
+    ).dropna()
+
+    if not valid_dates.empty:
+
+        date_range_text = (
+            f"{valid_dates.min().strftime('%b %Y')} – "
+            f"{valid_dates.max().strftime('%b %Y')}"
+        )
+
+    else:
+
+        date_range_text = "N/A"
+
+    overview_cols = st.columns(3)
+
+    with overview_cols[0]:
+
+        st.metric(
+            "Articles tracked",
+            f"{overview_article_count:,}"
+        )
+
+    with overview_cols[1]:
+
+        st.metric(
+            "Coverage period",
+            date_range_text
+        )
+
+    with overview_cols[2]:
+
+        if "outlet" in df.columns:
+
+            st.metric(
+                "Outlets monitored",
+                f"{df['outlet'].nunique():,}"
+            )
+
+        else:
+
+            st.metric(
+                "Outlets monitored",
+                "N/A"
+            )
+
+    st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+
+
+    # ========================================================
+    # [FIX 4] BUILD THEME COUNTS EARLY — moved up from later in
+    # the file so Section 1's theme grid can be ordered by
+    # actual coverage volume instead of an arbitrary fixed list.
+    # ========================================================
+
+    themes_df = df.copy()
+
+    themes_df["themes"] = (
+        themes_df["themes"]
+        .fillna("")
+        .astype(str)
+        .str.split(", ")
+    )
+
+    themes_df = themes_df.explode(
+        "themes"
+    )
+
+    themes_df = themes_df[
+        themes_df["themes"].isin(THEME_ORDER)
+    ].copy()
+
+    theme_counts = (
+        themes_df["themes"]
+        .value_counts()
+        .reindex(
+            THEME_ORDER,
+            fill_value=0
+        )
+    )
+
+    # Display order: highest-volume theme first, ties broken by
+    # THEME_ORDER's original sequence for stability.
+    THEME_DISPLAY_ORDER = (
+        theme_counts
+        .sort_values(ascending=False)
+        .index
+        .tolist()
+    )
+
+
+    # ========================================================
     # RESEARCH QUESTION 1
     # ========================================================
 
@@ -474,7 +601,8 @@ else:
         topics and issues identified in the corpus and subsequently
         operationalized through keyword-based classification. The thematic
         categories were developed inductively from patterns observed in the
-        collected news coverage.
+        collected news coverage. Themes below are ordered by article volume,
+        most-covered first.
         </div>
         """,
         unsafe_allow_html=True
@@ -482,11 +610,12 @@ else:
 
 
     # ========================================================
-    # THEME DESCRIPTIONS — TWO COLUMNS
+    # [FIX 4] THEME DESCRIPTIONS — TWO COLUMNS, NOW ORDERED BY
+    # VOLUME AND LABELED WITH ARTICLE COUNTS
     # ========================================================
 
-    left_themes = THEME_ORDER[:4]
-    right_themes = THEME_ORDER[4:]
+    left_themes = THEME_DISPLAY_ORDER[:4]
+    right_themes = THEME_DISPLAY_ORDER[4:]
 
     col1, spacer, col2 = st.columns(
         [1, 0.11, 1]
@@ -502,7 +631,11 @@ else:
         for theme in left_themes:
 
             st.markdown(
-                f"**{theme}**"
+                f"**{theme}** &nbsp;·&nbsp; "
+                f"<span style='color:#555; font-size:13px;'>"
+                f"{theme_counts[theme]:,} article"
+                f"{'s' if theme_counts[theme] != 1 else ''}</span>",
+                unsafe_allow_html=True
             )
 
             st.markdown(
@@ -540,7 +673,11 @@ else:
         for theme in right_themes:
 
             st.markdown(
-                f"**{theme}**"
+                f"**{theme}** &nbsp;·&nbsp; "
+                f"<span style='color:#555; font-size:13px;'>"
+                f"{theme_counts[theme]:,} article"
+                f"{'s' if theme_counts[theme] != 1 else ''}</span>",
+                unsafe_allow_html=True
             )
 
             st.markdown(
@@ -598,7 +735,10 @@ else:
 
 
     # ========================================================
-    # DETECTED ARTICLE-LEVEL STANCE
+    # [FIX 3] DETECTED ARTICLE-LEVEL STANCE — replaced the pie
+    # chart with a labeled 100%-width stacked bar. Precise counts
+    # and percentages both show, and it reads correctly even for
+    # colorblind viewers since each segment is text-labeled.
     # ========================================================
 
     with col1:
@@ -650,11 +790,7 @@ else:
             })
             .value_counts()
             .reindex(
-                [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ],
+                STANCE_ORDER,
                 fill_value=0
             )
             .reset_index()
@@ -665,17 +801,50 @@ else:
             "count"
         ]
 
-        fig_stance = px.pie(
+        stance_total = stance_counts["count"].sum()
+
+        stance_counts["percent"] = (
+            stance_counts["count"] / stance_total * 100
+            if stance_total > 0 else 0
+        )
+
+        stance_counts["segment_label"] = stance_counts.apply(
+            lambda row: (
+                f"{row['stance']}<br>{int(row['count'])} "
+                f"({row['percent']:.1f}%)"
+            ),
+            axis=1
+        )
+
+        stance_counts["row"] = "All coverage"
+
+        fig_stance = px.bar(
             stance_counts,
-            names="stance",
-            values="count",
-            category_orders={
-                "stance": [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ]
-            }
+            x="count",
+            y="row",
+            color="stance",
+            orientation="h",
+            text="segment_label",
+            category_orders={"stance": STANCE_ORDER},
+            color_discrete_map=STANCE_COLORS
+        )
+
+        fig_stance.update_traces(
+            textposition="inside",
+            insidetextanchor="middle",
+            textfont=dict(size=12, color="white"),
+            marker_line_width=0
+        )
+
+        fig_stance.update_layout(
+            barmode="stack",
+            height=220,
+            showlegend=True,
+            legend_title_text="Stance",
+            xaxis_title="Number of articles",
+            yaxis_title="",
+            yaxis=dict(showticklabels=False),
+            margin=dict(l=10, r=10, t=20, b=40)
         )
 
         st.plotly_chart(
@@ -700,7 +869,14 @@ else:
 
 
     # ========================================================
-    # THEME × STANCE HEAT MAP
+    # [FIX 1] THEME × STANCE HEAT MAP — color now reflects each
+    # theme's *share* of Supportive/Neutral/Critical coverage
+    # (row-normalized %), not raw counts, so a small theme with a
+    # skewed stance mix is no longer washed out by a large theme
+    # with big absolute numbers. The "Total" column is shown with
+    # its own count but excluded from the color scale, since
+    # totals aren't a stance and were previously distorting the
+    # whole map's color range. A colorbar legend is included.
     # ========================================================
 
     with col2:
@@ -727,11 +903,11 @@ else:
                 font-size: 14px;
                 margin-bottom: 10px;
             ">
-            The heat map shows the number of articles associated with each
-            theme and detected stance across the entire monitoring period.
-            Darker cells indicate a higher number of articles, while lighter
-            cells indicate fewer articles. The total at the right shows the
-            cumulative number of articles associated with each theme.
+            Cell color shows each theme's stance <em>mix</em> — the share of
+            that theme's articles falling into each stance — so themes of
+            different sizes can be compared fairly. Numbers show the actual
+            article count. The Total column (uncolored) shows the cumulative
+            number of articles for that theme.
             </div>
             """,
             unsafe_allow_html=True
@@ -752,13 +928,7 @@ else:
         )
 
         heatmap_df = heatmap_df[
-            heatmap_df["stance"].isin(
-                [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ]
-            )
+            heatmap_df["stance"].isin(STANCE_ORDER)
         ].copy()
 
         heatmap_df["themes"] = (
@@ -782,7 +952,7 @@ else:
             drop=True
         )
 
-        heatmap_data = (
+        heatmap_counts = (
             heatmap_df
             .groupby(
                 [
@@ -797,46 +967,65 @@ else:
             )
         )
 
-        heatmap_data = heatmap_data.reindex(
+        heatmap_counts = heatmap_counts.reindex(
             index=THEME_ORDER,
-            columns=[
-                "Supportive",
-                "Neutral",
-                "Critical"
-            ],
+            columns=STANCE_ORDER,
             fill_value=0
         )
 
-        heatmap_data["Total"] = (
-            heatmap_data[
-                [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ]
-            ].sum(axis=1)
-        )
+        heatmap_counts["Total"] = heatmap_counts[STANCE_ORDER].sum(axis=1)
 
+        # Order rows by total volume, most-covered theme on top.
         heatmap_theme_order = (
-            heatmap_data["Total"]
+            heatmap_counts["Total"]
             .sort_values(ascending=False)
             .index
             .tolist()
         )
 
-        heatmap_data = heatmap_data.reindex(
-            heatmap_theme_order
+        heatmap_counts = heatmap_counts.reindex(heatmap_theme_order)
+
+        # Row-normalized percentages, used for color only.
+        row_totals = heatmap_counts["Total"].replace(0, np.nan)
+
+        heatmap_pct = (
+            heatmap_counts[STANCE_ORDER]
+            .div(row_totals, axis=0)
+            .fillna(0) * 100
         )
 
-        fig_heatmap = px.imshow(
-            heatmap_data,
-            text_auto=True,
-            aspect="auto",
-            labels={
-                "x": "Stance",
-                "y": "Theme",
-                "color": "Articles"
-            }
+        # Build the z (color) matrix and text (label) matrix,
+        # including an uncolored Total column at the right.
+        display_columns = STANCE_ORDER + ["Total"]
+
+        z_matrix = heatmap_pct.copy()
+        z_matrix["Total"] = np.nan  # NaN cells render uncolored
+
+        text_matrix = heatmap_counts[display_columns]
+
+        fig_heatmap = go.Figure(
+            data=go.Heatmap(
+                z=z_matrix[display_columns].values,
+                x=display_columns,
+                y=heatmap_theme_order,
+                text=text_matrix.values,
+                texttemplate="%{text}",
+                textfont=dict(size=12),
+                colorscale="Blues",
+                zmin=0,
+                zmax=100,
+                colorbar=dict(
+                    title="% of theme's<br>articles",
+                    ticksuffix="%"
+                ),
+                xgap=3,
+                ygap=3,
+                hovertemplate=(
+                    "Theme: %{y}<br>"
+                    "Column: %{x}<br>"
+                    "Articles: %{text}<extra></extra>"
+                )
+            )
         )
 
         fig_heatmap.update_layout(
@@ -868,38 +1057,9 @@ else:
 
 
     # ========================================================
-    # BUILD THEME COUNTS
-    # ========================================================
-
-    themes_df = df.copy()
-
-    themes_df["themes"] = (
-        themes_df["themes"]
-        .fillna("")
-        .astype(str)
-        .str.split(", ")
-    )
-
-    themes_df = themes_df.explode(
-        "themes"
-    )
-
-    themes_df = themes_df[
-        themes_df["themes"].isin(THEME_ORDER)
-    ].copy()
-
-    theme_counts = (
-        themes_df["themes"]
-        .value_counts()
-        .reindex(
-            THEME_ORDER,
-            fill_value=0
-        )
-    )
-
-
-    # ========================================================
     # TREND ANALYSIS
+    # (theme_counts / themes_df now come from the early block
+    # above — no longer recomputed here)
     # ========================================================
 
     ranked_themes = sorted(
@@ -914,7 +1074,7 @@ else:
         if item[1] > 0
     ]
 
-    stance_counts = (
+    stance_counts_summary = (
         df["stance"]
         .fillna("Neutral")
         .astype(str)
@@ -926,26 +1086,22 @@ else:
         })
         .value_counts()
         .reindex(
-            [
-                "Supportive",
-                "Neutral",
-                "Critical"
-            ],
+            STANCE_ORDER,
             fill_value=0
         )
     )
 
-    if stance_counts.sum() > 0:
+    if stance_counts_summary.sum() > 0:
 
-        dominant_stance = stance_counts.idxmax()
+        dominant_stance = stance_counts_summary.idxmax()
 
         dominant_stance_count = (
-            stance_counts[dominant_stance]
+            stance_counts_summary[dominant_stance]
         )
 
         dominant_stance_share = (
             dominant_stance_count
-            / stance_counts.sum()
+            / stance_counts_summary.sum()
             * 100
         )
 
@@ -1187,11 +1343,7 @@ else:
             })
             .value_counts()
             .reindex(
-                [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ],
+                STANCE_ORDER,
                 fill_value=0
             )
         )
@@ -1388,13 +1540,7 @@ else:
     )
 
     bubble_df = bubble_df[
-        bubble_df["stance"].isin(
-            [
-                "Supportive",
-                "Neutral",
-                "Critical"
-            ]
-        )
+        bubble_df["stance"].isin(STANCE_ORDER)
     ].copy()
 
 
@@ -1626,11 +1772,7 @@ else:
             category_orders={
                 "theme_label": all_theme_labels,
 
-                "stance": [
-                    "Supportive",
-                    "Neutral",
-                    "Critical"
-                ]
+                "stance": STANCE_ORDER
             },
 
             labels={
