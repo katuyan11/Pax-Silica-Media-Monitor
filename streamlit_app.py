@@ -1533,6 +1533,13 @@ else:
             }
         )
 
+        fig_bubble.update_layout(
+                title="News Coverage Over Time",
+                height=600,
+                autosize=True,
+                margin=dict(l=20, r=20, t=70, b=20)
+        )
+
 
         # ----------------------------------------------------
         # Hover information
