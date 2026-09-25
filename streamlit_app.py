@@ -1520,7 +1520,7 @@ else:
         st.markdown(
             f"""
             <h3 style="margin-bottom: 0.2rem;">
-                {selected_month_name} — What is the emerging theme?
+                {selected_month_name} — What is the dominant theme and stance?
             </h3>
             """,
             unsafe_allow_html=True
