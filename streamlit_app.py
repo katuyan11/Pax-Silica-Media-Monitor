@@ -397,13 +397,21 @@ else:
     st.markdown(
         """
         <div style="
-            font-size: 22px;
-            font-weight: 500;
-            font-style: italic;
+            font-size: 28px;
+            font-weight: 800;
             margin-top: 10px;
+            margin-bottom: 4px;
+        ">
+        1. What is the media talking about?
+        </div>
+        <div style="
+            font-size: 15px;
+            font-style: italic;
+            font-weight: 400;
+            color: black;
             margin-bottom: 10px;
         ">
-        Research Question 1: What themes are represented in Philippine media coverage of Pax Silica?
+        A breakdown of the themes — from jobs to geopolitics — that dominate Pax Silica coverage
         </div>
         """,
         unsafe_allow_html=True
@@ -509,13 +517,21 @@ else:
     st.markdown(
         """
         <div style="
-            font-size: 22px;
-            font-weight: 500;
-            font-style: italic;
+            font-size: 28px;
+            font-weight: 800;
             margin-top: 20px;
+            margin-bottom: 4px;
+        ">
+        2. Is the coverage positive, critical, or neutral — and on what topics?
+        </div>
+        <div style="
+            font-size: 15px;
+            font-style: italic;
+            font-weight: 400;
+            color: black;
             margin-bottom: 15px;
         ">
-        Research Question 2: Which themes receive the most media attention, and what stance do articles take toward them?
+        Where media attention concentrates, and whether the tone leans supportive, critical, or balanced
         </div>
         """,
         unsafe_allow_html=True
@@ -539,8 +555,18 @@ else:
 
     with col1:
 
-        st.subheader(
-            "Detected Article-Level Stance"
+        st.markdown(
+            """
+            <div style="
+                font-size: 16px;
+                font-weight: 400;
+                color: black;
+                margin-bottom: 8px;
+            ">
+            Detected Article-Level Stance
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
         st.markdown(
@@ -611,8 +637,18 @@ else:
 
     with col2:
 
-        st.subheader(
-            "Theme × Stance Heat Map"
+        st.markdown(
+            """
+            <div style="
+                font-size: 16px;
+                font-weight: 400;
+                color: black;
+                margin-bottom: 8px;
+            ">
+            Theme × Stance Heat Map
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
         st.markdown(
@@ -870,13 +906,21 @@ else:
     st.markdown(
         """
         <div style="
-            font-size: 22px;
-            font-weight: 500;
-            font-style: italic;
+            font-size: 28px;
+            font-weight: 800;
             margin-top: 10px;
+            margin-bottom: 4px;
+        ">
+        3. How has the story changed over time?
+        </div>
+        <div style="
+            font-size: 15px;
+            font-style: italic;
+            font-weight: 400;
+            color: black;
             margin-bottom: 10px;
         ">
-        Research Question 3: How do the themes and stances represented in media coverage change over time as new developments emerge?
+        Tracking shifts in attention and tone as real-world events unfold
         </div>
         """,
         unsafe_allow_html=True
