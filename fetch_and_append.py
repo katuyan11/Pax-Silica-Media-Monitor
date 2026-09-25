@@ -149,7 +149,8 @@ CRITICAL_WORDS = [
     "scrutinizes", "displaced", "lost", "backlash", "clash", "walkout",
     "pushback", "worse", "opposing", "sell out", "slams", "massive sellout",
     "No to Pax Silica", "backlash", "exploitation", "scrutiny", "opposition",
-    "scraps", "debunks claims", "laban", "kontra", "Scrap Pax Silica"
+    "scraps", "debunks claims", "laban", "kontra", "Scrap Pax Silica", "slammed",
+    "slams", "force them off", "force off",
 ]
 
 
