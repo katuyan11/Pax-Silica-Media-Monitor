@@ -18,9 +18,9 @@ import matplotlib.pyplot as plt
 # NLTK SETUP
 # ============================================================
 
-nltk.download("punkt")
-nltk.download("punkt_tab")
-nltk.download("stopwords")
+nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
+nltk.download("stopwords", quiet=True)
 
 
 # ============================================================
@@ -32,16 +32,26 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines")
+st.title(
+    "Monitoring the Conversation: A News Monitoring Prototype "
+    "to Track Media Coverage of the Pax Silica Initiative in the Philippines"
+)
 
-st.markdown("""
-<div style="
-    text-align: justify;
-    margin-bottom: 30px;
-">
-This prototype monitors Philippine news coverage related to Pax Silica using automated news ingestion and rule-based Natural Language Processing (NLP), including keyword-based theme classification, stance detection, text preprocessing, and word-frequency analysis to identify dominant themes and stances. Coverage has been tracked since March 2026.
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div style="
+        text-align: justify;
+        margin-bottom: 30px;
+    ">
+    This prototype monitors Philippine news coverage related to Pax Silica
+    using automated news ingestion and rule-based Natural Language Processing
+    (NLP), including keyword-based theme classification, stance detection,
+    text preprocessing, and word-frequency analysis to identify dominant
+    themes and stances. Coverage has been tracked since March 2026.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
@@ -66,15 +76,17 @@ def load_data():
 
     gc = gspread.authorize(creds)
 
-    sheet = gc.open_by_key(
-        st.secrets["GOOGLE_SHEET_ID"]
-    ).worksheet("Clean_Data")
+    sheet = (
+        gc
+        .open_by_key(st.secrets["GOOGLE_SHEET_ID"])
+        .worksheet("Clean_Data")
+    )
 
     records = sheet.get_all_records()
 
     df = pd.DataFrame(records)
 
-    if not df.empty:
+    if not df.empty and "published_at" in df.columns:
 
         df["published_at"] = pd.to_datetime(
             df["published_at"],
@@ -150,20 +162,6 @@ THEME_DESCRIPTIONS = {
 # ============================================================
 # SIGNIFICANT EVENTS / DEVELOPMENTS
 # ============================================================
-# Add important real-world developments here to provide context
-# for changes in the bubble matrix over time.
-#
-# Format:
-# {
-#     "date": "YYYY-MM-DD",
-#     "label": "Short event label",
-#     "description": "Optional longer description shown on hover"
-# }
-#
-# IMPORTANT: Replace the example entries below with verified
-# dates/events relevant to your monitoring period. If no events
-# are entered, the bubble matrix will display normally without
-# event markers.
 
 SIGNIFICANT_EVENTS = [
 
@@ -181,8 +179,8 @@ SIGNIFICANT_EVENTS = [
         "date": "2026-05-04",
         "label": "PH-Israel cooperation",
         "description": (
-            "Philippines-Israel discussions on critical minerals processing and AI "
-            "technology were linked to Pax Silica."
+            "Philippines-Israel discussions on critical minerals processing "
+            "and AI technology were linked to Pax Silica."
         )
     },
 
@@ -199,9 +197,10 @@ SIGNIFICANT_EVENTS = [
         "date": "2026-07-27",
         "label": "Pax Silica highlighted in SONA",
         "description": (
-            "The proposed Pax Silica Industrial Hub was highlighted during the "
-            "President's 2026 State of the Nation Address as part of the Luzon "
-            "Economic Corridor and the country's advanced manufacturing strategy."
+            "The proposed Pax Silica Industrial Hub was highlighted during "
+            "the President's 2026 State of the Nation Address as part of "
+            "the Luzon Economic Corridor and the country's advanced "
+            "manufacturing strategy."
         )
     },
 
@@ -209,9 +208,9 @@ SIGNIFICANT_EVENTS = [
         "date": "2026-08-07",
         "label": "Development timeline announced",
         "description": (
-            "BCDA and DTI officials provided further details on the proposed Pax "
-            "Silica hub, including its development timeline and planned initial "
-            "site development."
+            "BCDA and DTI officials provided further details on the proposed "
+            "Pax Silica hub, including its development timeline and planned "
+            "initial site development."
         )
     },
 
@@ -220,8 +219,8 @@ SIGNIFICANT_EVENTS = [
         "label": "Luzon Economic Corridor forum",
         "description": (
             "The Luzon Economic Corridor Investment Forum generated further "
-            "discussion of the proposed Pax Silica development and its investment "
-            "implications."
+            "discussion of the proposed Pax Silica development and its "
+            "investment implications."
         )
     }
 ]
@@ -230,9 +229,6 @@ SIGNIFICANT_EVENTS = [
 # ============================================================
 # EVENT CLASSIFICATION
 # ============================================================
-# International events are placed below the chart.
-# All other configured events are treated as domestic events
-# and are placed above the chart.
 
 INTERNATIONAL_EVENT_LABELS = {
     "PH-Israel cooperation",
@@ -241,18 +237,26 @@ INTERNATIONAL_EVENT_LABELS = {
 
 
 def prepare_significant_events(events):
+
     """Convert configured event dates into a clean DataFrame."""
+
+    empty_columns = [
+        "date",
+        "label",
+        "description",
+        "event_type"
+    ]
+
     if not events:
-        return pd.DataFrame(
-            columns=["date", "label", "description"]
-        )
+        return pd.DataFrame(columns=empty_columns)
 
     events_df = pd.DataFrame(events)
 
-    if "date" not in events_df.columns or "label" not in events_df.columns:
-        return pd.DataFrame(
-            columns=["date", "label", "description"]
-        )
+    if (
+        "date" not in events_df.columns
+        or "label" not in events_df.columns
+    ):
+        return pd.DataFrame(columns=empty_columns)
 
     if "description" not in events_df.columns:
         events_df["description"] = ""
@@ -273,9 +277,18 @@ def prepare_significant_events(events):
             else "Domestic"
     )
 
-    return events_df[
-        ["date", "label", "description", "event_type"]
-    ].sort_values("date")
+    return (
+        events_df[
+            [
+                "date",
+                "label",
+                "description",
+                "event_type"
+            ]
+        ]
+        .sort_values("date")
+        .reset_index(drop=True)
+    )
 
 
 # ============================================================
@@ -297,9 +310,9 @@ MULTI_WORD_TERMS = [
 # ============================================================
 
 def get_top_terms(
-    texts: list[str],
-    n: int = 100
-) -> list[tuple[str, int]]:
+    texts,
+    n=100
+):
 
     """
     Tokenize text, remove stopwords, and return frequent terms.
@@ -321,7 +334,10 @@ def get_top_terms(
 
     for text in texts:
 
-        text_lower = text.lower()
+        if pd.isna(text):
+            continue
+
+        text_lower = str(text).lower()
 
         for phrase in MULTI_WORD_TERMS:
 
@@ -341,14 +357,14 @@ def get_top_terms(
         )
 
         words = [
-            w
-            for w in tokens
+            word
+            for word in tokens
             if (
-                w.isalpha()
-                or "_" in w
+                word.isalpha()
+                or "_" in word
             )
-            and w not in stop_words
-            and len(w) > 2
+            and word not in stop_words
+            and len(word) > 2
         ]
 
         all_words.extend(words)
@@ -375,6 +391,7 @@ if st.button("Refresh Data"):
     st.cache_data.clear()
     st.rerun()
 
+
 df = load_data()
 
 
@@ -391,6 +408,31 @@ if df.empty:
 else:
 
     # ========================================================
+    # BASIC COLUMN SAFETY
+    # ========================================================
+
+    required_columns = [
+        "published_at",
+        "stance",
+        "themes"
+    ]
+
+    missing_columns = [
+        column
+        for column in required_columns
+        if column not in df.columns
+    ]
+
+    if missing_columns:
+
+        st.error(
+            "The Google Sheet is missing required columns: "
+            + ", ".join(missing_columns)
+        )
+
+        st.stop()
+
+    # ========================================================
     # RESEARCH QUESTION 1
     # ========================================================
 
@@ -404,6 +446,7 @@ else:
         ">
         1. What is the media talking about?
         </div>
+
         <div style="
             font-size: 15px;
             font-style: italic;
@@ -411,12 +454,12 @@ else:
             color: black;
             margin-bottom: 10px;
         ">
-        A breakdown of the themes — from jobs to geopolitics — that dominate Pax Silica coverage
+        A breakdown of the themes — from jobs to geopolitics —
+        that dominate Pax Silica coverage
         </div>
         """,
         unsafe_allow_html=True
     )
-
 
     st.markdown(
         """
@@ -426,12 +469,15 @@ else:
             font-size: 14px;
             margin-bottom: 20px;
         ">
-        <strong>Note:</strong> The categories were defined based on recurring topics and issues identified in the corpus and subsequently operationalized through keyword-based classification. The thematic categories were developed inductively from patterns observed in the collected news coverage.
+        <strong>Note:</strong> The categories were defined based on recurring
+        topics and issues identified in the corpus and subsequently
+        operationalized through keyword-based classification. The thematic
+        categories were developed inductively from patterns observed in the
+        collected news coverage.
         </div>
         """,
         unsafe_allow_html=True
     )
-
 
     # ========================================================
     # THEME DESCRIPTIONS — TWO COLUMNS
@@ -440,11 +486,9 @@ else:
     left_themes = THEME_ORDER[:4]
     right_themes = THEME_ORDER[4:]
 
-    # Wider gap between the two theme-description columns
     col1, spacer, col2 = st.columns(
         [1, 0.11, 1]
     )
-
 
     # --------------------------------------------------------
     # LEFT COLUMN
@@ -471,7 +515,6 @@ else:
                 unsafe_allow_html=True
             )
 
-
     # --------------------------------------------------------
     # SPACER
     # --------------------------------------------------------
@@ -482,7 +525,6 @@ else:
             "<div style='height: 1px;'></div>",
             unsafe_allow_html=True
         )
-
 
     # --------------------------------------------------------
     # RIGHT COLUMN
@@ -509,7 +551,6 @@ else:
                 unsafe_allow_html=True
             )
 
-
     # ========================================================
     # RESEARCH QUESTION 2
     # ========================================================
@@ -522,8 +563,10 @@ else:
             margin-top: 20px;
             margin-bottom: 4px;
         ">
-        2. Is the coverage positive, critical, or neutral — and on what topics?
+        2. Is the coverage positive, critical, or neutral —
+        and on what topics?
         </div>
+
         <div style="
             font-size: 15px;
             font-style: italic;
@@ -531,23 +574,20 @@ else:
             color: black;
             margin-bottom: 15px;
         ">
-        Where media attention concentrates, and whether the tone leans supportive, critical, or balanced
+        Where media attention concentrates, and whether the tone
+        leans supportive, critical, or balanced
         </div>
         """,
         unsafe_allow_html=True
     )
 
-
     # ========================================================
-    # DETECTED ARTICLE-LEVEL STANCE + THEME × STANCE HEAT MAP
+    # DETECTED ARTICLE-LEVEL STANCE + HEAT MAP
     # ========================================================
 
-    # Two-column layout:
-    # Stance on the left, heat map on the right.
     col1, spacer, col2 = st.columns(
         [1, 0.15, 1]
     )
-
 
     # ========================================================
     # DETECTED ARTICLE-LEVEL STANCE
@@ -577,7 +617,14 @@ else:
                 font-size: 14px;
                 margin-bottom: 10px;
             ">
-            Stance is estimated using predefined words and phrases associated with supportive or critical language in the available article text. The classifier counts these indicators and assigns the stance based on the stronger signal. Articles without a clear predominance of either signal are classified as Neutral. This is a rule-based classification and should be interpreted as a detected linguistic signal rather than a definitive statement of the article's or author's position.
+            Stance is estimated using predefined words and phrases associated
+            with supportive or critical language in the available article text.
+            The classifier counts these indicators and assigns the stance based
+            on the stronger signal. Articles without a clear predominance of
+            either signal are classified as Neutral. This is a rule-based
+            classification and should be interpreted as a detected linguistic
+            signal rather than a definitive statement of the article's or
+            author's position.
             </div>
             """,
             unsafe_allow_html=True
@@ -589,7 +636,19 @@ else:
             .astype(str)
             .str.strip()
             .str.title()
+            .replace({
+                "Positive": "Supportive",
+                "Negative": "Critical"
+            })
             .value_counts()
+            .reindex(
+                [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ],
+                fill_value=0
+            )
             .reset_index()
         )
 
@@ -600,11 +659,8 @@ else:
 
         fig_stance = px.pie(
             stance_counts,
-
             names="stance",
-
             values="count",
-
             category_orders={
                 "stance": [
                     "Supportive",
@@ -621,7 +677,6 @@ else:
                 "responsive": True
             }
         )
-
 
     # ========================================================
     # SPACER
@@ -662,7 +717,11 @@ else:
                 font-size: 14px;
                 margin-bottom: 10px;
             ">
-            The heat map shows the number of articles associated with each theme and detected stance across the entire monitoring period. Darker cells indicate a higher number of articles, while lighter cells indicate fewer articles. The total at the right shows the cumulative number of articles associated with each theme.
+            The heat map shows the number of articles associated with each
+            theme and detected stance across the entire monitoring period.
+            Darker cells indicate a higher number of articles, while lighter
+            cells indicate fewer articles. The total at the right shows the
+            cumulative number of articles associated with each theme.
             </div>
             """,
             unsafe_allow_html=True
@@ -680,6 +739,10 @@ else:
             .astype(str)
             .str.strip()
             .str.title()
+            .replace({
+                "Positive": "Supportive",
+                "Negative": "Critical"
+            })
         )
 
         heatmap_df = heatmap_df[
@@ -690,7 +753,7 @@ else:
                     "Critical"
                 ]
             )
-        ]
+        ].copy()
 
         # ----------------------------------------------------
         # Split multi-label themes
@@ -718,7 +781,7 @@ else:
         ].copy()
 
         # ----------------------------------------------------
-        # Reset index to avoid duplicate-index problems
+        # Reset index
         # ----------------------------------------------------
 
         heatmap_df = heatmap_df.reset_index(
@@ -726,7 +789,7 @@ else:
         )
 
         # ----------------------------------------------------
-        # Count articles by theme and stance
+        # Count articles
         # ----------------------------------------------------
 
         heatmap_data = (
@@ -745,7 +808,7 @@ else:
         )
 
         # ----------------------------------------------------
-        # Force all themes and stances to appear
+        # Force all themes and stances
         # ----------------------------------------------------
 
         heatmap_data = heatmap_data.reindex(
@@ -759,7 +822,7 @@ else:
         )
 
         # ----------------------------------------------------
-        # Calculate total for each theme
+        # Calculate total
         # ----------------------------------------------------
 
         heatmap_data["Total"] = (
@@ -773,7 +836,7 @@ else:
         )
 
         # ----------------------------------------------------
-        # Order themes from highest to lowest total
+        # Order themes by total
         # ----------------------------------------------------
 
         heatmap_theme_order = (
@@ -793,11 +856,8 @@ else:
 
         fig_heatmap = px.imshow(
             heatmap_data,
-
             text_auto=True,
-
             aspect="auto",
-
             labels={
                 "x": "Stance",
                 "y": "Theme",
@@ -832,9 +892,9 @@ else:
             }
         )
 
-       # ====================================================
-    # BUILD THEME COUNTS (full dataset)
-    # ====================================================
+    # ========================================================
+    # BUILD THEME COUNTS
+    # ========================================================
 
     themes_df = df.copy()
 
@@ -845,23 +905,27 @@ else:
         .str.split(", ")
     )
 
-    themes_df = themes_df.explode("themes")
+    themes_df = themes_df.explode(
+        "themes"
+    )
 
     themes_df = themes_df[
         themes_df["themes"].isin(THEME_ORDER)
-    ]
+    ].copy()
 
     theme_counts = (
         themes_df["themes"]
         .value_counts()
-        .reindex(THEME_ORDER, fill_value=0)
+        .reindex(
+            THEME_ORDER,
+            fill_value=0
+        )
     )
 
-    # ====================================================
+    # ========================================================
     # TREND ANALYSIS
-    # ====================================================
+    # ========================================================
 
-    # Identify leading themes
     ranked_themes = sorted(
         theme_counts.items(),
         key=lambda x: x[1],
@@ -874,32 +938,46 @@ else:
         if item[1] > 0
     ]
 
-    # Overall stance distribution
     stance_counts = (
         df["stance"]
         .fillna("Neutral")
         .astype(str)
         .str.strip()
         .str.title()
+        .replace({
+            "Positive": "Supportive",
+            "Negative": "Critical"
+        })
         .value_counts()
         .reindex(
-            ["Supportive", "Neutral", "Critical"],
+            [
+                "Supportive",
+                "Neutral",
+                "Critical"
+            ],
             fill_value=0
         )
     )
 
-    # Determine dominant stance pattern
     if stance_counts.sum() > 0:
+
         dominant_stance = stance_counts.idxmax()
-        dominant_stance_count = stance_counts[dominant_stance]
-        dominant_stance_share = (
-            dominant_stance_count / stance_counts.sum() * 100
+
+        dominant_stance_count = (
+            stance_counts[dominant_stance]
         )
+
+        dominant_stance_share = (
+            dominant_stance_count
+            / stance_counts.sum()
+            * 100
+        )
+
     else:
+
         dominant_stance = "Neutral"
         dominant_stance_share = 0
 
-    # Generate analytical blurb
     stance_summary = (
         f"{dominant_stance.lower()} coverage accounts for "
         f"{dominant_stance_share:.1f}% of articles"
@@ -907,9 +985,9 @@ else:
 
     trend_blurb = stance_summary
 
-    # ====================================================
-    # LLM-GENERATED / ANALYTICAL BLURB
-    # ====================================================
+    # ========================================================
+    # COVERAGE SUMMARY
+    # ========================================================
 
     st.markdown(
         f"""
@@ -925,7 +1003,6 @@ else:
         """,
         unsafe_allow_html=True
     )
-        
 
     # ========================================================
     # RESEARCH QUESTION 3
@@ -941,6 +1018,7 @@ else:
         ">
         3. How has the story changed over time?
         </div>
+
         <div style="
             font-size: 15px;
             font-style: italic;
@@ -954,302 +1032,370 @@ else:
         unsafe_allow_html=True
     )
 
-    # ============================================================
+    # ========================================================
     # MONTHLY SUMMARY
-    # ============================================================
-    
+    # ========================================================
+
     monthly_df = df.copy()
-    
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # Prepare dates
-    # ------------------------------------------------------------
-    
+    # --------------------------------------------------------
+
     monthly_df["published_date"] = pd.to_datetime(
         monthly_df["published_at"],
         errors="coerce"
     )
-    
-    monthly_df["month"] = monthly_df["published_date"].dt.to_period("M")
-    
-    # ------------------------------------------------------------
-    # Create a unique article ID
-    # ------------------------------------------------------------
-    
-    if "url" in monthly_df.columns:
-        monthly_df["article_id"] = (
-            monthly_df["url"]
+
+    monthly_df = monthly_df[
+        monthly_df["published_date"].notna()
+    ].copy()
+
+    if monthly_df.empty:
+
+        st.warning(
+            "No valid publication dates are available for monthly analysis."
+        )
+
+    else:
+
+        monthly_df["month"] = (
+            monthly_df["published_date"]
+            .dt.to_period("M")
+        )
+
+        # ----------------------------------------------------
+        # Create unique article ID
+        # ----------------------------------------------------
+
+        if "url" in monthly_df.columns:
+
+            monthly_df["article_id"] = (
+                monthly_df["url"]
+                .fillna("")
+                .astype(str)
+                .str.strip()
+            )
+
+        else:
+
+            monthly_df["article_id"] = ""
+
+        missing_id = monthly_df["article_id"].eq("")
+
+        monthly_df.loc[
+            missing_id,
+            "article_id"
+        ] = (
+            "row_"
+            + monthly_df.index.astype(str)
+        )
+
+        # ----------------------------------------------------
+        # Keep one record per article
+        # ----------------------------------------------------
+
+        monthly_df = monthly_df.drop_duplicates(
+            subset="article_id"
+        )
+
+        # ----------------------------------------------------
+        # Available months
+        # ----------------------------------------------------
+
+        available_months = sorted(
+            monthly_df["month"]
+            .dropna()
+            .unique(),
+            reverse=True
+        )
+
+        month_labels = {
+            month: month.strftime("%B %Y")
+            for month in available_months
+        }
+
+        selected_month = st.selectbox(
+            "Select month:",
+            options=available_months,
+            format_func=lambda month:
+                month_labels[month]
+        )
+
+        selected_month_df = monthly_df[
+            monthly_df["month"] == selected_month
+        ].copy()
+
+        selected_month_name = (
+            selected_month.strftime("%B %Y")
+        )
+
+        # ----------------------------------------------------
+        # Monthly article count
+        # ----------------------------------------------------
+
+        monthly_article_count = (
+            selected_month_df["article_id"]
+            .nunique()
+        )
+
+        # ----------------------------------------------------
+        # Monthly theme counts
+        # ----------------------------------------------------
+
+        monthly_theme_df = (
+            selected_month_df.copy()
+        )
+
+        monthly_theme_df["themes"] = (
+            monthly_theme_df["themes"]
             .fillna("")
             .astype(str)
-            .str.strip()
+            .str.split(", ")
         )
-    else:
-        monthly_df["article_id"] = ""
-    
-    missing_id = monthly_df["article_id"].eq("")
-    
-    monthly_df.loc[missing_id, "article_id"] = (
-        "row_" + monthly_df.index.astype(str)
-    )
-    
-    # Keep one record per article
-    monthly_df = monthly_df.drop_duplicates(
-        subset="article_id"
-    )
-    
-    # ------------------------------------------------------------
-    # Available months
-    # ------------------------------------------------------------
-    
-    available_months = sorted(
-        monthly_df["month"].dropna().unique(),
-        reverse=True
-    )
-    
-    month_labels = {
-        month: month.strftime("%B %Y")
-        for month in available_months
-    }
-    
-    selected_month = st.selectbox(
-        "Select month:",
-        options=available_months,
-        format_func=lambda month: month_labels[month]
-    )
-    
-    selected_month_df = monthly_df[
-        monthly_df["month"] == selected_month
-    ].copy()
-    
-    selected_month_name = selected_month.strftime("%B %Y")
-    
-    # ------------------------------------------------------------
-    # Monthly article count
-    # ------------------------------------------------------------
-    
-    monthly_article_count = selected_month_df["article_id"].nunique()
-    
-    # ------------------------------------------------------------
-    # Monthly theme counts
-    # ------------------------------------------------------------
-    # Articles can have more than one theme.
-    # Therefore, theme counts are not mutually exclusive.
-    
-    monthly_theme_df = selected_month_df.copy()
-    
-    monthly_theme_df["themes"] = (
-        monthly_theme_df["themes"]
-        .fillna("")
-        .astype(str)
-        .str.split(", ")
-    )
-    
-    monthly_theme_df = monthly_theme_df.explode("themes")
-    
-    monthly_theme_df = monthly_theme_df[
-        monthly_theme_df["themes"].isin(THEME_ORDER)
-    ]
-    
-    # Count each article-theme assignment only once
-    monthly_theme_df = monthly_theme_df.drop_duplicates(
-        subset=["article_id", "themes"]
-    )
-    
-    monthly_theme_counts = (
-        monthly_theme_df
-        .groupby("themes")["article_id"]
-        .nunique()
-        .reindex(THEME_ORDER, fill_value=0)
-    )
-    
-    # Rank themes by number of articles
-    ranked_monthly_themes = sorted(
-        monthly_theme_counts.items(),
-        key=lambda x: x[1],
-        reverse=True
-    )
-    
-    leading_monthly_themes = [
-        (theme, count)
-        for theme, count in ranked_monthly_themes
-        if count > 0
-    ]
-    
-    # ------------------------------------------------------------
-    # Monthly stance
-    # ------------------------------------------------------------
-    
-    monthly_stance_counts = (
-        selected_month_df["stance"]
-        .fillna("Neutral")
-        .astype(str)
-        .str.strip()
-        .replace({
-            "Positive": "Supportive",
-            "Negative": "Critical"
-        })
-        .value_counts()
-        .reindex(
-            ["Supportive", "Neutral", "Critical"],
-            fill_value=0
+
+        monthly_theme_df = (
+            monthly_theme_df
+            .explode("themes")
         )
-    )
-    
-    monthly_stance_total = monthly_stance_counts.sum()
-    
-    if monthly_stance_total > 0:
-    
-        monthly_dominant_stance = (
-            monthly_stance_counts.idxmax()
+
+        monthly_theme_df = monthly_theme_df[
+            monthly_theme_df["themes"].isin(
+                THEME_ORDER
+            )
+        ].copy()
+
+        monthly_theme_df = (
+            monthly_theme_df
+            .drop_duplicates(
+                subset=[
+                    "article_id",
+                    "themes"
+                ]
+            )
         )
-    
-        monthly_dominant_stance_count = (
-            monthly_stance_counts.max()
+
+        monthly_theme_counts = (
+            monthly_theme_df
+            .groupby("themes")["article_id"]
+            .nunique()
+            .reindex(
+                THEME_ORDER,
+                fill_value=0
+            )
         )
-    
-        monthly_dominant_stance_share = (
-            monthly_dominant_stance_count
-            / monthly_stance_total
-            * 100
+
+        ranked_monthly_themes = sorted(
+            monthly_theme_counts.items(),
+            key=lambda x: x[1],
+            reverse=True
         )
-    
-    else:
-    
-        monthly_dominant_stance = "Neutral"
-        monthly_dominant_stance_share = 0
-    
-    # ------------------------------------------------------------
-    # Significant events for the selected month
-    # ------------------------------------------------------------
-    
-    monthly_events_df = prepare_significant_events(
-        SIGNIFICANT_EVENTS
-    )
-    
-    monthly_events_df["event_month"] = (
-        monthly_events_df["date"].dt.to_period("M")
-    )
-    
-    monthly_selected_events = monthly_events_df[
-        monthly_events_df["event_month"] == selected_month
-    ].copy()
-    
-    # ------------------------------------------------------------
-    # Identify emerging theme
-    # ------------------------------------------------------------
-    
-    if not leading_monthly_themes:
-    
-        monthly_theme_text = (
-            "No clearly dominant theme was detected in the "
-            "available coverage."
-        )
-    
-    elif len(leading_monthly_themes) == 1:
-    
-        theme, count = leading_monthly_themes[0]
-    
-        monthly_theme_text = (
-            f"{theme} was the most prominent theme, appearing in "
-            f"{count} article"
-            f"{'s' if count != 1 else ''}."
-        )
-    
-    else:
-    
-        theme_1, count_1 = leading_monthly_themes[0]
-        theme_2, count_2 = leading_monthly_themes[1]
-    
-        monthly_theme_text = (
-            f"{theme_1} led the coverage with "
-            f"{count_1} article"
-            f"{'s' if count_1 != 1 else ''}, followed by "
-            f"{theme_2} with "
-            f"{count_2} article"
-            f"{'s' if count_2 != 1 else ''}."
-        )
-    
-    # ------------------------------------------------------------
-    # Event context
-    # ------------------------------------------------------------
-    
-    if not monthly_selected_events.empty:
-    
-        # IMPORTANT:
-        # prepare_significant_events() uses "label", not "event"
-        event_labels = (
-            monthly_selected_events["label"]
-            .dropna()
+
+        leading_monthly_themes = [
+            (theme, count)
+            for theme, count in ranked_monthly_themes
+            if count > 0
+        ]
+
+        # ----------------------------------------------------
+        # Monthly stance
+        # ----------------------------------------------------
+
+        monthly_stance_counts = (
+            selected_month_df["stance"]
+            .fillna("Neutral")
             .astype(str)
-            .tolist()
-        )
-    
-        if len(event_labels) == 1:
-    
-            monthly_event_text = (
-                f"This coverage coincided with "
-                f"{event_labels[0]}."
+            .str.strip()
+            .str.title()
+            .replace({
+                "Positive": "Supportive",
+                "Negative": "Critical"
+            })
+            .value_counts()
+            .reindex(
+                [
+                    "Supportive",
+                    "Neutral",
+                    "Critical"
+                ],
+                fill_value=0
             )
-    
+        )
+
+        monthly_stance_total = (
+            monthly_stance_counts.sum()
+        )
+
+        if monthly_stance_total > 0:
+
+            monthly_dominant_stance = (
+                monthly_stance_counts.idxmax()
+            )
+
+            monthly_dominant_stance_count = (
+                monthly_stance_counts.max()
+            )
+
+            monthly_dominant_stance_share = (
+                monthly_dominant_stance_count
+                / monthly_stance_total
+                * 100
+            )
+
         else:
-    
-            monthly_event_text = (
-                "This coverage coincided with "
-                + ", ".join(event_labels[:-1])
-                + " and "
-                + event_labels[-1]
-                + "."
+
+            monthly_dominant_stance = "Neutral"
+            monthly_dominant_stance_share = 0
+
+        # ----------------------------------------------------
+        # Significant events
+        # ----------------------------------------------------
+
+        monthly_events_df = (
+            prepare_significant_events(
+                SIGNIFICANT_EVENTS
             )
-    
-    else:
-    
-        monthly_event_text = (
-            "No significant developments in the event tracker "
-            "were recorded for this month."
         )
-    
-    # ------------------------------------------------------------
-    # Build monthly summary
-    # ------------------------------------------------------------
-    
-    monthly_summary = (
-        f"In {selected_month_name}, the corpus contained "
-        f"{monthly_article_count} unique article"
-        f"{'s' if monthly_article_count != 1 else ''}. "
-        f"{monthly_theme_text} "
-        f"The detected stance of the coverage was predominantly "
-        f"{monthly_dominant_stance.lower()}, accounting for "
-        f"{monthly_dominant_stance_share:.1f}% of articles. "
-        f"{monthly_event_text}"
-    )
-    
-    # ------------------------------------------------------------
-    # Display
-    # ------------------------------------------------------------
-    
-    st.markdown(
-        f"""
-        <h3 style="margin-bottom: 0.2rem;">
-            {selected_month_name} — What is the emerging theme?
-        </h3>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    st.markdown(
-        monthly_summary
-    )
-    
-    st.caption(
-        "Theme counts are not mutually exclusive because a single "
-        "article may be classified under more than one theme."
-    )
+
+        if not monthly_events_df.empty:
+
+            monthly_events_df["event_month"] = (
+                monthly_events_df["date"]
+                .dt.to_period("M")
+            )
+
+            monthly_selected_events = (
+                monthly_events_df[
+                    monthly_events_df["event_month"]
+                    == selected_month
+                ].copy()
+            )
+
+        else:
+
+            monthly_selected_events = pd.DataFrame()
+
+        # ----------------------------------------------------
+        # Identify emerging theme
+        # ----------------------------------------------------
+
+        if not leading_monthly_themes:
+
+            monthly_theme_text = (
+                "No clearly dominant theme was detected in the "
+                "available coverage."
+            )
+
+        elif len(leading_monthly_themes) == 1:
+
+            theme, count = (
+                leading_monthly_themes[0]
+            )
+
+            monthly_theme_text = (
+                f"{theme} was the most prominent theme, appearing "
+                f"in {count} article"
+                f"{'s' if count != 1 else ''}."
+            )
+
+        else:
+
+            theme_1, count_1 = (
+                leading_monthly_themes[0]
+            )
+
+            theme_2, count_2 = (
+                leading_monthly_themes[1]
+            )
+
+            monthly_theme_text = (
+                f"{theme_1} led the coverage with "
+                f"{count_1} article"
+                f"{'s' if count_1 != 1 else ''}, followed by "
+                f"{theme_2} with "
+                f"{count_2} article"
+                f"{'s' if count_2 != 1 else ''}."
+            )
+
+        # ----------------------------------------------------
+        # Event context
+        # ----------------------------------------------------
+
+        if not monthly_selected_events.empty:
+
+            event_labels = (
+                monthly_selected_events["label"]
+                .dropna()
+                .astype(str)
+                .tolist()
+            )
+
+            if len(event_labels) == 1:
+
+                monthly_event_text = (
+                    f"This coverage coincided with "
+                    f"{event_labels[0]}."
+                )
+
+            else:
+
+                monthly_event_text = (
+                    "This coverage coincided with "
+                    + ", ".join(event_labels[:-1])
+                    + " and "
+                    + event_labels[-1]
+                    + "."
+                )
+
+        else:
+
+            monthly_event_text = (
+                "No significant developments in the event tracker "
+                "were recorded for this month."
+            )
+
+        # ----------------------------------------------------
+        # Build monthly summary
+        # ----------------------------------------------------
+
+        monthly_summary = (
+            f"In {selected_month_name}, the corpus contained "
+            f"{monthly_article_count} unique article"
+            f"{'s' if monthly_article_count != 1 else ''}. "
+            f"{monthly_theme_text} "
+            f"The detected stance of the coverage was predominantly "
+            f"{monthly_dominant_stance.lower()}, accounting for "
+            f"{monthly_dominant_stance_share:.1f}% of articles. "
+            f"{monthly_event_text}"
+        )
+
+        # ----------------------------------------------------
+        # Display monthly summary
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"""
+            <h3 style="margin-bottom: 0.2rem;">
+                {selected_month_name} — What is the emerging theme?
+            </h3>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            monthly_summary
+        )
+
+        st.caption(
+            "Theme counts are not mutually exclusive because a single "
+            "article may be classified under more than one theme."
+        )
 
     # ========================================================
     # THEME × STANCE BUBBLE MATRIX
     # ========================================================
 
     bubble_df = df.copy()
-
 
     # --------------------------------------------------------
     # Clean stance labels
@@ -1261,6 +1407,10 @@ else:
         .astype(str)
         .str.strip()
         .str.title()
+        .replace({
+            "Positive": "Supportive",
+            "Negative": "Critical"
+        })
     )
 
     bubble_df = bubble_df[
@@ -1271,43 +1421,56 @@ else:
                 "Critical"
             ]
         )
-    ]
-
+    ].copy()
 
     # --------------------------------------------------------
-    # Convert publication timestamp to date
+    # Convert publication timestamp to datetime
     # --------------------------------------------------------
 
     bubble_df["date"] = pd.to_datetime(
         bubble_df["published_at"],
         errors="coerce"
-    ).dt.date
-
-
-    # --------------------------------------------------------
-    # Prepare article title and publication date for hover
-    # --------------------------------------------------------
-
-    bubble_df["article_title"] = (
-        bubble_df["title"]
-        .fillna("Untitled article")
-        .astype(str)
     )
 
-    bubble_df["published_date_display"] = pd.to_datetime(
-        bubble_df["published_at"],
-        errors="coerce"
-    ).dt.strftime("%d %b %Y")
+    # --------------------------------------------------------
+    # Prepare article title
+    # --------------------------------------------------------
+
+    if "title" in bubble_df.columns:
+
+        bubble_df["article_title"] = (
+            bubble_df["title"]
+            .fillna("Untitled article")
+            .astype(str)
+        )
+
+    else:
+
+        bubble_df["article_title"] = (
+            "Untitled article"
+        )
+
+    # --------------------------------------------------------
+    # Prepare publication date for hover
+    # --------------------------------------------------------
+
+    bubble_df["published_date_display"] = (
+        bubble_df["date"]
+        .dt.strftime("%d %b %Y")
+        .fillna("Unknown date")
+    )
+
+    # --------------------------------------------------------
+    # Hover text
+    # --------------------------------------------------------
+    # Show ONLY article title and publication date.
 
     bubble_df["article_hover"] = (
         "Article Title: "
         + bubble_df["article_title"]
         + "<br>Date Published: "
         + bubble_df["published_date_display"]
-        + "<br>Stance: "
-        + bubble_df["stance"]
     )
-
 
     # --------------------------------------------------------
     # Split multi-label themes
@@ -1324,7 +1487,6 @@ else:
         "themes"
     )
 
-
     # --------------------------------------------------------
     # Keep only defined themes
     # --------------------------------------------------------
@@ -1333,8 +1495,7 @@ else:
         bubble_df["themes"].isin(
             THEME_ORDER
         )
-    ]
-
+    ].copy()
 
     # --------------------------------------------------------
     # Remove rows without usable dates
@@ -1342,11 +1503,10 @@ else:
 
     bubble_df = bubble_df[
         bubble_df["date"].notna()
-    ]
-
+    ].copy()
 
     # --------------------------------------------------------
-    # FORCE THEME COLUMN INTO FIXED CATEGORY ORDER
+    # Force theme column into fixed category order
     # --------------------------------------------------------
 
     bubble_df["themes"] = pd.Categorical(
@@ -1355,23 +1515,16 @@ else:
         ordered=True
     )
 
+    # --------------------------------------------------------
+    # Theme labels
+    # --------------------------------------------------------
 
-    # --------------------------------------------------------
-    # Use theme names only for Y-axis labels
-    # --------------------------------------------------------
+    all_theme_labels = THEME_ORDER.copy()
 
     theme_labels = {
         theme: theme
         for theme in THEME_ORDER
     }
-
-
-    # --------------------------------------------------------
-    # Complete list of theme labels
-    # --------------------------------------------------------
-
-    all_theme_labels = THEME_ORDER
-
 
     # --------------------------------------------------------
     # Aggregate articles by:
@@ -1394,9 +1547,8 @@ else:
         )
     )
 
-
     # --------------------------------------------------------
-    # Prepare hover information for each bubble
+    # Prepare hover information
     # --------------------------------------------------------
 
     hover_data = (
@@ -1410,9 +1562,10 @@ else:
             observed=False
         )["article_hover"]
         .apply(
-            lambda x: "<br><br>".join(
-                x.astype(str)
-            )
+            lambda values:
+                "<br><br>".join(
+                    values.astype(str)
+                )
         )
         .reset_index(
             name="article_hover"
@@ -1429,7 +1582,6 @@ else:
         how="left"
     )
 
-
     # --------------------------------------------------------
     # Create theme labels
     # --------------------------------------------------------
@@ -1439,17 +1591,11 @@ else:
         .map(theme_labels)
     )
 
-
-    # --------------------------------------------------------
-    # Force theme labels into fixed categorical order
-    # --------------------------------------------------------
-
     bubble_data["theme_label"] = pd.Categorical(
         bubble_data["theme_label"],
         categories=all_theme_labels,
         ordered=True
     )
-
 
     # --------------------------------------------------------
     # Sort data
@@ -1460,21 +1606,21 @@ else:
             "themes",
             "date"
         ]
+    ).reset_index(
+        drop=True
     )
 
-
     # --------------------------------------------------------
-    # Prepare significant events for the timeline
+    # Prepare significant events
     # --------------------------------------------------------
 
     events_df = prepare_significant_events(
         SIGNIFICANT_EVENTS
     )
 
-
-    # --------------------------------------------------------
-    # Generate bubble matrix
-    # --------------------------------------------------------
+    # ========================================================
+    # GENERATE BUBBLE MATRIX
+    # ========================================================
 
     if not bubble_data.empty:
 
@@ -1513,39 +1659,16 @@ else:
             }
         )
 
-        fig_bubble.update_layout(
-                title="News Coverage Over Time",
-                height=600,
-                autosize=True,
-                margin=dict(l=20, r=20, t=70, b=20)
-        )
-
-    # --------------------------------------------------------
-    # COMBINED BUBBLE MATRIX NOTE
-    # --------------------------------------------------------
-
-    st.markdown(
-        """
-        <div style="
-            color: black;
-            text-align: justify;
-            font-size: 14px;
-            margin-bottom: 20px;
-        ">
-        <strong>Note:</strong> Each bubble shows how many articles tackled a given theme and stance on a specific date — bigger bubbles mean more articles, and the color shows whether the coverage leaned positive, negative, or neutral. Vertical dotted markers indicate significant developments that may help contextualize changes in media attention and stance over time.
-        </div>
-        """,
-        unsafe_allow_html=True
-        ) 
-    
         # ----------------------------------------------------
         # Hover information
         # ----------------------------------------------------
         # Show only article title and date published.
-        # Theme, stance, and article count are hidden.
-        
+
         fig_bubble.update_traces(
-            hovertemplate="%{customdata[0]}<extra></extra>"
+            hovertemplate=(
+                "%{customdata[0]}"
+                "<extra></extra>"
+            )
         )
 
         # ----------------------------------------------------
@@ -1554,15 +1677,17 @@ else:
 
         fig_bubble.update_yaxes(
             categoryorder="array",
-            categoryarray=all_theme_labels
+            categoryarray=all_theme_labels,
+            autorange="reversed",
+            automargin=True
         )
 
-
         # ----------------------------------------------------
-        # Layout
+        # Base chart layout
         # ----------------------------------------------------
 
         fig_bubble.update_layout(
+            title="News Coverage Over Time",
             height=600,
             autosize=True,
             xaxis_title="Publication Date",
@@ -1582,62 +1707,55 @@ else:
             automargin=True
         )
 
-        fig_bubble.update_yaxes(
-            automargin=True
-        )
-
-
         # ----------------------------------------------------
         # Add significant-event markers
         # ----------------------------------------------------
         #
         # Domestic events are labelled above the chart.
         # International events are labelled below the chart.
-        #
-        # Labels are distributed across multiple rows based on
-        # their horizontal spacing so that labels do not overlap.
 
         if not events_df.empty:
 
-            chart_min_date = pd.to_datetime(
-                bubble_data["date"]
-            ).min()
+            chart_min_date = (
+                bubble_data["date"].min()
+            )
 
-            chart_max_date = pd.to_datetime(
-                bubble_data["date"]
-            ).max()
+            chart_max_date = (
+                bubble_data["date"].max()
+            )
 
             visible_events = events_df[
-                (events_df["date"] >= chart_min_date)
-                & (events_df["date"] <= chart_max_date)
-            ].reset_index(drop=True)
+                (
+                    events_df["date"]
+                    >= chart_min_date
+                )
+                & (
+                    events_df["date"]
+                    <= chart_max_date
+                )
+            ].copy()
 
-
-            # ====================================================
+            # =================================================
             # EVENT LABEL PLACEMENT
-            # ====================================================
-            #
-            # Domestic events:
-            #   placed above the chart
-            #
-            # International events:
-            #   placed below the chart
-            #
-            # Each group has its own rows, preventing domestic and
-            # international labels from competing for the same space.
+            # =================================================
 
-            domestic_events = visible_events[
-                visible_events["event_type"] == "Domestic"
-            ].copy()
+            domestic_events = (
+                visible_events[
+                    visible_events["event_type"]
+                    == "Domestic"
+                ].copy()
+            )
 
-            international_events = visible_events[
-                visible_events["event_type"] == "International"
-            ].copy()
+            international_events = (
+                visible_events[
+                    visible_events["event_type"]
+                    == "International"
+                ].copy()
+            )
 
-
-            # ----------------------------------------------------
+            # -------------------------------------------------
             # Label positioning settings
-            # ----------------------------------------------------
+            # -------------------------------------------------
 
             domestic_label_rows = [
                 1.015,
@@ -1653,12 +1771,9 @@ else:
                 -0.295
             ]
 
-
-            # ----------------------------------------------------
+            # -------------------------------------------------
             # Estimate label width
-            # ----------------------------------------------------
-            # This is used only to determine whether another label
-            # can safely occupy the same row.
+            # -------------------------------------------------
 
             def estimate_label_width(label):
 
@@ -1667,10 +1782,9 @@ else:
                     len(str(label)) * 0.42
                 )
 
-
-            # ----------------------------------------------------
-            # Assign labels to rows without overlap
-            # ----------------------------------------------------
+            # -------------------------------------------------
+            # Assign labels to rows
+            # -------------------------------------------------
 
             def assign_event_rows(
                 event_subset,
@@ -1698,25 +1812,28 @@ else:
                     )
 
                     current_width = (
-                        estimate_label_width(label)
+                        estimate_label_width(
+                            label
+                        )
                     )
 
                     selected_row = None
 
-
-                    # --------------------------------------------
-                    # Try each row until sufficient space is found
-                    # --------------------------------------------
+                    # -----------------------------------------
+                    # Try each row
+                    # -----------------------------------------
 
                     for row_index in range(
                         len(label_rows)
                     ):
 
-                        if row_last_date[row_index] is None:
+                        if (
+                            row_last_date[row_index]
+                            is None
+                        ):
 
                             selected_row = row_index
                             break
-
 
                         previous_date = (
                             row_last_date[row_index]
@@ -1726,14 +1843,11 @@ else:
                             row_last_width[row_index]
                         )
 
-
-                        # Required distance between label centers.
-                        #
-                        # The extra 2.0 days provides additional
-                        # breathing room between labels.
-
                         required_gap = (
-                            (previous_width + current_width) / 2
+                            (
+                                previous_width
+                                + current_width
+                            ) / 2
                             + 2.0
                         )
 
@@ -1741,20 +1855,19 @@ else:
                             (
                                 event_date
                                 - previous_date
-                            ).days
+                            ).total_seconds()
+                            / 86400
                         )
-
 
                         if actual_gap >= required_gap:
 
                             selected_row = row_index
                             break
 
-
-                    # --------------------------------------------
-                    # If no row is completely free, use the row
-                    # with the greatest available spacing.
-                    # --------------------------------------------
+                    # -----------------------------------------
+                    # If no row is free, choose row with
+                    # greatest available spacing.
+                    # -----------------------------------------
 
                     if selected_row is None:
 
@@ -1772,7 +1885,6 @@ else:
                                 row_last_width[row_index]
                             )
 
-
                             required_gap = (
                                 (
                                     previous_width
@@ -1781,20 +1893,18 @@ else:
                                 + 2.0
                             )
 
-
                             actual_gap = abs(
                                 (
                                     event_date
                                     - previous_date
-                                ).days
+                                ).total_seconds()
+                                / 86400
                             )
-
 
                             available_gaps.append(
                                 actual_gap
                                 - required_gap
                             )
-
 
                         selected_row = (
                             available_gaps.index(
@@ -1802,10 +1912,9 @@ else:
                             )
                         )
 
-
-                    # --------------------------------------------
-                    # Store row assignment
-                    # --------------------------------------------
+                    # -----------------------------------------
+                    # Store assignment
+                    # -----------------------------------------
 
                     assignments.append(
                         (
@@ -1822,27 +1931,27 @@ else:
                         selected_row
                     ] = current_width
 
-
                 return assignments
 
-
-            domestic_assignments = assign_event_rows(
-                domestic_events,
-                domestic_label_rows
+            domestic_assignments = (
+                assign_event_rows(
+                    domestic_events,
+                    domestic_label_rows
+                )
             )
 
-            international_assignments = assign_event_rows(
-                international_events,
-                international_label_rows
+            international_assignments = (
+                assign_event_rows(
+                    international_events,
+                    international_label_rows
+                )
             )
 
-
-            # ====================================================
+            # =================================================
             # ADD EVENT MARKERS AND LABELS
-            # ====================================================
+            # =================================================
 
             all_assignments = []
-
 
             for event, row_index in domestic_assignments:
 
@@ -1854,7 +1963,6 @@ else:
                     )
                 )
 
-
             for event, row_index in international_assignments:
 
                 all_assignments.append(
@@ -1865,12 +1973,15 @@ else:
                     )
                 )
 
+            # -------------------------------------------------
+            # Add each event to chart
+            # -------------------------------------------------
 
-            # ----------------------------------------------------
-            # Add each event to the chart
-            # ----------------------------------------------------
-
-            for event, label_y, label_position in all_assignments:
+            for (
+                event,
+                label_y,
+                label_position
+            ) in all_assignments:
 
                 event_date = event["date"]
 
@@ -1878,10 +1989,9 @@ else:
                     event["label"]
                 )
 
-
-                # ------------------------------------------------
+                # ---------------------------------------------
                 # Vertical event marker
-                # ------------------------------------------------
+                # ---------------------------------------------
 
                 fig_bubble.add_shape(
                     type="line",
@@ -1898,10 +2008,9 @@ else:
                     )
                 )
 
-
-                # ------------------------------------------------
+                # ---------------------------------------------
                 # Event label
-                # ------------------------------------------------
+                # ---------------------------------------------
 
                 annotation_kwargs = dict(
                     x=event_date,
@@ -1915,37 +2024,39 @@ else:
                         color="black"
                     ),
                     xanchor="center",
-                    yanchor="bottom"
-                    if label_position == "top"
-                    else "top",
+                    yanchor=(
+                        "bottom"
+                        if label_position == "top"
+                        else "top"
+                    ),
                     align="center",
                     bgcolor="rgba(255,255,255,0.85)",
                     borderpad=1
                 )
 
-
-                if str(
+                description = str(
                     event["description"]
-                ).strip():
+                ).strip()
 
-                    annotation_kwargs["hovertext"] = (
-                        event["description"]
-                    )
+                if description:
 
-                    annotation_kwargs["hoverlabel"] = dict(
+                    annotation_kwargs[
+                        "hovertext"
+                    ] = description
+
+                    annotation_kwargs[
+                        "hoverlabel"
+                    ] = dict(
                         bgcolor="white"
                     )
-
 
                 fig_bubble.add_annotation(
                     **annotation_kwargs
                 )
 
-
-            # ----------------------------------------------------
-            # Give the event labels enough space above and below
-            # the matrix.
-            # ----------------------------------------------------
+            # -------------------------------------------------
+            # Give event labels enough space
+            # -------------------------------------------------
 
             fig_bubble.update_layout(
                 margin=dict(
@@ -1956,10 +2067,9 @@ else:
                 )
             )
 
-
-        # ----------------------------------------------------
-        # Display chart
-        # ----------------------------------------------------
+        # ====================================================
+        # DISPLAY BUBBLE MATRIX
+        # ====================================================
 
         st.plotly_chart(
             fig_bubble,
@@ -1969,23 +2079,29 @@ else:
             }
         )
 
-
-        # ----------------------------------------------------
-        # Significant events shown below the matrix
-        # ----------------------------------------------------
-        # This provides the reader with the exact event dates and
-        # descriptions, rather than requiring them to interpret
-        # the vertical markers alone.
+        # ====================================================
+        # SIGNIFICANT EVENTS TABLE
+        # ====================================================
 
         if not events_df.empty:
 
+            chart_min_date = (
+                bubble_data["date"].min()
+            )
+
+            chart_max_date = (
+                bubble_data["date"].max()
+            )
+
             visible_events = events_df[
-                (events_df["date"] >= pd.to_datetime(
-                    bubble_data["date"]
-                ).min())
-                & (events_df["date"] <= pd.to_datetime(
-                    bubble_data["date"]
-                ).max())
+                (
+                    events_df["date"]
+                    >= chart_min_date
+                )
+                & (
+                    events_df["date"]
+                    <= chart_max_date
+                )
             ].copy()
 
             if not visible_events.empty:
@@ -1994,29 +2110,36 @@ else:
                     "**Significant events during the monitoring period**"
                 )
 
-                event_display = visible_events.copy()
+                event_display = (
+                    visible_events.copy()
+                )
 
                 event_display["date"] = (
                     event_display["date"]
                     .dt.strftime("%d %b %Y")
                 )
 
-                event_display = event_display.rename(
-                    columns={
-                        "date": "Date",
-                        "label": "Event",
-                        "description": "Description"
-                    }
+                event_display = (
+                    event_display.rename(
+                        columns={
+                            "date": "Date",
+                            "label": "Event",
+                            "description": "Description"
+                        }
+                    )
                 )
 
                 st.dataframe(
                     event_display[
-                        ["Date", "Event", "Description"]
+                        [
+                            "Date",
+                            "Event",
+                            "Description"
+                        ]
                     ],
                     hide_index=True,
                     use_container_width=True
                 )
-
 
     else:
 
@@ -2024,7 +2147,6 @@ else:
             "Not enough dated theme data available to generate "
             "the bubble matrix."
         )
-
 
     # ========================================================
     # ARTICLES COLLECTED
@@ -2040,25 +2162,37 @@ else:
             text-align: justify;
             color: black;
         ">
-        New articles are collected through Google and media outlets' RSS feeds six times daily.
+        New articles are collected through Google and media outlets'
+        RSS feeds six times daily.
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    st.dataframe(
-        df[
-            [
-                "published_at",
-                "source",
-                "title",
-                "themes",
-                "stance",
-                "url"
-            ]
-        ].sort_values(
+    article_columns = [
+        "published_at",
+        "source",
+        "title",
+        "themes",
+        "stance",
+        "url"
+    ]
+
+    available_article_columns = [
+        column
+        for column in article_columns
+        if column in df.columns
+    ]
+
+    articles_display = (
+        df[available_article_columns]
+        .sort_values(
             "published_at",
             ascending=False
-        ),
+        )
+    )
+
+    st.dataframe(
+        articles_display,
         use_container_width=True
     )
