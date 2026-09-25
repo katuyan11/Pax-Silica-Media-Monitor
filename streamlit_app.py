@@ -2205,3 +2205,124 @@ else:
             "No dated, theme-tagged articles are available yet to "
             "plot on the coverage-over-time chart."
         )
+
+
+    # ========================================================
+    # SIGNIFICANT EVENTS TABLE
+    # ========================================================
+
+    if not events_df.empty:
+
+        chart_min_date = (
+            bubble_data["date"].min()
+        )
+
+        chart_max_date = (
+            bubble_data["date"].max()
+        )
+
+        visible_events = events_df[
+            (
+                events_df["date"]
+                >= chart_min_date
+            )
+            & (
+                events_df["date"]
+                <= chart_max_date
+            )
+        ].copy()
+
+        if not visible_events.empty:
+
+            st.markdown(
+                "**Significant events during the monitoring period**"
+            )
+
+            event_display = visible_events.copy()
+
+            event_display["date"] = (
+                event_display["date"]
+                .dt.strftime("%d %b %Y")
+            )
+
+            event_display = event_display.rename(
+                columns={
+                    "date": "Date",
+                    "label": "Event",
+                    "description": "Description"
+                }
+            )
+
+            st.dataframe(
+                event_display[
+                    [
+                        "Date",
+                        "Event",
+                        "Description"
+                    ]
+                ],
+                hide_index=True,
+                use_container_width=True
+            )
+
+        else:
+
+            # [MERGE FIX] Original message here was copy-pasted from
+            # the bubble-matrix empty-state ("...to generate the
+            # bubble matrix"), which doesn't describe this table.
+            # Replaced with wording that matches what's actually
+            # being checked.
+            st.info(
+                "No significant events fall within the current "
+                "monitoring period."
+            )
+
+
+    # ========================================================
+    # ARTICLES COLLECTED
+    # ========================================================
+
+    st.subheader(
+        "Articles Collected by the Monitor"
+    )
+
+    st.markdown(
+        """
+        <div style="
+            text-align: justify;
+            color: black;
+        ">
+        New articles are collected through Google and media outlets'
+        RSS feeds six times daily.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    article_columns = [
+        "published_at",
+        "source",
+        "title",
+        "themes",
+        "stance",
+        "url"
+    ]
+
+    available_article_columns = [
+        column
+        for column in article_columns
+        if column in df.columns
+    ]
+
+    articles_display = (
+        df[available_article_columns]
+        .sort_values(
+            "published_at",
+            ascending=False
+        )
+    )
+
+    st.dataframe(
+        articles_display,
+        use_container_width=True
+    )
