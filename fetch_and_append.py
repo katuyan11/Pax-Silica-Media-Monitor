@@ -215,19 +215,16 @@ def clean_html(raw_html: str) -> str:
 
 
 def resolve_google_news_url(google_url: str):
-    """Decode Google News' redirect token to get the real publisher URL.
-    Returns (resolved_url, success) instead of silently falling back —
-    a fallback to the raw, unresolved google_url was causing duplicate
-    appends, since an undecoded link doesn't match the real article's
-    URL or outlet name from a prior successful run."""
+    """Decode Google News' redirect token to get the real publisher URL."""
     try:
         result = gnewsdecoder(google_url, interval=1)
         if result.get("status") and result.get("decoded_url"):
             return result["decoded_url"], True
+        print(f"DECODE FAILED (no exception) — result: {result}")
         return google_url, False
-    except Exception:
+    except Exception as e:
+        print(f"DECODE EXCEPTION for {google_url[:80]}...: {type(e).__name__}: {e}")
         return google_url, False
-
 
 def strip_source_from_title(title: str, source_name: str) -> str:
     """Google News RSS titles are formatted 'Article Title - Source Name'.
