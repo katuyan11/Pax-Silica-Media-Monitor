@@ -1998,7 +1998,6 @@ else:
         # ----------------------------------------------------
 
         fig_bubble.update_layout(
-            title="News Coverage Over Time",
             height=600,
             autosize=True,
             xaxis_title="Publication Date",
@@ -2368,6 +2367,85 @@ else:
                 )
 
 
+        # ========================================================
+        # BUBBLE MATRIX TAKEAWAY
+        # ========================================================
+
+        if not events_df.empty:
+
+            # ----------------------------------------------------
+            # EVENT PERIOD COVERAGE
+            # ----------------------------------------------------
+
+            event_dates = events_df["date"].dropna()
+
+            event_period_data = bubble_data[
+                bubble_data["date"].isin(event_dates)
+            ].copy()
+
+            if not event_period_data.empty:
+
+                event_theme = (
+                    event_period_data
+                    .groupby(
+                        "themes",
+                        observed=False
+                    )["article_count"]
+                    .sum()
+                    .idxmax()
+                )
+
+                event_stance = (
+                    event_period_data
+                    .groupby(
+                        "stance"
+                    )["article_count"]
+                    .sum()
+                    .idxmax()
+                )
+
+                bubble_takeaway = (
+                    f"Coverage around significant events is most strongly "
+                    f"concentrated on {event_theme}, with {event_stance} "
+                    f"emerging as the dominant stance during these periods."
+                )
+
+            else:
+
+                bubble_takeaway = (
+                    "Coverage around significant events shows shifts in "
+                    "dominant themes and stances across the coverage period."
+                )
+
+        else:
+
+            bubble_takeaway = (
+                "Coverage around significant events shows shifts in "
+                "dominant themes and stances across the coverage period."
+            )
+
+
+        # ----------------------------------------------------
+        # DISPLAY TAKEAWAY ABOVE THE BUBBLE CHART
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align: center;
+                font-size: 16px;
+                font-weight: 700;
+                color: black;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            ">
+            {bubble_takeaway}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
         # ----------------------------------------------------
         # [MERGE FIX] DISPLAY THE BUBBLE MATRIX
         # This call was missing from the source you sent — the
@@ -2384,6 +2462,28 @@ else:
             }
         )
 
+
+        # ----------------------------------------------------
+        # DISPLAY CHART TITLE BELOW THE BUBBLE CHART
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: center;
+                font-size: 15px;
+                font-style: italic;
+                font-weight: 400;
+                color: black;
+                margin-top: 4px;
+                margin-bottom: 18px;
+            ">
+            News Coverage Over Time
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
     else:
 
         st.info(
@@ -2391,183 +2491,84 @@ else:
             "plot on the coverage-over-time chart."
         )
 
-    # ========================================================
-# BUBBLE MATRIX TAKEAWAY
-# ========================================================
-
-if not bubble_data.empty and not events_df.empty:
-
-    # --------------------------------------------------------
-    # OVERALL DOMINANT THEME
-    # --------------------------------------------------------
-
-    dominant_theme = (
-        bubble_data
-        .groupby("themes", observed=False)["article_count"]
-        .sum()
-        .idxmax()
-    )
-
-    dominant_theme_count = (
-        bubble_data
-        .groupby("themes", observed=False)["article_count"]
-        .sum()
-        .max()
-    )
-
-    # --------------------------------------------------------
-    # OVERALL DOMINANT STANCE
-    # --------------------------------------------------------
-
-    dominant_stance = (
-        bubble_data
-        .groupby("stance")["article_count"]
-        .sum()
-        .idxmax()
-    )
-
-    # --------------------------------------------------------
-    # EVENT PERIOD COVERAGE
-    # --------------------------------------------------------
-
-    event_dates = events_df["date"].dropna()
-
-    event_period_data = bubble_data[
-        bubble_data["date"].isin(event_dates)
-    ].copy()
-
-    if not event_period_data.empty:
-
-        event_theme = (
-            event_period_data
-            .groupby("themes", observed=False)["article_count"]
-            .sum()
-            .idxmax()
-        )
-
-        event_stance = (
-            event_period_data
-            .groupby("stance")["article_count"]
-            .sum()
-            .idxmax()
-        )
-
-        st.markdown(
-            f"""
-            <div style="
-                font-size: 16px;
-                font-style: italic;
-                font-weight: 400;
-                color: black;
-                margin-top: 10px;
-                margin-bottom: 14px;
-            ">
-            Coverage around significant events is most strongly concentrated
-            on <b>{event_theme}</b>, with <b>{event_stance}</b> emerging as
-            the dominant stance during these periods.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    else:
-
-        st.markdown(
-            f"""
-            <div style="
-                font-size: 16px;
-                font-style: italic;
-                font-weight: 400;
-                color: black;
-                margin-top: 10px;
-                margin-bottom: 14px;
-            ">
-            Across the coverage period, <b>{dominant_theme}</b> is the
-            dominant theme and <b>{dominant_stance}</b> is the most prevalent
-            stance, providing a baseline for examining how significant events
-            coincide with changes in thematic attention and framing.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
 
     # ========================================================
     # SIGNIFICANT EVENTS TABLE
     # ========================================================
 
-    if not events_df.empty:
+    if not bubble_data.empty and not events_df.empty:
 
-        chart_min_date = (
-            bubble_data["date"].min()
-        )
+        if not events_df.empty:
 
-        chart_max_date = (
-            bubble_data["date"].max()
-        )
-
-        visible_events = events_df[
-            (
-                events_df["date"]
-                >= chart_min_date
-            )
-            & (
-                events_df["date"]
-                <= chart_max_date
-            )
-        ].copy()
-
-        if not visible_events.empty:
-
-            st.markdown(
-                "**Significant events during the monitoring period**"
+            chart_min_date = (
+                bubble_data["date"].min()
             )
 
-            event_display = visible_events.copy()
-
-            event_display["date"] = (
-                event_display["date"]
-                .dt.strftime("%d %b %Y")
+            chart_max_date = (
+                bubble_data["date"].max()
             )
 
-            event_display = event_display.rename(
-                columns={
-                    "date": "Date",
-                    "label": "Event",
-                    "description": "Description"
-                }
-            )
+            visible_events = events_df[
+                (
+                    events_df["date"]
+                    >= chart_min_date
+                )
+                & (
+                    events_df["date"]
+                    <= chart_max_date
+                )
+            ].copy()
 
-            st.dataframe(
-                event_display[
-                    [
-                        "Date",
-                        "Event",
-                        "Description"
-                    ]
-                ],
-                hide_index=True,
-                use_container_width=True
-            )
+            if not visible_events.empty:
 
-        else:
+                st.markdown(
+                    "**Significant events during the monitoring period**"
+                )
 
-            # [MERGE FIX] Original message here was copy-pasted from
-            # the bubble-matrix empty-state ("...to generate the
-            # bubble matrix"), which doesn't describe this table.
-            # Replaced with wording that matches what's actually
-            # being checked.
-            st.info(
-                "No significant events fall within the current "
-                "monitoring period."
-            )
+                event_display = visible_events.copy()
+
+                event_display["date"] = (
+                    event_display["date"]
+                    .dt.strftime("%d %b %Y")
+                )
+
+                event_display = event_display.rename(
+                    columns={
+                        "date": "Date",
+                        "label": "Event",
+                        "description": "Description"
+                    }
+                )
+
+                st.dataframe(
+                    event_display[
+                        [
+                            "Date",
+                            "Event",
+                            "Description"
+                        ]
+                    ],
+                    hide_index=True,
+                    use_container_width=True
+                )
+
+            else:
+
+                # [MERGE FIX] Original message here was copy-pasted from
+                # the bubble-matrix empty-state ("...to generate the
+                # bubble matrix"), which doesn't describe this table.
+                # Replaced with wording that matches what's actually
+                # being checked.
+                st.info(
+                    "No significant events fall within the current "
+                    "monitoring period."
+                )
 
 
     st.markdown(
         "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
         unsafe_allow_html=True
     )
-
     # ========================================================
     # RESEARCH QUESTION 4
     # ========================================================
