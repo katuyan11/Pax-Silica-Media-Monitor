@@ -39,6 +39,29 @@ nltk.download("stopwords", quiet=True)
 st.markdown(
     """
     <style>
+    /* ------------------------------------------------------
+       [FONT SIZE CONTROL] Bump this to scale most body text
+       in the app (paragraphs, markdown, dataframe text, labels,
+       captions). Headline/section-title sizes are set inline
+       elsewhere and won't move with this — adjust those
+       separately if needed.
+       Try 17px, 18px, 19px and see what reads best.
+    ------------------------------------------------------ */
+    html, body, [class*="st-"], .stMarkdown, .stMarkdown p,
+    .stDataFrame, .stCaption, .stSelectbox label {
+        font-size: 16px;
+    }
+    /* Most body/explanatory paragraphs below are hardcoded inline
+       (font-size: 14px / 15px) rather than using a class, so the
+       rule above can't reach them — inline styles win by default.
+       This overrides those inline sizes app-wide. Delete this block
+       if you'd rather size each paragraph individually. */
+    .stMarkdown div[style*="font-size: 14px"] {
+        font-size: 16px !important;
+    }
+    .stMarkdown div[style*="font-size: 15px"] {
+        font-size: 17px !important;
+    }
     .metric-card {
         background: #F7F9FB;
         border: 1px solid #E3E8EC;
@@ -64,7 +87,7 @@ st.markdown(
     .intro-copy p {
         text-align: left;
         color: #2A2F36;
-        font-size: 15px;
+        font-size: 17px;
         line-height: 1.6;
         margin-bottom: 0.9rem;
     }
@@ -104,7 +127,7 @@ st.set_page_config(
 # ------------------------------------------------------------
 st.markdown(
     """
-    <div class="intro-copy" style="margin-bottom: 12px;">
+    <div class="intro-copy" style="margin-bottom: 8px;">
     <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains and the Philippines is positioned to play a role in this emerging global network. As the initiative develops, Philippine news coverage is growing quickly — touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
     <p>Following that conversation by hand can be difficult. As new developments unfold, new voices enter the discussion, and different outlets tend to focus on different aspects of the initiative. This dashboard follows that coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.</p>
     <p>This prototype combines automated news collection with rule-based NLP. Articles are processed and classified by theme and stance using rule-based keyword matching and text preprocessing. These approaches provide a structured way to explore the themes and stances appearing across the monitored news coverage.</p>
