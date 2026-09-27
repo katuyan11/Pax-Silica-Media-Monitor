@@ -67,6 +67,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown("---")
 
 # ============================================================
 # STANCE DISPLAY COLORS (kept consistent across all stance charts)
@@ -579,6 +580,7 @@ else:
         .index
         .tolist()
     )
+
 
 
     # ========================================================
@@ -1333,6 +1335,7 @@ else:
             unsafe_allow_html=True
         )
 
+    st.markdown("---")
 
     # ========================================================
     # RESEARCH QUESTION 3
@@ -2645,6 +2648,9 @@ else:
         "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
         unsafe_allow_html=True
     )
+
+    st.markdown("---")
+    
     # ========================================================
     # RESEARCH QUESTION 4
     # ========================================================
@@ -2673,6 +2679,7 @@ else:
         unsafe_allow_html=True
     )
 
+    st.markdown("---")
 
     # ========================================================
     # ARTICLES COLLECTED
