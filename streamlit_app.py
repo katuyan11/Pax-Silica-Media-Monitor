@@ -61,13 +61,11 @@ st.markdown(
     
     Following that conversation by hand can be difficult. As new developments unfold, new voices enter the discussion, and different outlets tend to focus on different aspects of the initiative. This dashboard follows that coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.
     
-    This prototype combines automated news collection with rule-based NLP. Articles are processed and classified by theme and stance using rule-based keyword matching and text preprocessing. These approaches provide a structured way to explore the themes and perspectives appearing across the monitored news coverage.
+    This prototype combines automated news collection with rule-based NLP. Articles are processed and classified by theme and stance using rule-based keyword matching and text preprocessing. These approaches provide a structured way to explore the themes and stances appearing across the monitored news coverage.
     </div>
     """,
     unsafe_allow_html=True
 )
-
-st.markdown("---")
 
 # ============================================================
 # STANCE DISPLAY COLORS (kept consistent across all stance charts)
