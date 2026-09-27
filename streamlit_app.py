@@ -2780,9 +2780,8 @@ else:
         </div>
         """,
         unsafe_allow_html=True
-    )
-
-    # ========================================================
+    ) 
+        # ========================================================
     # OUTLET TYPE MAPPING
     # ========================================================
     # A few sources are excluded rather than mapped — see EXCLUDED_SOURCES
@@ -2892,6 +2891,198 @@ else:
         "facebook.com",
         "ph",
     ]
+
+
+    # ========================================================
+    # OUTLET TYPE × STANCE CHART
+    # ========================================================
+
+    outlet_df = df[
+        ~df["source"].isin(EXCLUDED_SOURCES)
+    ].copy()
+
+    outlet_df["outlet_type"] = (
+        outlet_df["source"]
+        .map(OUTLET_TYPE_MAP)
+        .fillna("Independent Local")
+    )
+
+    outlet_df["stance"] = (
+        outlet_df["stance"]
+        .fillna("Neutral")
+        .astype(str)
+        .str.strip()
+        .str.title()
+        .replace({
+            "Positive": "Supportive",
+            "Negative": "Critical"
+        })
+    )
+
+    outlet_df = outlet_df[
+        outlet_df["stance"].isin(STANCE_ORDER)
+    ].copy()
+
+
+    # --------------------------------------------------------
+    # AGGREGATE COUNTS BY OUTLET TYPE + STANCE
+    # --------------------------------------------------------
+
+    outlet_stance = (
+        outlet_df
+        .groupby(
+            [
+                "outlet_type",
+                "stance"
+            ]
+        )
+        .size()
+        .reset_index(
+            name="count"
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # CONVERT TO PERCENT OF EACH OUTLET TYPE'S TOTAL
+    # --------------------------------------------------------
+
+    outlet_stance["percent"] = (
+        outlet_stance
+        .groupby("outlet_type")["count"]
+        .transform(
+            lambda x: x / x.sum() * 100
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # OUTLET TYPE TAKEAWAY
+    # --------------------------------------------------------
+    # Compares each outlet type's Critical-coverage share to find the
+    # widest gap — this is the actual comparative claim the chart is
+    # meant to show, computed from the data rather than assumed.
+
+    if not outlet_stance.empty:
+
+        critical_shares = (
+            outlet_stance[
+                outlet_stance["stance"] == "Critical"
+            ]
+            .set_index("outlet_type")["percent"]
+        )
+
+        # Outlet types with zero Critical coverage won't appear in the
+        # groupby result above, so fill in 0% for any missing type.
+        for outlet_type in outlet_stance["outlet_type"].unique():
+            if outlet_type not in critical_shares.index:
+                critical_shares[outlet_type] = 0.0
+
+        highest_critical_type = critical_shares.idxmax()
+        lowest_critical_type = critical_shares.idxmin()
+
+        highest_critical_value = critical_shares.max()
+        lowest_critical_value = critical_shares.min()
+
+        gap = highest_critical_value - lowest_critical_value
+
+        # Only frame this as a notable gap if it's large enough to be a
+        # real pattern rather than noise from a small outlet-type sample.
+        if gap >= 10:
+            outlet_takeaway = (
+                f"{highest_critical_type} coverage skews far more Critical "
+                f"({highest_critical_value:.0f}% of its coverage) than "
+                f"{lowest_critical_type} coverage "
+                f"({lowest_critical_value:.0f}%)."
+            )
+        else:
+            outlet_takeaway = (
+                "Critical coverage is fairly evenly distributed across "
+                "outlet types, with no single group standing out."
+            )
+
+    else:
+        outlet_takeaway = (
+            "No outlet-tagged, stance-classified articles are available "
+            "yet to compare coverage by outlet type."
+        )
+
+
+    # --------------------------------------------------------
+    # BUILD CHART
+    # --------------------------------------------------------
+
+    if not outlet_stance.empty:
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align: center;
+                font-size: 16px;
+                font-weight: 700;
+                color: black;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            ">
+            {outlet_takeaway}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        fig_outlet = px.bar(
+            outlet_stance,
+
+            x="percent",
+
+            y="outlet_type",
+
+            color="stance",
+
+            orientation="h",
+
+            category_orders={
+                "stance": STANCE_ORDER
+            },
+
+            labels={
+                "percent": "% of Coverage",
+                "outlet_type": "Outlet Type",
+                "stance": "Stance"
+            }
+        )
+
+        fig_outlet.update_layout(
+            barmode="stack",
+            height=350,
+            autosize=True,
+            xaxis_title="% of Coverage",
+            yaxis_title="Outlet Type",
+            legend_title="Stance",
+            margin=dict(
+                l=10,
+                r=20,
+                t=40,
+                b=40
+            )
+        )
+
+        st.plotly_chart(
+            fig_outlet,
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
+        )
+
+    else:
+
+        st.info(
+            "No outlet-tagged, stance-classified articles are available "
+            "yet to compare coverage by outlet type."
+        )
+
+    
 
     
 
