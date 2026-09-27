@@ -2956,12 +2956,22 @@ else:
     )
 
         # --------------------------------------------------------
+    # OUTLET TYPE ORDER
+    # --------------------------------------------------------
+
+    OUTLET_TYPE_ORDER = [
+        "State-Owned Local",
+        "Independent Local",
+        "International"
+    ]
+
+
+    # --------------------------------------------------------
     # OUTLET TYPE TAKEAWAY
     # --------------------------------------------------------
-    # Always names which outlet type leans most Supportive — this is
-    # useful on its own, not just as a side note to a Critical-coverage
-    # gap. A separate Critical-coverage clause is added only when that
-    # gap is wide enough to be a real pattern.
+    # Always names both the most Supportive and most Critical outlet
+    # type, so the reader gets the full contrast rather than only one
+    # side of it.
 
     if not outlet_stance.empty:
 
@@ -2991,29 +3001,14 @@ else:
         highest_supportive_value = supportive_shares.max()
 
         highest_critical_type = critical_shares.idxmax()
-        lowest_critical_type = critical_shares.idxmin()
-
         highest_critical_value = critical_shares.max()
-        lowest_critical_value = critical_shares.min()
-
-        critical_gap = highest_critical_value - lowest_critical_value
 
         outlet_takeaway = (
             f"{highest_supportive_type} coverage leans most Supportive "
-            f"({highest_supportive_value:.0f}% of its coverage)."
+            f"({highest_supportive_value:.0f}% of its coverage), while "
+            f"{highest_critical_type} coverage leans most Critical "
+            f"({highest_critical_value:.0f}%)."
         )
-
-        # Only add a Critical-coverage clause if the gap is wide enough
-        # to be a real pattern rather than noise from a small sample —
-        # and skip it if the same outlet type already leads on Supportive
-        # AND has the lowest Critical share, since that would just repeat
-        # the same point.
-        if critical_gap >= 10 and highest_critical_type != highest_supportive_type:
-            outlet_takeaway += (
-                f" {highest_critical_type} coverage, by contrast, skews "
-                f"most Critical ({highest_critical_value:.0f}%), compared "
-                f"with {lowest_critical_type} at {lowest_critical_value:.0f}%."
-            )
 
     else:
         outlet_takeaway = (
@@ -3021,8 +3016,7 @@ else:
             "yet to compare coverage by outlet type."
         )
 
-    
-        
+
     # --------------------------------------------------------
     # BUILD CHART
     # --------------------------------------------------------
@@ -3057,6 +3051,7 @@ else:
             orientation="h",
 
             category_orders={
+                "outlet_type": OUTLET_TYPE_ORDER,
                 "stance": STANCE_ORDER
             },
 
@@ -3065,6 +3060,12 @@ else:
                 "outlet_type": "Outlet Type",
                 "stance": "Stance"
             }
+        )
+
+        fig_outlet.update_yaxes(
+            categoryorder="array",
+            categoryarray=OUTLET_TYPE_ORDER,
+            autorange="reversed"
         )
 
         fig_outlet.update_layout(
@@ -3096,10 +3097,6 @@ else:
             "No outlet-tagged, stance-classified articles are available "
             "yet to compare coverage by outlet type."
         )
-
-    
-
-    
 
     st.markdown("---")
 
