@@ -2371,59 +2371,67 @@ else:
         # BUBBLE MATRIX TAKEAWAY
         # ========================================================
 
-        if not events_df.empty:
-
-            # ----------------------------------------------------
-            # EVENT PERIOD COVERAGE
-            # ----------------------------------------------------
-
+            if not events_df.empty:
+        
             event_dates = events_df["date"].dropna()
-
+        
             event_period_data = bubble_data[
                 bubble_data["date"].isin(event_dates)
             ].copy()
-
+        
             if not event_period_data.empty:
-
-                event_theme = (
+        
+                # Find the (theme, stance) combo with the most articles —
+                # not theme and stance maxed independently, which can produce
+                # a headline that doesn't match any actual cluster in the chart.
+                combo_counts = (
                     event_period_data
-                    .groupby(
-                        "themes",
-                        observed=False
-                    )["article_count"]
+                    .groupby(["themes", "stance"], observed=False)["article_count"]
                     .sum()
-                    .idxmax()
+                    .sort_values(ascending=False)
                 )
-
-                event_stance = (
-                    event_period_data
-                    .groupby(
-                        "stance"
-                    )["article_count"]
+        
+                top_theme, top_stance = combo_counts.index[0]
+        
+                # Separately check whether Critical coverage is concentrated
+                # in a specific theme — often the more meaningful signal
+                # even when it isn't the single largest combo overall.
+                critical_by_theme = (
+                    event_period_data[event_period_data["stance"] == "Critical"]
+                    .groupby("themes", observed=False)["article_count"]
                     .sum()
-                    .idxmax()
+                    .sort_values(ascending=False)
                 )
-
-                bubble_takeaway = (
-                    f"Coverage around significant events is most strongly "
-                    f"concentrated on {event_theme}, with {event_stance} "
-                    f"emerging as the dominant stance during these periods."
-                )
-
+        
+                if not critical_by_theme.empty and critical_by_theme.iloc[0] > 0:
+                    critical_theme = critical_by_theme.index[0]
+                else:
+                    critical_theme = None
+        
+                if critical_theme and critical_theme != top_theme:
+                    bubble_takeaway = (
+                        f"Around significant events, coverage was most concentrated on "
+                        f"{top_theme} with a predominantly {top_stance} stance, while "
+                        f"Critical coverage clustered specifically around {critical_theme}."
+                    )
+                else:
+                    bubble_takeaway = (
+                        f"Coverage around significant events is most strongly "
+                        f"concentrated on {top_theme}, with {top_stance} "
+                        f"emerging as the dominant stance during these periods."
+                    )
+        
             else:
-
                 bubble_takeaway = (
                     "Coverage around significant events shows shifts in "
                     "dominant themes and stances across the coverage period."
                 )
-
+        
         else:
-
             bubble_takeaway = (
                 "Coverage around significant events shows shifts in "
                 "dominant themes and stances across the coverage period."
             )
-
 
         # ----------------------------------------------------
         # DISPLAY TAKEAWAY ABOVE THE BUBBLE CHART
