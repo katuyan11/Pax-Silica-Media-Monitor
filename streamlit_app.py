@@ -684,7 +684,7 @@ else:
     )
 
 
-    # ========================================================
+        # ========================================================
     # DETECTED ARTICLE-LEVEL STANCE + HEAT MAP
     # ========================================================
 
@@ -694,48 +694,14 @@ else:
 
 
     # ========================================================
-    # [FIX 3] DETECTED ARTICLE-LEVEL STANCE — replaced the pie
-    # chart with a labeled 100%-width stacked bar. Precise counts
-    # and percentages both show, and it reads correctly even for
-    # colorblind viewers since each segment is text-labeled.
+    # DETECTED ARTICLE-LEVEL STANCE
     # ========================================================
 
     with col1:
 
-        st.markdown(
-            """
-            <div style="
-                font-size: 16px;
-                font-weight: 400;
-                color: black;
-                margin-bottom: 8px;
-            ">
-            Detected Article-Level Stance
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            Stance is estimated using predefined words and phrases associated
-            with supportive or critical language in the available article text.
-            The classifier counts these indicators and assigns the stance based
-            on the stronger signal. Articles without a clear predominance of
-            either signal are classified as Neutral. This is a rule-based
-            classification and should be interpreted as a detected linguistic
-            signal rather than a definitive statement of the article's or
-            author's position.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        # ----------------------------------------------------
+        # CALCULATE STANCE DISTRIBUTION FIRST
+        # ----------------------------------------------------
 
         stance_counts = (
             df["stance"]
@@ -767,6 +733,84 @@ else:
             if stance_total > 0 else 0
         )
 
+        # ----------------------------------------------------
+        # TAKEAWAY TITLE
+        # ----------------------------------------------------
+
+        if stance_total > 0:
+
+            dominant_stance_row = (
+                stance_counts.loc[
+                    stance_counts["count"].idxmax()
+                ]
+            )
+
+            dominant_stance = (
+                dominant_stance_row["stance"]
+            )
+
+            dominant_stance_share = (
+                dominant_stance_row["percent"]
+            )
+
+            stance_takeaway = (
+                f"{dominant_stance} coverage accounts for "
+                f"{dominant_stance_share:.1f}% of articles"
+            )
+
+        else:
+
+            stance_takeaway = (
+                "No article-level stance could be detected"
+            )
+
+
+        st.markdown(
+            f"""
+            <div style="
+                font-size: 18px;
+                font-weight: 700;
+                color: black;
+                text-align: left;
+                margin-bottom: 10px;
+            ">
+                {stance_takeaway}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # EXPLANATORY TEXT
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Stance is estimated using predefined words and phrases associated
+            with supportive or critical language in the available article text.
+            The classifier counts these indicators and assigns the stance based
+            on the stronger signal. Articles without a clear predominance of
+            either signal are classified as Neutral. This is a rule-based
+            classification and should be interpreted as a detected linguistic
+            signal rather than a definitive statement of the article's or
+            author's position.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # STANCE CHART LABELS
+        # ----------------------------------------------------
+
         stance_counts["segment_label"] = stance_counts.apply(
             lambda row: (
                 f"{row['stance']}<br>{int(row['count'])} "
@@ -777,6 +821,11 @@ else:
 
         stance_counts["row"] = "All coverage"
 
+
+        # ----------------------------------------------------
+        # CREATE STACKED BAR
+        # ----------------------------------------------------
+
         fig_stance = px.bar(
             stance_counts,
             x="count",
@@ -784,14 +833,19 @@ else:
             color="stance",
             orientation="h",
             text="segment_label",
-            category_orders={"stance": STANCE_ORDER},
+            category_orders={
+                "stance": STANCE_ORDER
+            },
             color_discrete_map=STANCE_COLORS
         )
 
         fig_stance.update_traces(
             textposition="inside",
             insidetextanchor="middle",
-            textfont=dict(size=12, color="white"),
+            textfont=dict(
+                size=12,
+                color="white"
+            ),
             marker_line_width=0
         )
 
@@ -802,8 +856,15 @@ else:
             legend_title_text="Stance",
             xaxis_title="Number of articles",
             yaxis_title="",
-            yaxis=dict(showticklabels=False),
-            margin=dict(l=10, r=10, t=20, b=40)
+            yaxis=dict(
+                showticklabels=False
+            ),
+            margin=dict(
+                l=10,
+                r=10,
+                t=20,
+                b=40
+            )
         )
 
         st.plotly_chart(
@@ -812,6 +873,27 @@ else:
             config={
                 "responsive": True
             }
+        )
+
+
+        # ----------------------------------------------------
+        # CHART TITLE — BOTTOM, LEFT ALIGNED
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                font-size: 14px;
+                font-weight: 600;
+                color: black;
+                text-align: left;
+                margin-top: -5px;
+                margin-bottom: 10px;
+            ">
+                Detected Article-Level Stance
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
 
@@ -828,49 +910,10 @@ else:
 
 
     # ========================================================
-    # [FIX 1] THEME × STANCE HEAT MAP — color now reflects each
-    # theme's *share* of Supportive/Neutral/Critical coverage
-    # (row-normalized %), not raw counts, so a small theme with a
-    # skewed stance mix is no longer washed out by a large theme
-    # with big absolute numbers. The "Total" column is shown with
-    # its own count but excluded from the color scale, since
-    # totals aren't a stance and were previously distorting the
-    # whole map's color range. A colorbar legend is included.
+    # THEME × STANCE HEAT MAP
     # ========================================================
 
     with col2:
-
-        st.markdown(
-            """
-            <div style="
-                font-size: 16px;
-                font-weight: 400;
-                color: black;
-                margin-bottom: 8px;
-            ">
-            Theme × Stance Heat Map
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            Cell color shows each theme's stance <em>mix</em> — the share of
-            that theme's articles falling into each stance — so themes of
-            different sizes can be compared fairly. Numbers show the actual
-            article count. The Total column (uncolored) shows the cumulative
-            number of articles for that theme.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
         heatmap_df = df.copy()
 
@@ -887,7 +930,9 @@ else:
         )
 
         heatmap_df = heatmap_df[
-            heatmap_df["stance"].isin(STANCE_ORDER)
+            heatmap_df["stance"].isin(
+                STANCE_ORDER
+            )
         ].copy()
 
         heatmap_df["themes"] = (
@@ -911,6 +956,11 @@ else:
             drop=True
         )
 
+
+        # ----------------------------------------------------
+        # CALCULATE COUNTS
+        # ----------------------------------------------------
+
         heatmap_counts = (
             heatmap_df
             .groupby(
@@ -932,65 +982,221 @@ else:
             fill_value=0
         )
 
-        heatmap_counts["Total"] = heatmap_counts[STANCE_ORDER].sum(axis=1)
+        heatmap_counts["Total"] = (
+            heatmap_counts[STANCE_ORDER]
+            .sum(axis=1)
+        )
 
-        # Order rows by total volume, most-covered theme on top.
+
+        # ----------------------------------------------------
+        # ROW-NORMALIZED PERCENTAGES
+        # ----------------------------------------------------
+
+        row_totals = (
+            heatmap_counts["Total"]
+            .replace(0, np.nan)
+        )
+
+        heatmap_pct = (
+            heatmap_counts[STANCE_ORDER]
+            .div(
+                row_totals,
+                axis=0
+            )
+            .fillna(0)
+            * 100
+        )
+
+
+        # ----------------------------------------------------
+        # IDENTIFY DOMINANT THEME × STANCE COMBINATION
+        # ----------------------------------------------------
+
+        heatmap_long = (
+            heatmap_pct
+            .reset_index()
+            .melt(
+                id_vars="themes",
+                value_vars=STANCE_ORDER,
+                var_name="stance",
+                value_name="percent"
+            )
+        )
+
+        if not heatmap_long.empty:
+
+            dominant_heatmap_row = (
+                heatmap_long.loc[
+                    heatmap_long["percent"].idxmax()
+                ]
+            )
+
+            heatmap_dominant_theme = (
+                dominant_heatmap_row["themes"]
+            )
+
+            heatmap_dominant_stance = (
+                dominant_heatmap_row["stance"]
+            )
+
+            heatmap_dominant_share = (
+                dominant_heatmap_row["percent"]
+            )
+
+            heatmap_takeaway = (
+                f"{heatmap_dominant_theme} has the highest "
+                f"share of {heatmap_dominant_stance.lower()} coverage "
+                f"at {heatmap_dominant_share:.1f}%"
+            )
+
+        else:
+
+            heatmap_takeaway = (
+                "No theme-level stance pattern could be detected"
+            )
+
+
+        # ----------------------------------------------------
+        # TAKEAWAY TITLE — TOP OF HEAT MAP
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"""
+            <div style="
+                font-size: 18px;
+                font-weight: 700;
+                color: black;
+                text-align: left;
+                margin-bottom: 10px;
+            ">
+                {heatmap_takeaway}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # EXPLANATORY TEXT
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Cell color shows each theme's stance <em>mix</em> — the share of
+            that theme's articles falling into each stance — so themes of
+            different sizes can be compared fairly. Numbers show the actual
+            article count. The Total column (uncolored) shows the cumulative
+            number of articles for that theme.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # ORDER THEMES BY TOTAL VOLUME
+        # ----------------------------------------------------
+
         heatmap_theme_order = (
             heatmap_counts["Total"]
-            .sort_values(ascending=False)
+            .sort_values(
+                ascending=False
+            )
             .index
             .tolist()
         )
 
-        heatmap_counts = heatmap_counts.reindex(heatmap_theme_order)
-
-        # Row-normalized percentages, used for color only.
-        row_totals = heatmap_counts["Total"].replace(0, np.nan)
-
-        heatmap_pct = (
-            heatmap_counts[STANCE_ORDER]
-            .div(row_totals, axis=0)
-            .fillna(0) * 100
+        heatmap_counts = (
+            heatmap_counts
+            .reindex(heatmap_theme_order)
         )
 
-        # Build the z (color) matrix and text (label) matrix,
-        # including an uncolored Total column at the right.
-        display_columns = STANCE_ORDER + ["Total"]
+        heatmap_pct = (
+            heatmap_pct
+            .reindex(heatmap_theme_order)
+        )
+
+
+        # ----------------------------------------------------
+        # BUILD DISPLAY MATRICES
+        # ----------------------------------------------------
+
+        display_columns = (
+            STANCE_ORDER
+            + ["Total"]
+        )
 
         z_matrix = heatmap_pct.copy()
-        z_matrix["Total"] = np.nan  # NaN cells render uncolored
 
-        text_matrix = heatmap_counts[display_columns]
+        z_matrix["Total"] = np.nan
+
+        text_matrix = (
+            heatmap_counts[
+                display_columns
+            ]
+        )
+
+
+        # ----------------------------------------------------
+        # CREATE HEAT MAP
+        # ----------------------------------------------------
 
         fig_heatmap = go.Figure(
             data=go.Heatmap(
-                z=z_matrix[display_columns].values,
+                z=z_matrix[
+                    display_columns
+                ].values,
+
                 x=display_columns,
+
                 y=heatmap_theme_order,
+
                 text=text_matrix.values,
+
                 texttemplate="%{text}",
-                textfont=dict(size=12),
+
+                textfont=dict(
+                    size=12
+                ),
+
                 colorscale="Blues",
+
                 zmin=0,
+
                 zmax=100,
+
                 colorbar=dict(
                     title="% of theme's<br>articles",
                     ticksuffix="%"
                 ),
+
                 xgap=3,
+
                 ygap=3,
+
                 hovertemplate=(
                     "Theme: %{y}<br>"
                     "Column: %{x}<br>"
-                    "Articles: %{text}<extra></extra>"
+                    "Articles: %{text}"
+                    "<extra></extra>"
                 )
             )
         )
 
+
         fig_heatmap.update_layout(
             height=500,
-            xaxis_title="Stance",
-            yaxis_title="Theme",
+
+            xaxis_title="",
+
+            yaxis_title="",
+
             margin=dict(
                 l=10,
                 r=20,
@@ -1001,10 +1207,14 @@ else:
 
         fig_heatmap.update_yaxes(
             categoryorder="array",
+
             categoryarray=heatmap_theme_order,
+
             autorange="reversed",
+
             automargin=True
         )
+
 
         st.plotly_chart(
             fig_heatmap,
@@ -1015,91 +1225,25 @@ else:
         )
 
 
-    # ========================================================
-    # TREND ANALYSIS
-    # (theme_counts / themes_df now come from the early block
-    # above — no longer recomputed here)
-    # ========================================================
+        # ----------------------------------------------------
+        # CHART TITLE — BOTTOM
+        # ----------------------------------------------------
 
-    ranked_themes = sorted(
-        theme_counts.items(),
-        key=lambda x: x[1],
-        reverse=True
-    )
-
-    leading_themes = [
-        item
-        for item in ranked_themes
-        if item[1] > 0
-    ]
-
-    stance_counts_summary = (
-        df["stance"]
-        .fillna("Neutral")
-        .astype(str)
-        .str.strip()
-        .str.title()
-        .replace({
-            "Positive": "Supportive",
-            "Negative": "Critical"
-        })
-        .value_counts()
-        .reindex(
-            STANCE_ORDER,
-            fill_value=0
+        st.markdown(
+            """
+            <div style="
+                font-size: 14px;
+                font-weight: 600;
+                color: black;
+                text-align: left;
+                margin-top: -5px;
+                margin-bottom: 10px;
+            ">
+                Theme × Stance Heat Map
+            </div>
+            """,
+            unsafe_allow_html=True
         )
-    )
-
-    if stance_counts_summary.sum() > 0:
-
-        dominant_stance = stance_counts_summary.idxmax()
-
-        dominant_stance_count = (
-            stance_counts_summary[dominant_stance]
-        )
-
-        dominant_stance_share = (
-            dominant_stance_count
-            / stance_counts_summary.sum()
-            * 100
-        )
-
-    else:
-
-        dominant_stance = "Neutral"
-        dominant_stance_share = 0
-
-    stance_summary = (
-        f"{dominant_stance.lower()} coverage accounts for "
-        f"{dominant_stance_share:.1f}% of articles"
-    )
-
-    trend_blurb = stance_summary
-
-
-    # ========================================================
-    # COVERAGE SUMMARY
-    # ========================================================
-
-    st.markdown(
-        f"""
-        <div style="
-            text-align: justify;
-            color: black;
-            font-size: 14px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        ">
-        <strong>Coverage Summary:</strong> {trend_blurb}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
-        unsafe_allow_html=True
-    )
 
 
     # ========================================================
