@@ -1081,12 +1081,12 @@ with col2:
         heatmap_takeaway = (
             f"{highest_critical_theme} has the highest share "
             f"of Critical coverage at "
-            f"{round(highest_critical_share):.0f}%. "
+            f"{round(highest_critical_share):.0f}%, while "
             f"{highest_supportive_theme} has the highest share "
             f"of Supportive coverage at "
             f"{round(highest_supportive_share):.0f}%."
         )
-    
+            
     elif not valid_critical_shares.empty:
     
         highest_critical_theme = (
