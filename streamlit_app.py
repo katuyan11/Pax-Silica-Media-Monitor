@@ -2715,6 +2715,6 @@ else:
     st.caption(
         "Built by Katherine Uyan · Eskwelabs Data Analytics Capstone, 2026 · "
         "This is a working prototype — themes and stances are detected using "
-        "rule-based NLP and should be read as a signal, not a definitive claim. "
+        "Rule-based keyword matching NLP and is not a definitive claim. "
         "View methodology on GitHub - https://github.com/katuyan11/newsmonitornlp"
     )
