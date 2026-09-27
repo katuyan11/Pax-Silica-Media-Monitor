@@ -862,148 +862,335 @@ else:
         )
 
     # ========================================================
-    # THEME × STANCE HEAT MAP
-    # ========================================================
-    
-    # Existing theme × stance counts
-    # This uses the already-created theme_stance_counts dataframe
-    # and does NOT require a df["theme"] column.
-    
-    # Make sure the expected stance columns exist
-    theme_stance_counts = theme_stance_counts.reindex(
+# THEME × STANCE HEAT MAP
+# ========================================================
+
+with col2:
+
+    heatmap_df = df.copy()
+
+    # ----------------------------------------------------
+    # NORMALIZE STANCE
+    # ----------------------------------------------------
+
+    heatmap_df["stance"] = (
+        heatmap_df["stance"]
+        .fillna("Neutral")
+        .astype(str)
+        .str.strip()
+        .str.title()
+        .replace({
+            "Positive": "Supportive",
+            "Negative": "Critical"
+        })
+    )
+
+    heatmap_df = heatmap_df[
+        heatmap_df["stance"].isin(
+            STANCE_ORDER
+        )
+    ].copy()
+
+
+    # ----------------------------------------------------
+    # EXPLODE THEMES
+    # ----------------------------------------------------
+
+    heatmap_df["themes"] = (
+        heatmap_df["themes"]
+        .fillna("")
+        .astype(str)
+        .str.split(", ")
+    )
+
+    heatmap_df = heatmap_df.explode(
+        "themes"
+    )
+
+    heatmap_df = heatmap_df[
+        heatmap_df["themes"].isin(
+            THEME_ORDER
+        )
+    ].copy()
+
+    heatmap_df = heatmap_df.reset_index(
+        drop=True
+    )
+
+
+    # ----------------------------------------------------
+    # CALCULATE COUNTS
+    # ----------------------------------------------------
+
+    heatmap_counts = (
+        heatmap_df
+        .groupby(
+            [
+                "themes",
+                "stance"
+            ],
+            observed=False
+        )
+        .size()
+        .unstack(
+            fill_value=0
+        )
+    )
+
+    heatmap_counts = heatmap_counts.reindex(
+        index=THEME_ORDER,
         columns=STANCE_ORDER,
         fill_value=0
     )
-    
-    # Make sure themes appear in the desired order
-    theme_stance_counts = theme_stance_counts.reindex(
-        THEME_ORDER,
-        fill_value=0
+
+    heatmap_counts["Total"] = (
+        heatmap_counts[STANCE_ORDER]
+        .sum(axis=1)
     )
-    
-    # --------------------------------------------------------
-    # CALCULATE THEME-LEVEL STANCE PERCENTAGES
-    # --------------------------------------------------------
-    
-    theme_totals = theme_stance_counts.sum(axis=1)
-    
-    theme_stance_pct = (
-        theme_stance_counts
-        .div(theme_totals.replace(0, np.nan), axis=0)
+
+
+    # ----------------------------------------------------
+    # ROW-NORMALIZED PERCENTAGES
+    # ----------------------------------------------------
+
+    row_totals = (
+        heatmap_counts["Total"]
+        .replace(0, np.nan)
+    )
+
+    heatmap_pct = (
+        heatmap_counts[STANCE_ORDER]
+        .div(
+            row_totals,
+            axis=0
+        )
         .fillna(0)
         * 100
     )
-    
-    # --------------------------------------------------------
-    # FIND THE THEME WITH THE HIGHEST SHARE OF CRITICAL COVERAGE
-    # --------------------------------------------------------
-    
-    critical_shares = theme_stance_pct["Critical"]
-    
-    if not critical_shares.empty and critical_shares.max() > 0:
-    
-        highest_critical_theme = critical_shares.idxmax()
-        highest_critical_share = critical_shares.max()
-    
-        st.markdown(
-            f"""
-            <div style="
-                font-size: 18px;
-                font-weight: 700;
-                text-align: left;
-                margin-top: 4px;
-                margin-bottom: 6px;
-            ">
-                {highest_critical_theme} has the highest share of Critical
-                coverage at {highest_critical_share:.1f}%.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
-    # --------------------------------------------------------
-    # HEAT MAP
-    # --------------------------------------------------------
-    
-    # Actual article counts displayed inside each cell
-    heatmap_text = (
-        theme_stance_counts
-        .astype(int)
-        .astype(str)
-        .values
+
+
+    # ----------------------------------------------------
+    # IDENTIFY THEME WITH HIGHEST CRITICAL SHARE
+    # ----------------------------------------------------
+
+    critical_shares = heatmap_pct["Critical"]
+
+    valid_critical_shares = (
+        critical_shares[
+            heatmap_counts["Total"] > 0
+        ]
     )
-    
+
+    if not valid_critical_shares.empty:
+
+        highest_critical_theme = (
+            valid_critical_shares.idxmax()
+        )
+
+        highest_critical_share = (
+            valid_critical_shares.max()
+        )
+
+        heatmap_takeaway = (
+            f"{highest_critical_theme} has the highest share "
+            f"of Critical coverage at "
+            f"{highest_critical_share:.1f}%."
+        )
+
+    else:
+
+        heatmap_takeaway = (
+            "No theme-level Critical coverage could be detected"
+        )
+
+
+    # ----------------------------------------------------
+    # TAKEAWAY TITLE — TOP OF HEAT MAP
+    # ----------------------------------------------------
+
+    st.markdown(
+        f"""
+        <div style="
+            font-size: 18px;
+            font-weight: 700;
+            color: black;
+            text-align: left;
+            margin-bottom: 8px;
+        ">
+            {heatmap_takeaway}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # ----------------------------------------------------
+    # EXPLANATORY TEXT
+    # ----------------------------------------------------
+
+    st.markdown(
+        """
+        <div style="
+            text-align: justify;
+            color: black;
+            font-size: 14px;
+            margin-bottom: 10px;
+        ">
+        Cell color shows each theme's stance <em>mix</em> — the share of
+        that theme's articles falling into each stance — so themes of
+        different sizes can be compared fairly. Numbers show the actual
+        article count. The Total column (uncolored) shows the cumulative
+        number of articles for that theme.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # ----------------------------------------------------
+    # ORDER THEMES BY TOTAL VOLUME
+    # ----------------------------------------------------
+
+    heatmap_theme_order = (
+        heatmap_counts["Total"]
+        .sort_values(
+            ascending=False
+        )
+        .index
+        .tolist()
+    )
+
+    heatmap_counts = (
+        heatmap_counts
+        .reindex(
+            heatmap_theme_order
+        )
+    )
+
+    heatmap_pct = (
+        heatmap_pct
+        .reindex(
+            heatmap_theme_order
+        )
+    )
+
+
+    # ----------------------------------------------------
+    # BUILD DISPLAY MATRICES
+    # ----------------------------------------------------
+
+    display_columns = (
+        STANCE_ORDER
+        + ["Total"]
+    )
+
+    z_matrix = heatmap_pct.copy()
+
+    z_matrix["Total"] = np.nan
+
+    text_matrix = (
+        heatmap_counts[
+            display_columns
+        ]
+    )
+
+
+    # ----------------------------------------------------
+    # CREATE HEAT MAP
+    # ----------------------------------------------------
+
     fig_heatmap = go.Figure(
         data=go.Heatmap(
-            z=theme_stance_pct.values,
-            x=STANCE_ORDER,
-            y=theme_stance_pct.index,
-            text=heatmap_text,
+            z=z_matrix[
+                display_columns
+            ].values,
+
+            x=display_columns,
+
+            y=heatmap_theme_order,
+
+            text=text_matrix.values,
+
             texttemplate="%{text}",
-            textfont=dict(size=13),
-    
-            colorscale=[
-                [0.0, "#ffffff"],
-                [1.0, "#d62728"]
-            ],
-    
-            zmin=0,
-            zmax=100,
-    
-            colorbar=dict(
-                title="% of<br>theme coverage"
+
+            textfont=dict(
+                size=12
             ),
-    
+
+            colorscale="Blues",
+
+            zmin=0,
+
+            zmax=100,
+
+            colorbar=dict(
+                title="% of theme's<br>articles",
+                ticksuffix="%"
+            ),
+
+            xgap=3,
+
+            ygap=3,
+
             hovertemplate=(
                 "Theme: %{y}<br>"
-                "Stance: %{x}<br>"
-                "Share: %{z:.1f}%"
+                "Column: %{x}<br>"
+                "Articles: %{text}"
                 "<extra></extra>"
             )
         )
     )
-    
+
+
     fig_heatmap.update_layout(
         height=500,
-    
+
+        xaxis_title="",
+
+        yaxis_title="",
+
         margin=dict(
             l=10,
             r=20,
-            t=5,
-            b=5
-        ),
-    
-        xaxis=dict(
-            title=None,
-            side="top"
-        ),
-    
-        yaxis=dict(
-            title=None,
-            autorange="reversed"
+            t=20,
+            b=20
         )
     )
-    
+
+    fig_heatmap.update_yaxes(
+        categoryorder="array",
+
+        categoryarray=heatmap_theme_order,
+
+        autorange="reversed",
+
+        automargin=True
+    )
+
+
     st.plotly_chart(
         fig_heatmap,
-        use_container_width=True
+        use_container_width=True,
+        config={
+            "responsive": True
+        }
     )
-    
-    # --------------------------------------------------------
-    # CHART TITLE
-    # --------------------------------------------------------
-    # Centered, italicized, not bold, and positioned close
-    # to the bottom of the heat map.
-    
+
+
+    # ----------------------------------------------------
+    # CHART TITLE — BOTTOM, CENTERED, ITALIC
+    # ----------------------------------------------------
+
     st.markdown(
         """
         <div style="
-            text-align: center;
-            font-size: 16px;
-            font-style: italic;
+            font-size: 14px;
             font-weight: 400;
-            margin-top: -22px;
-            margin-bottom: 18px;
+            font-style: italic;
+            color: black;
+            text-align: center;
+            margin-top: -18px;
+            margin-bottom: 10px;
         ">
             Theme × Stance Heat Map
         </div>
@@ -1011,10 +1198,8 @@ else:
         unsafe_allow_html=True
     )
 
-    
-
-
    
+    
 
     # ========================================================
     # RESEARCH QUESTION 3
