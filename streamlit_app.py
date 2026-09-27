@@ -684,7 +684,7 @@ else:
     )
 
 
-        # ========================================================
+    # ========================================================
     # DETECTED ARTICLE-LEVEL STANCE + HEAT MAP
     # ========================================================
 
@@ -692,210 +692,163 @@ else:
         [1, 0.15, 1]
     )
 
-
     # ========================================================
     # DETECTED ARTICLE-LEVEL STANCE
     # ========================================================
-
-    with col1:
-
-        # ----------------------------------------------------
-        # CALCULATE STANCE DISTRIBUTION FIRST
-        # ----------------------------------------------------
-
-        stance_counts = (
-            df["stance"]
-            .fillna("Neutral")
-            .astype(str)
-            .str.strip()
-            .str.title()
-            .replace({
-                "Positive": "Supportive",
-                "Negative": "Critical"
-            })
-            .value_counts()
-            .reindex(
-                STANCE_ORDER,
-                fill_value=0
-            )
-            .reset_index()
-        )
-
-        stance_counts.columns = [
-            "stance",
-            "count"
-        ]
-
-        stance_total = stance_counts["count"].sum()
-
-        stance_counts["percent"] = (
-            stance_counts["count"] / stance_total * 100
-            if stance_total > 0 else 0
-        )
-
-        # ----------------------------------------------------
-        # TAKEAWAY TITLE
-        # ----------------------------------------------------
-
-        if stance_total > 0:
-
-            dominant_stance_row = (
-                stance_counts.loc[
-                    stance_counts["count"].idxmax()
-                ]
-            )
-
-            dominant_stance = (
-                dominant_stance_row["stance"]
-            )
-
-            dominant_stance_share = (
-                dominant_stance_row["percent"]
-            )
-
-            stance_takeaway = (
-                f"{dominant_stance} coverage accounts for "
-                f"{dominant_stance_share:.1f}% of articles"
-            )
-
-        else:
-
-            stance_takeaway = (
-                "No article-level stance could be detected"
-            )
-
-
+    
+    stance_counts = (
+        df["stance"]
+        .fillna("Neutral")
+        .astype(str)
+        .str.strip()
+        .str.title()
+        .replace({
+            "Positive": "Supportive",
+            "Negative": "Critical"
+        })
+        .value_counts()
+        .reindex(STANCE_ORDER, fill_value=0)
+    )
+    
+    total_stance = stance_counts.sum()
+    
+    stance_percentages = (
+        stance_counts / total_stance * 100
+        if total_stance > 0
+        else stance_counts.astype(float)
+    )
+    
+    # Rank stances from highest to lowest
+    ranked_stances = stance_counts.sort_values(ascending=False)
+    
+    highest_stance = ranked_stances.index[0]
+    highest_stance_share = (
+        ranked_stances.iloc[0] / total_stance * 100
+        if total_stance > 0
+        else 0
+    )
+    
+    second_highest_stance = (
+        ranked_stances.index[1]
+        if len(ranked_stances) > 1
+        else None
+    )
+    
+    second_highest_share = (
+        ranked_stances.iloc[1] / total_stance * 100
+        if total_stance > 0 and len(ranked_stances) > 1
+        else 0
+    )
+    
+    # Takeaway above chart
+    if second_highest_stance:
         st.markdown(
             f"""
             <div style="
                 font-size: 18px;
                 font-weight: 700;
-                color: black;
                 text-align: left;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             ">
-                {stance_takeaway}
+                {highest_stance} coverage accounts for {highest_stance_share:.1f}% of articles,
+                followed by {second_highest_stance} coverage at {second_highest_share:.1f}%.
             </div>
             """,
             unsafe_allow_html=True
         )
-
-
-        # ----------------------------------------------------
-        # EXPLANATORY TEXT
-        # ----------------------------------------------------
-
+    else:
         st.markdown(
-            """
+            f"""
             <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
+                font-size: 18px;
+                font-weight: 700;
+                text-align: left;
+                margin-bottom: 8px;
             ">
-            Stance is estimated using predefined words and phrases associated
-            with supportive or critical language in the available article text.
-            The classifier counts these indicators and assigns the stance based
-            on the stronger signal. Articles without a clear predominance of
-            either signal are classified as Neutral. This is a rule-based
-            classification and should be interpreted as a detected linguistic
-            signal rather than a definitive statement of the article's or
-            author's position.
+                {highest_stance} coverage accounts for {highest_stance_share:.1f}% of articles.
             </div>
             """,
             unsafe_allow_html=True
         )
-
-
-        # ----------------------------------------------------
-        # STANCE CHART LABELS
-        # ----------------------------------------------------
-
-        stance_counts["segment_label"] = stance_counts.apply(
-            lambda row: (
-                f"{row['stance']}<br>{int(row['count'])} "
-                f"({row['percent']:.1f}%)"
-            ),
-            axis=1
-        )
-
-        stance_counts["row"] = "All coverage"
-
-
-        # ----------------------------------------------------
-        # CREATE STACKED BAR
-        # ----------------------------------------------------
-
-        fig_stance = px.bar(
-            stance_counts,
-            x="count",
-            y="row",
-            color="stance",
-            orientation="h",
-            text="segment_label",
-            category_orders={
-                "stance": STANCE_ORDER
-            },
-            color_discrete_map=STANCE_COLORS
-        )
-
-        fig_stance.update_traces(
-            textposition="inside",
-            insidetextanchor="middle",
-            textfont=dict(
-                size=12,
-                color="white"
-            ),
-            marker_line_width=0
-        )
-
-        fig_stance.update_layout(
-            barmode="stack",
-            height=220,
-            showlegend=True,
-            legend_title_text="Stance",
-            xaxis_title="Number of articles",
-            yaxis_title="",
-            yaxis=dict(
-                showticklabels=False
-            ),
-            margin=dict(
-                l=10,
-                r=10,
-                t=20,
-                b=40
+    
+    # Stance chart
+    stance_chart_df = pd.DataFrame({
+        "Stance": STANCE_ORDER,
+        "Percentage": [
+            stance_percentages.get(stance, 0)
+            for stance in STANCE_ORDER
+        ],
+        "Count": [
+            stance_counts.get(stance, 0)
+            for stance in STANCE_ORDER
+        ]
+    })
+    
+    fig_stance = go.Figure()
+    
+    for _, row in stance_chart_df.iterrows():
+        if row["Percentage"] > 0:
+            fig_stance.add_trace(
+                go.Bar(
+                    x=[row["Percentage"]],
+                    y=["Coverage"],
+                    orientation="h",
+                    name=row["Stance"],
+                    marker_color=STANCE_COLORS[row["Stance"]],
+                    text=[
+                        f"{row['Stance']}<br>"
+                        f"{int(row['Count'])} ({row['Percentage']:.1f}%)"
+                    ],
+                    textposition="inside",
+                    insidetextanchor="middle",
+                    hovertemplate=(
+                        f"{row['Stance']}: "
+                        f"{int(row['Count'])} articles "
+                        f"({row['Percentage']:.1f}%)"
+                        "<extra></extra>"
+                    )
+                )
             )
-        )
-
-        st.plotly_chart(
-            fig_stance,
-            use_container_width=True,
-            config={
-                "responsive": True
-            }
-        )
-
-
-        # ----------------------------------------------------
-        # CHART TITLE — BOTTOM, LEFT ALIGNED
-        # ----------------------------------------------------
-
-        st.markdown(
-            """
-            <div style="
-                font-size: 14px;
-                font-weight: 600;
-                color: black;
-                text-align: left;
-                margin-top: -5px;
-                margin-bottom: 10px;
-            ">
-                Detected Article-Level Stance
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
+    
+    fig_stance.update_layout(
+        barmode="stack",
+        height=180,
+        margin=dict(l=20, r=20, t=5, b=5),
+        xaxis=dict(
+            range=[0, 100],
+            showgrid=False,
+            showticklabels=False,
+            title=None
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showticklabels=False,
+            title=None
+        ),
+        showlegend=False
+    )
+    
+    st.plotly_chart(
+        fig_stance,
+        use_container_width=True
+    )
+    
+    # Chart title — centered, italic, not bold
+    st.markdown(
+        """
+        <div style="
+            text-align: center;
+            font-size: 16px;
+            font-style: italic;
+            font-weight: 400;
+            margin-top: -12px;
+            margin-bottom: 18px;
+        ">
+            Detected Article-Level Stance
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     # ========================================================
     # SPACER
