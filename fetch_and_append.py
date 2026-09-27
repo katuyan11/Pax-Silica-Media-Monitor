@@ -626,7 +626,58 @@ def append_new_articles_to_sheet(df, sheet):
     for theme, count in theme_counts.items():
         print(f"  {theme}: {count}")
 
+existing_urls = {
+    str(record.get("url", "")).strip()
+    for record in existing_records
+    if str(record.get("url", "")).strip()
+}
+existing_dedup_keys = {
+    make_dedup_key(record.get("title", ""), record.get("source", ""))
+    for record in existing_records
+}
+existing_titles_only = {
+    normalize_title_only(record.get("title", ""))
+    for record in existing_records
+    if str(record.get("title", "")).strip()
+}
 
+new_df = df.copy()
+new_df["dedup_key"] = new_df.apply(
+    lambda r: make_dedup_key(r["title"], r["source"]), axis=1
+)
+new_df["title_only_key"] = new_df["title"].apply(normalize_title_only)
+
+new_df = new_df[
+    ~new_df["url"].isin(existing_urls)
+    & ~new_df["dedup_key"].isin(existing_dedup_keys)
+    & ~new_df["title_only_key"].isin(existing_titles_only)
+].copy()
+
+new_df = new_df.drop(columns=["dedup_key", "title_only_key"])
+
+# ============================================================
+# DEDUPLICATION HELPER
+# ============================================================
+
+def make_dedup_key(title: str, source: str) -> str:
+    """Fallback dedup signal alongside URL matching. Google News can
+    reissue a different (or unresolved) URL token for the same real
+    article depending on which search query surfaced it, so URL-only
+    dedup can miss true duplicates. This normalizes title + source as
+    a backstop check."""
+    normalized_title = re.sub(r"\s+", " ", (title or "").strip().lower())
+    normalized_source = (source or "").strip().lower()
+    return f"{normalized_source}::{normalized_title}"
+
+
+def normalize_title_only(title: str) -> str:
+    """Fallback dedup signal independent of source name. Source labels can
+    vary between fetches even for correctly-resolved articles (Google's
+    entry.source.title vs. our domain-derived fallback name may phrase
+    the same outlet differently), so this catches matches that the
+    source-inclusive dedup_key would miss."""
+    return re.sub(r"\s+", " ", (title or "").strip().lower())
+    
 # ============================================================
 # MAIN
 # ============================================================
