@@ -46,9 +46,7 @@ st.markdown(
         margin-bottom: 20px;
     ">
     Pax Silica brings together technology, AI infrastructure, and critical-mineral supply chains and the Philippines is positioned to play a role in this emerging global network. As the initiative develops, Philippine news coverage is growing quickly — touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.
-
     Following that conversation by hand can be difficult. As new developments unfold, new voices enter the discussion, and different outlets tend to focus on different aspects of the initiative. This dashboard follows that coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.
-
     This prototype combines automated news collection with rule-based NLP. Articles are processed and classified by theme and stance using rule-based keyword matching and text preprocessing. These approaches provide a structured way to explore the themes and perspectives appearing across the monitored news coverage.
     </div>
     """,
