@@ -2366,17 +2366,29 @@ else:
                     )
                 )
 
-                # ========================================================
+        # ========================================================
         # BUBBLE MATRIX TAKEAWAY
         # ========================================================
 
         if not events_df.empty:
 
+            # Use a window around each event rather than exact-date
+            # matching — coverage responding to an announcement, forum,
+            # or SONA mention typically builds in the days afterward,
+            # not just on the event's own calendar day. Exact-date
+            # matching was pinning the takeaway to a near-fixed handful
+            # of articles that barely changes as the corpus grows.
+            EVENT_WINDOW_DAYS = 7
+
             event_dates = events_df["date"].dropna()
 
-            event_period_data = bubble_data[
-                bubble_data["date"].isin(event_dates)
-            ].copy()
+            event_period_mask = pd.Series(False, index=bubble_data.index)
+            for event_date in event_dates:
+                window_start = event_date - pd.Timedelta(days=1)
+                window_end = event_date + pd.Timedelta(days=EVENT_WINDOW_DAYS)
+                event_period_mask |= bubble_data["date"].between(window_start, window_end)
+
+            event_period_data = bubble_data[event_period_mask].copy()
 
             if not event_period_data.empty:
 
@@ -2431,7 +2443,6 @@ else:
                 "Coverage around significant events shows shifts in "
                 "dominant themes and stances across the coverage period."
             )
-
         # ----------------------------------------------------
         # DISPLAY TAKEAWAY ABOVE THE BUBBLE CHART
         # ----------------------------------------------------
