@@ -2469,55 +2469,6 @@ else:
     )
 
     # ========================================================
-    # BUBBLE MATRIX TAKEAWAY
-    # ========================================================
-    
-    if not bubble_data.empty:
-    
-        # Overall dominant theme across significant events
-        dominant_event_theme = (
-            bubble_data.groupby("theme")["article_count"]
-            .sum()
-            .idxmax()
-        )
-    
-        # Overall dominant stance across significant events
-        dominant_event_stance = (
-            bubble_data.groupby("stance")["article_count"]
-            .sum()
-            .idxmax()
-        )
-    
-        # Event with the highest total article coverage
-        event_totals = (
-            bubble_data.groupby("event")["article_count"]
-            .sum()
-            .sort_values(ascending=False)
-        )
-    
-        dominant_event = event_totals.index[0]
-    
-        st.markdown(
-            f"""
-            <div style="
-                font-size: 16px;
-                font-style: italic;
-                font-weight: 400;
-                color: black;
-                margin-top: 8px;
-                margin-bottom: 14px;
-            ">
-            Significant events are most strongly associated with 
-            <b>{dominant_event_theme}</b> coverage and a predominantly 
-            <b>{dominant_event_stance}</b> stance, with 
-            <b>{dominant_event}</b> generating the greatest concentration 
-            of coverage across themes and stances.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # ========================================================
     # RESEARCH QUESTION 4
     # ========================================================
 
