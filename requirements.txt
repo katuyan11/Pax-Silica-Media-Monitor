@@ -8,3 +8,4 @@ feedparser
 nltk
 wordcloud
 trafilatura
+googlenewsdecoder
