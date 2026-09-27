@@ -2366,21 +2366,20 @@ else:
                     )
                 )
 
-
-        # ========================================================
+                # ========================================================
         # BUBBLE MATRIX TAKEAWAY
         # ========================================================
 
-            if not events_df.empty:
-        
+        if not events_df.empty:
+
             event_dates = events_df["date"].dropna()
-        
+
             event_period_data = bubble_data[
                 bubble_data["date"].isin(event_dates)
             ].copy()
-        
+
             if not event_period_data.empty:
-        
+
                 # Find the (theme, stance) combo with the most articles —
                 # not theme and stance maxed independently, which can produce
                 # a headline that doesn't match any actual cluster in the chart.
@@ -2390,9 +2389,9 @@ else:
                     .sum()
                     .sort_values(ascending=False)
                 )
-        
+
                 top_theme, top_stance = combo_counts.index[0]
-        
+
                 # Separately check whether Critical coverage is concentrated
                 # in a specific theme — often the more meaningful signal
                 # even when it isn't the single largest combo overall.
@@ -2402,12 +2401,12 @@ else:
                     .sum()
                     .sort_values(ascending=False)
                 )
-        
+
                 if not critical_by_theme.empty and critical_by_theme.iloc[0] > 0:
                     critical_theme = critical_by_theme.index[0]
                 else:
                     critical_theme = None
-        
+
                 if critical_theme and critical_theme != top_theme:
                     bubble_takeaway = (
                         f"Around significant events, coverage was most concentrated on "
@@ -2420,13 +2419,13 @@ else:
                         f"concentrated on {top_theme}, with {top_stance} "
                         f"emerging as the dominant stance during these periods."
                     )
-        
+
             else:
                 bubble_takeaway = (
                     "Coverage around significant events shows shifts in "
                     "dominant themes and stances across the coverage period."
                 )
-        
+
         else:
             bubble_takeaway = (
                 "Coverage around significant events shows shifts in "
