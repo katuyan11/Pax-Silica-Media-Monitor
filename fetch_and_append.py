@@ -11,6 +11,8 @@ from urllib.parse import urlparse
 from google.oauth2.service_account import Credentials
 from datetime import datetime, timezone, timedelta
 
+from googlenewsdecoder import gnewsdecoder
+
 
 # ============================================================
 # CONFIG
@@ -213,11 +215,19 @@ def clean_html(raw_html: str) -> str:
 
 
 def resolve_google_news_url(google_url: str) -> str:
-    """Follow Google News' redirect to get the real publisher URL.
-    Falls back to the original Google URL if the request fails."""
+    """Decode Google News' redirect token to get the real publisher URL.
+    requests.get(..., allow_redirects=True) can't follow this — Google
+    News RSS links use a JS/token-based redirect, not a standard HTTP
+    redirect — so a plain requests call silently fails to reach the real
+    publisher page and just returns the same news.google.com URL. That
+    was letting old articles slip past the URL-based dedup check, since
+    the same real article can get a different unresolved token depending
+    on which search query in DEFAULT_TOPICS surfaced it."""
     try:
-        response = requests.get(google_url, timeout=10, allow_redirects=True)
-        return response.url
+        result = gnewsdecoder(google_url, interval=1)
+        if result.get("status") and result.get("decoded_url"):
+            return result["decoded_url"]
+        return google_url
     except Exception:
         return google_url
 
@@ -239,6 +249,21 @@ def strip_source_from_title(title: str, source_name: str) -> str:
     # in case the source name didn't match exactly
     title = re.sub(r"\s*[-–]\s*[A-Za-z0-9.\s]{2,30}$", "", title) if source_name else title
     return title.strip()
+
+
+# ============================================================
+# DEDUPLICATION HELPER
+# ============================================================
+
+def make_dedup_key(title: str, source: str) -> str:
+    """Fallback dedup signal alongside URL matching. Google News can
+    reissue a different (or unresolved) URL token for the same real
+    article depending on which search query surfaced it, so URL-only
+    dedup can miss true duplicates. This normalizes title + source as
+    a backstop check."""
+    normalized_title = re.sub(r"\s+", " ", (title or "").strip().lower())
+    normalized_source = (source or "").strip().lower()
+    return f"{normalized_source}::{normalized_title}"
 
 
 # ============================================================
@@ -546,10 +571,24 @@ def append_new_articles_to_sheet(df, sheet):
         for record in existing_records
         if str(record.get("url", "")).strip()
     }
+    existing_dedup_keys = {
+        make_dedup_key(record.get("title", ""), record.get("source", ""))
+        for record in existing_records
+    }
 
     print(f"Existing articles in {SHEET_TAB_NAME}: {len(existing_urls)}")
 
-    new_df = df[~df["url"].isin(existing_urls)].copy()
+    new_df = df.copy()
+    new_df["dedup_key"] = new_df.apply(
+        lambda r: make_dedup_key(r["title"], r["source"]), axis=1
+    )
+
+    new_df = new_df[
+        ~new_df["url"].isin(existing_urls)
+        & ~new_df["dedup_key"].isin(existing_dedup_keys)
+    ].copy()
+
+    new_df = new_df.drop(columns=["dedup_key"])
 
     if new_df.empty:
         print("No new articles to append.")
