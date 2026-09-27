@@ -101,7 +101,7 @@ st.markdown("""
 <div style="
     background: linear-gradient(90deg, #21295C 0%, #1C7293 100%);
     padding: 2.2rem 2.5rem;
-    border-radius: 12px;
+    border-radius: 0;
     margin-bottom: 1.5rem;
 ">
   <p style="color:#E8A33D; font-weight:700; letter-spacing:2px; font-size:0.8rem; margin:0 0 0.4rem 0; text-transform:propercase;">
@@ -908,7 +908,7 @@ else:
         st.markdown(
             f"""
             <div style="
-                font-size: 18px;
+                font-size: 22px;
                 font-weight: 700;
                 color: black;
                 text-align: left;
@@ -1253,7 +1253,7 @@ else:
         st.markdown(
             f"""
             <div style="
-                font-size: 18px;
+                font-size: 22px;
                 font-weight: 700;
                 color: black;
                 text-align: left;
@@ -2617,7 +2617,7 @@ else:
             f"""
             <div style="
                 text-align: center;
-                font-size: 16px;
+                font-size: 22px;
                 font-weight: 700;
                 color: black;
                 margin-top: 10px;
