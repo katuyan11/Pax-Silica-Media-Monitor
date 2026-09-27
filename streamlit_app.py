@@ -28,6 +28,51 @@ nltk.download("stopwords", quiet=True)
 # ============================================================
 # PAGE CONFIGURATION
 # ============================================================
+
+# ------------------------------------------------------------
+# [DESIGN FIX] Shared CSS for the header + metric cards.
+# Keeps the metric row visually grouped (bordered cards instead
+# of three bare numbers floating on white) and gives the intro
+# copy a touch of breathing room instead of running paragraph
+# straight into paragraph.
+# ------------------------------------------------------------
+st.markdown(
+    """
+    <style>
+    .metric-card {
+        background: #F7F9FB;
+        border: 1px solid #E3E8EC;
+        border-radius: 10px;
+        padding: 0.9rem 1.1rem;
+        height: 100%;
+    }
+    .metric-card .metric-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        color: #6B7785;
+        margin: 0 0 0.25rem 0;
+    }
+    .metric-card .metric-value {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #17203A;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .intro-copy p {
+        text-align: left;
+        color: #2A2F36;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 0.9rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.markdown("""
 <div style="
     background: linear-gradient(90deg, #21295C 0%, #1C7293 100%);
@@ -41,7 +86,8 @@ st.markdown("""
   <h1 style="color:white; font-size:2.1rem; font-weight:800; margin:0; line-height:1.25;">
     Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
   </h1>
-  <p style="color:#9FC6CF; font-size:1.05rem; margin-top:0.6rem; margin-bottom:0;">
+  <div style="height:1px; background:rgba(255,255,255,0.25); margin:0.9rem 0 0.7rem 0;"></div>
+  <p style="color:#F2D9A8; font-size:1.05rem; font-weight:600; margin:0;">
     Using NLP to track Themes and Stances
   </p>
 </div>
@@ -51,17 +97,17 @@ st.set_page_config(
     layout="wide"
 )
 
+# ------------------------------------------------------------
+# [DESIGN FIX] Left-aligned, broken into real <p> tags (was one
+# justified block with blank lines that HTML collapses), so it
+# reads as short paragraphs instead of a justified wall of text.
+# ------------------------------------------------------------
 st.markdown(
     """
-    <div style="
-        text-align: justify;
-        margin-bottom: 20px;
-    ">
-    Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains and the Philippines is positioned to play a role in this emerging global network. As the initiative develops, Philippine news coverage is growing quickly — touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.
-    
-    Following that conversation by hand can be difficult. As new developments unfold, new voices enter the discussion, and different outlets tend to focus on different aspects of the initiative. This dashboard follows that coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.
-    
-    This prototype combines automated news collection with rule-based NLP. Articles are processed and classified by theme and stance using rule-based keyword matching and text preprocessing. These approaches provide a structured way to explore the themes and stances appearing across the monitored news coverage.
+    <div class="intro-copy" style="margin-bottom: 8px;">
+    <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains and the Philippines is positioned to play a role in this emerging global network. As the initiative develops, Philippine news coverage is growing quickly — touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
+    <p>Following that conversation by hand can be difficult. As new developments unfold, new voices enter the discussion, and different outlets tend to focus on different aspects of the initiative. This dashboard follows that coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.</p>
+    <p>This prototype combines automated news collection with rule-based NLP. Articles are processed and classified by theme and stance using rule-based keyword matching and text preprocessing. These approaches provide a structured way to explore the themes and stances appearing across the monitored news coverage.</p>
     </div>
     """,
     unsafe_allow_html=True
@@ -417,10 +463,27 @@ def get_top_terms(
 # LOAD DATA
 # ============================================================
 
-if st.button("Refresh Data"):
+# ------------------------------------------------------------
+# [DESIGN FIX] Refresh button no longer floats alone above the
+# metrics — right-aligned into its own slim column next to a
+# small caption, so it reads as "controls for the row below" and
+# has an icon so it isn't a bare unstyled Streamlit button.
+# ------------------------------------------------------------
+refresh_col_label, refresh_col_button = st.columns([5, 1])
 
-    st.cache_data.clear()
-    st.rerun()
+with refresh_col_label:
+    st.markdown(
+        "<div style='color:#6B7785; font-size:0.85rem; margin-top:0.4rem;'>"
+        "Data updates automatically from the daily fetch."
+        "</div>",
+        unsafe_allow_html=True
+    )
+
+with refresh_col_button:
+    if st.button("🔄 Refresh Data", use_container_width=True):
+
+        st.cache_data.clear()
+        st.rerun()
 
 
 df = load_data()
@@ -496,18 +559,34 @@ else:
 
     overview_cols = st.columns(3)
 
+    # ------------------------------------------------------------
+    # [DESIGN FIX] Metrics rendered as bordered "cards" (via the
+    # .metric-card CSS above) instead of bare st.metric() text, so
+    # the three stats read as one grouped KPI strip.
+    # ------------------------------------------------------------
+
     with overview_cols[0]:
 
-        st.metric(
-            "Articles tracked",
-            f"{overview_article_count:,}"
+        st.markdown(
+            f"""
+            <div class="metric-card">
+                <p class="metric-label">Articles tracked</p>
+                <p class="metric-value">{overview_article_count:,}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
     with overview_cols[1]:
 
-        st.metric(
-            "Coverage period",
-            date_range_text
+        st.markdown(
+            f"""
+            <div class="metric-card">
+                <p class="metric-label">Coverage period</p>
+                <p class="metric-value">{date_range_text}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
     with overview_cols[2]:
@@ -518,17 +597,21 @@ else:
         # silently falling back to "N/A".
         if "source" in df.columns:
 
-            st.metric(
-                "Outlets monitored",
-                f"{df['source'].nunique():,}"
-            )
+            outlets_value = f"{df['source'].nunique():,}"
 
         else:
 
-            st.metric(
-                "Outlets monitored",
-                "N/A"
-            )
+            outlets_value = "N/A"
+
+        st.markdown(
+            f"""
+            <div class="metric-card">
+                <p class="metric-label">Outlets monitored</p>
+                <p class="metric-value">{outlets_value}</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
 
