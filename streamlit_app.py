@@ -3027,7 +3027,7 @@ else:
             f"""
             <div style="
                 text-align: center;
-                font-size: 16px;
+                font-size: 20px;
                 font-weight: 700;
                 color: black;
                 margin-top: 10px;
