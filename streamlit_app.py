@@ -736,9 +736,9 @@ with col1:
     # ----------------------------------------------------
     # IDENTIFY HIGHEST + SECOND-HIGHEST STANCE
     # ----------------------------------------------------
-
+    
     if stance_total > 0:
-
+    
         ranked_stances = (
             stance_counts
             .sort_values(
@@ -747,41 +747,40 @@ with col1:
             )
             .reset_index(drop=True)
         )
-
+    
         highest_stance = ranked_stances.loc[0, "stance"]
         highest_stance_share = ranked_stances.loc[0, "percent"]
-
+    
         if len(ranked_stances) > 1:
-
+    
             second_highest_stance = (
                 ranked_stances.loc[1, "stance"]
             )
-
+    
             second_highest_share = (
                 ranked_stances.loc[1, "percent"]
             )
-
+    
             stance_takeaway = (
                 f"{highest_stance} coverage accounts for "
-                f"{highest_stance_share:.1f}% of articles, "
+                f"{round(highest_stance_share):.0f}% of articles, "
                 f"followed by {second_highest_stance} coverage "
-                f"at {second_highest_share:.1f}%."
+                f"at {round(second_highest_share):.0f}%."
             )
-
+    
         else:
-
+    
             stance_takeaway = (
                 f"{highest_stance} coverage accounts for "
-                f"{highest_stance_share:.1f}% of articles."
+                f"{round(highest_stance_share):.0f}% of articles."
             )
-
+    
     else:
-
+    
         stance_takeaway = (
             "No article-level stance could be detected"
         )
-
-
+    
     # ----------------------------------------------------
     # TAKEAWAY TITLE
     # ----------------------------------------------------
@@ -1038,41 +1037,96 @@ with col2:
         * 100
     )
 
-
     # ----------------------------------------------------
-    # IDENTIFY THEME WITH HIGHEST CRITICAL SHARE
+    # IDENTIFY HIGHEST CRITICAL AND SUPPORTIVE SHARES
     # ----------------------------------------------------
-
+    
     critical_shares = heatmap_pct["Critical"]
-
+    
     valid_critical_shares = (
         critical_shares[
             heatmap_counts["Total"] > 0
         ]
     )
-
-    if not valid_critical_shares.empty:
-
+    
+    supportive_shares = heatmap_pct["Supportive"]
+    
+    valid_supportive_shares = (
+        supportive_shares[
+            heatmap_counts["Total"] > 0
+        ]
+    )
+    
+    if (
+        not valid_critical_shares.empty
+        and not valid_supportive_shares.empty
+    ):
+    
         highest_critical_theme = (
             valid_critical_shares.idxmax()
         )
-
+    
         highest_critical_share = (
             valid_critical_shares.max()
         )
-
+    
+        highest_supportive_theme = (
+            valid_supportive_shares.idxmax()
+        )
+    
+        highest_supportive_share = (
+            valid_supportive_shares.max()
+        )
+    
         heatmap_takeaway = (
             f"{highest_critical_theme} has the highest share "
             f"of Critical coverage at "
-            f"{highest_critical_share:.1f}%."
+            f"{round(highest_critical_share):.0f}%. "
+            f"{highest_supportive_theme} has the highest share "
+            f"of Supportive coverage at "
+            f"{round(highest_supportive_share):.0f}%."
         )
-
-    else:
-
+    
+    elif not valid_critical_shares.empty:
+    
+        highest_critical_theme = (
+            valid_critical_shares.idxmax()
+        )
+    
+        highest_critical_share = (
+            valid_critical_shares.max()
+        )
+    
         heatmap_takeaway = (
-            "No theme-level Critical coverage could be detected"
+            f"{highest_critical_theme} has the highest share "
+            f"of Critical coverage at "
+            f"{round(highest_critical_share):.0f}%."
+        )
+    
+    elif not valid_supportive_shares.empty:
+    
+        highest_supportive_theme = (
+            valid_supportive_shares.idxmax()
+        )
+    
+        highest_supportive_share = (
+            valid_supportive_shares.max()
+        )
+    
+        heatmap_takeaway = (
+            f"{highest_supportive_theme} has the highest share "
+            f"of Supportive coverage at "
+            f"{round(highest_supportive_share):.0f}%."
+        )
+    
+    else:
+    
+        heatmap_takeaway = (
+            "No theme-level stance pattern could be detected"
         )
 
+
+    
 
     # ----------------------------------------------------
     # TAKEAWAY TITLE — TOP OF HEAT MAP
