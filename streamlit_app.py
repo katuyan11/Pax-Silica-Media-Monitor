@@ -41,15 +41,16 @@ st.markdown(
     <style>
     /* ------------------------------------------------------
        [FONT SIZE CONTROL] Bump this to scale most body text
-       in the app (paragraphs, markdown, dataframe text, labels,
-       captions). Headline/section-title sizes are set inline
-       elsewhere and won't move with this — adjust those
-       separately if needed.
-       Try 17px, 18px, 19px and see what reads best.
+       in the app (paragraphs, markdown, dataframe cell text).
+       Scoped narrowly on purpose — NOT a wildcard like
+       [class*="st-"] and NOT .stCaption — because those had
+       been catching Streamlit's own heading components (the
+       banner h1, "Articles Collected by the Monitor" subheader)
+       and the footer caption, shrinking/growing things that
+       were never meant to move.
     ------------------------------------------------------ */
-    html, body, [class*="st-"], .stMarkdown, .stMarkdown p,
-    .stDataFrame, .stCaption, .stSelectbox label {
-        font-size: 16px;
+    html, body, .stMarkdown p, .stDataFrame, .stSelectbox label {
+        font-size: 18px;
     }
     /* Most body/explanatory paragraphs below are hardcoded inline
        (font-size: 14px / 15px) rather than using a class, so the
@@ -57,10 +58,10 @@ st.markdown(
        This overrides those inline sizes app-wide. Delete this block
        if you'd rather size each paragraph individually. */
     .stMarkdown div[style*="font-size: 14px"] {
-        font-size: 16px !important;
+        font-size: 18px !important;
     }
     .stMarkdown div[style*="font-size: 15px"] {
-        font-size: 17px !important;
+        font-size: 19px !important;
     }
     .metric-card {
         background: #F7F9FB;
@@ -87,7 +88,7 @@ st.markdown(
     .intro-copy p {
         text-align: left;
         color: #2A2F36;
-        font-size: 17px;
+        font-size: 19px;
         line-height: 1.6;
         margin-bottom: 0.9rem;
     }
@@ -2834,8 +2835,8 @@ else:
 
     st.markdown("---")
     st.caption(
-        "Built by __________ · Eskwelabs Data Analytics Capstone, 2026 · "
+        "*Built by __________ · Eskwelabs Data Analytics Capstone, 2026 · "
         "This is a working prototype — themes and stances are detected using "
         "Rule-based keyword matching NLP and is not a definitive claim. "
-        "View methodology on GitHub - https://github.com/katuyan11/newsmonitornlp"
+        "View methodology on GitHub - https://github.com/katuyan11/newsmonitornlp*"
     )
