@@ -2391,6 +2391,108 @@ else:
             "plot on the coverage-over-time chart."
         )
 
+    # ========================================================
+# BUBBLE MATRIX TAKEAWAY
+# ========================================================
+
+if not bubble_data.empty and not events_df.empty:
+
+    # --------------------------------------------------------
+    # OVERALL DOMINANT THEME
+    # --------------------------------------------------------
+
+    dominant_theme = (
+        bubble_data
+        .groupby("themes", observed=False)["article_count"]
+        .sum()
+        .idxmax()
+    )
+
+    dominant_theme_count = (
+        bubble_data
+        .groupby("themes", observed=False)["article_count"]
+        .sum()
+        .max()
+    )
+
+    # --------------------------------------------------------
+    # OVERALL DOMINANT STANCE
+    # --------------------------------------------------------
+
+    dominant_stance = (
+        bubble_data
+        .groupby("stance")["article_count"]
+        .sum()
+        .idxmax()
+    )
+
+    # --------------------------------------------------------
+    # EVENT PERIOD COVERAGE
+    # --------------------------------------------------------
+
+    event_dates = events_df["date"].dropna()
+
+    event_period_data = bubble_data[
+        bubble_data["date"].isin(event_dates)
+    ].copy()
+
+    if not event_period_data.empty:
+
+        event_theme = (
+            event_period_data
+            .groupby("themes", observed=False)["article_count"]
+            .sum()
+            .idxmax()
+        )
+
+        event_stance = (
+            event_period_data
+            .groupby("stance")["article_count"]
+            .sum()
+            .idxmax()
+        )
+
+        st.markdown(
+            f"""
+            <div style="
+                font-size: 16px;
+                font-style: italic;
+                font-weight: 400;
+                color: black;
+                margin-top: 10px;
+                margin-bottom: 14px;
+            ">
+            Coverage around significant events is most strongly concentrated
+            on <b>{event_theme}</b>, with <b>{event_stance}</b> emerging as
+            the dominant stance during these periods. This suggests that
+            major developments coincide with shifts in which themes receive
+            the most attention and how those developments are framed.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    else:
+
+        st.markdown(
+            f"""
+            <div style="
+                font-size: 16px;
+                font-style: italic;
+                font-weight: 400;
+                color: black;
+                margin-top: 10px;
+                margin-bottom: 14px;
+            ">
+            Across the coverage period, <b>{dominant_theme}</b> is the
+            dominant theme and <b>{dominant_stance}</b> is the most prevalent
+            stance, providing a baseline for examining how significant events
+            coincide with changes in thematic attention and framing.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 
     # ========================================================
     # SIGNIFICANT EVENTS TABLE
