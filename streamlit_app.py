@@ -865,50 +865,67 @@ else:
     # THEME × STANCE HEAT MAP
     # ========================================================
     
-    theme_stance_counts = pd.crosstab(
-        df["theme"],
-        df["stance"]
-    ).reindex(
-        index=THEME_ORDER,
+    # Existing theme × stance counts
+    # This uses the already-created theme_stance_counts dataframe
+    # and does NOT require a df["theme"] column.
+    
+    # Make sure the expected stance columns exist
+    theme_stance_counts = theme_stance_counts.reindex(
         columns=STANCE_ORDER,
         fill_value=0
     )
     
-    # Row-normalized percentages
+    # Make sure themes appear in the desired order
+    theme_stance_counts = theme_stance_counts.reindex(
+        THEME_ORDER,
+        fill_value=0
+    )
+    
+    # --------------------------------------------------------
+    # CALCULATE THEME-LEVEL STANCE PERCENTAGES
+    # --------------------------------------------------------
+    
+    theme_totals = theme_stance_counts.sum(axis=1)
+    
     theme_stance_pct = (
         theme_stance_counts
-        .div(theme_stance_counts.sum(axis=1), axis=0)
+        .div(theme_totals.replace(0, np.nan), axis=0)
         .fillna(0)
         * 100
     )
     
-    # Identify the theme with the highest share of Critical coverage
+    # --------------------------------------------------------
+    # FIND THE THEME WITH THE HIGHEST SHARE OF CRITICAL COVERAGE
+    # --------------------------------------------------------
+    
     critical_shares = theme_stance_pct["Critical"]
     
-    highest_critical_theme = critical_shares.idxmax()
-    highest_critical_share = critical_shares.max()
+    if not critical_shares.empty and critical_shares.max() > 0:
     
-    # Takeaway above heat map
-    st.markdown(
-        f"""
-        <div style="
-            font-size: 18px;
-            font-weight: 700;
-            text-align: left;
-            margin-top: 4px;
-            margin-bottom: 8px;
-        ">
-            {highest_critical_theme} has the highest share of Critical coverage
-            at {highest_critical_share:.1f}%.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        highest_critical_theme = critical_shares.idxmax()
+        highest_critical_share = critical_shares.max()
     
-    # Prepare heat map values
-    heatmap_z = theme_stance_pct.values
+        st.markdown(
+            f"""
+            <div style="
+                font-size: 18px;
+                font-weight: 700;
+                text-align: left;
+                margin-top: 4px;
+                margin-bottom: 6px;
+            ">
+                {highest_critical_theme} has the highest share of Critical
+                coverage at {highest_critical_share:.1f}%.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
     
-    # Text shows actual article counts
+    # --------------------------------------------------------
+    # HEAT MAP
+    # --------------------------------------------------------
+    
+    # Actual article counts displayed inside each cell
     heatmap_text = (
         theme_stance_counts
         .astype(int)
@@ -918,21 +935,25 @@ else:
     
     fig_heatmap = go.Figure(
         data=go.Heatmap(
-            z=heatmap_z,
+            z=theme_stance_pct.values,
             x=STANCE_ORDER,
-            y=THEME_ORDER,
+            y=theme_stance_pct.index,
             text=heatmap_text,
             texttemplate="%{text}",
             textfont=dict(size=13),
+    
             colorscale=[
                 [0.0, "#ffffff"],
                 [1.0, "#d62728"]
             ],
+    
             zmin=0,
             zmax=100,
+    
             colorbar=dict(
                 title="% of<br>theme coverage"
             ),
+    
             hovertemplate=(
                 "Theme: %{y}<br>"
                 "Stance: %{x}<br>"
@@ -944,16 +965,19 @@ else:
     
     fig_heatmap.update_layout(
         height=500,
+    
         margin=dict(
             l=10,
             r=20,
             t=5,
             b=5
         ),
+    
         xaxis=dict(
             title=None,
             side="top"
         ),
+    
         yaxis=dict(
             title=None,
             autorange="reversed"
@@ -965,7 +989,12 @@ else:
         use_container_width=True
     )
     
-    # Chart title — centered, italic, not bold, close to heat map
+    # --------------------------------------------------------
+    # CHART TITLE
+    # --------------------------------------------------------
+    # Centered, italicized, not bold, and positioned close
+    # to the bottom of the heat map.
+    
     st.markdown(
         """
         <div style="
@@ -973,7 +1002,7 @@ else:
             font-size: 16px;
             font-style: italic;
             font-weight: 400;
-            margin-top: -18px;
+            margin-top: -22px;
             margin-bottom: 18px;
         ">
             Theme × Stance Heat Map
@@ -981,6 +1010,8 @@ else:
         """,
         unsafe_allow_html=True
     )
+
+    
 
 
    
