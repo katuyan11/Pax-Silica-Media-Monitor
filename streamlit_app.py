@@ -618,7 +618,7 @@ else:
         unsafe_allow_html=True
     )
 
-        # ========================================================
+    # ========================================================
     # THEME DESCRIPTIONS — SINGLE COLUMN, ORDERED BY VOLUME
     # AND LABELED WITH ARTICLE COUNTS
     # ========================================================
@@ -683,644 +683,644 @@ else:
         unsafe_allow_html=True
     )
 
+
     # ========================================================
-# DETECTED ARTICLE-LEVEL STANCE + HEAT MAP
-# ========================================================
+    # DETECTED ARTICLE-LEVEL STANCE + HEAT MAP
+    # ========================================================
 
-col1, spacer, col2 = st.columns(
-    [1, 0.15, 1]
-)
+    col1, spacer, col2 = st.columns(
+        [1, 0.15, 1]
+    )
 
 
-# ========================================================
-# DETECTED ARTICLE-LEVEL STANCE
-# ========================================================
+    # ========================================================
+    # DETECTED ARTICLE-LEVEL STANCE
+    # ========================================================
 
-with col1:
+    with col1:
 
-    # ----------------------------------------------------
-    # CALCULATE STANCE DISTRIBUTION
-    # ----------------------------------------------------
+        # ----------------------------------------------------
+        # CALCULATE STANCE DISTRIBUTION
+        # ----------------------------------------------------
 
-    stance_counts = (
-        df["stance"]
-        .fillna("Neutral")
-        .astype(str)
-        .str.strip()
-        .str.title()
-        .replace({
-            "Positive": "Supportive",
-            "Negative": "Critical"
-        })
-        .value_counts()
-        .reindex(
-            STANCE_ORDER,
+        stance_counts = (
+            df["stance"]
+            .fillna("Neutral")
+            .astype(str)
+            .str.strip()
+            .str.title()
+            .replace({
+                "Positive": "Supportive",
+                "Negative": "Critical"
+            })
+            .value_counts()
+            .reindex(
+                STANCE_ORDER,
+                fill_value=0
+            )
+            .reset_index()
+        )
+
+        stance_counts.columns = [
+            "stance",
+            "count"
+        ]
+
+        stance_total = stance_counts["count"].sum()
+
+        stance_counts["percent"] = (
+            stance_counts["count"] / stance_total * 100
+            if stance_total > 0
+            else 0
+        )
+
+        # ----------------------------------------------------
+        # IDENTIFY HIGHEST + SECOND-HIGHEST STANCE
+        # ----------------------------------------------------
+        
+        if stance_total > 0:
+        
+            ranked_stances = (
+                stance_counts
+                .sort_values(
+                    by="count",
+                    ascending=False
+                )
+                .reset_index(drop=True)
+            )
+        
+            highest_stance = ranked_stances.loc[0, "stance"]
+            highest_stance_share = ranked_stances.loc[0, "percent"]
+        
+            if len(ranked_stances) > 1:
+        
+                second_highest_stance = (
+                    ranked_stances.loc[1, "stance"]
+                )
+        
+                second_highest_share = (
+                    ranked_stances.loc[1, "percent"]
+                )
+        
+                stance_takeaway = (
+                    f"{highest_stance} coverage accounts for "
+                    f"{round(highest_stance_share):.0f}% of articles, "
+                    f"followed by {second_highest_stance} coverage "
+                    f"at {round(second_highest_share):.0f}%."
+                )
+        
+            else:
+        
+                stance_takeaway = (
+                    f"{highest_stance} coverage accounts for "
+                    f"{round(highest_stance_share):.0f}% of articles."
+                )
+        
+        else:
+        
+            stance_takeaway = (
+                "No article-level stance could be detected"
+            )
+        
+        # ----------------------------------------------------
+        # TAKEAWAY TITLE
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"""
+            <div style="
+                font-size: 18px;
+                font-weight: 700;
+                color: black;
+                text-align: left;
+                margin-bottom: 10px;
+            ">
+                {stance_takeaway}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # EXPLANATORY TEXT
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Stance is estimated using predefined words and phrases associated
+            with supportive or critical language in the available article text.
+            The classifier counts these indicators and assigns the stance based
+            on the stronger signal. Articles without a clear predominance of
+            either signal are classified as Neutral. This is a rule-based
+            classification and should be interpreted as a detected linguistic
+            signal rather than a definitive statement of the article's or
+            author's position.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # STANCE CHART LABELS
+        # ----------------------------------------------------
+
+        stance_counts["segment_label"] = stance_counts.apply(
+            lambda row: (
+                f"{row['stance']}<br>{int(row['count'])} "
+                f"({row['percent']:.1f}%)"
+            ),
+            axis=1
+        )
+
+        stance_counts["row"] = "All coverage"
+
+
+        # ----------------------------------------------------
+        # CREATE STACKED BAR
+        # ----------------------------------------------------
+
+        fig_stance = px.bar(
+            stance_counts,
+            x="count",
+            y="row",
+            color="stance",
+            orientation="h",
+            text="segment_label",
+            category_orders={
+                "stance": STANCE_ORDER
+            },
+            color_discrete_map=STANCE_COLORS
+        )
+
+        fig_stance.update_traces(
+            textposition="inside",
+            insidetextanchor="middle",
+            textfont=dict(
+                size=12,
+                color="white"
+            ),
+            marker_line_width=0
+        )
+
+        fig_stance.update_layout(
+            barmode="stack",
+            height=220,
+            showlegend=True,
+            legend_title_text="Stance",
+            xaxis_title="Number of articles",
+            yaxis_title="",
+            yaxis=dict(
+                showticklabels=False
+            ),
+            margin=dict(
+                l=10,
+                r=10,
+                t=20,
+                b=40
+            )
+        )
+
+        st.plotly_chart(
+            fig_stance,
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
+        )
+
+
+        # ----------------------------------------------------
+        # CHART TITLE — BOTTOM, CENTERED, ITALIC
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                font-size: 14px;
+                font-weight: 400;
+                font-style: italic;
+                color: black;
+                text-align: center;
+                margin-top: -8px;
+                margin-bottom: 10px;
+            ">
+                Detected Article-Level Stance
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+    # ========================================================
+    # SPACER
+    # ========================================================
+
+    with spacer:
+
+        st.markdown(
+            "<div style='height: 1px;'></div>",
+            unsafe_allow_html=True
+        )
+
+
+    # ========================================================
+    # THEME × STANCE HEAT MAP
+    # ========================================================
+
+    with col2:
+
+        heatmap_df = df.copy()
+
+        # ----------------------------------------------------
+        # NORMALIZE STANCE
+        # ----------------------------------------------------
+
+        heatmap_df["stance"] = (
+            heatmap_df["stance"]
+            .fillna("Neutral")
+            .astype(str)
+            .str.strip()
+            .str.title()
+            .replace({
+                "Positive": "Supportive",
+                "Negative": "Critical"
+            })
+        )
+
+        heatmap_df = heatmap_df[
+            heatmap_df["stance"].isin(
+                STANCE_ORDER
+            )
+        ].copy()
+
+
+        # ----------------------------------------------------
+        # EXPLODE THEMES
+        # ----------------------------------------------------
+
+        heatmap_df["themes"] = (
+            heatmap_df["themes"]
+            .fillna("")
+            .astype(str)
+            .str.split(", ")
+        )
+
+        heatmap_df = heatmap_df.explode(
+            "themes"
+        )
+
+        heatmap_df = heatmap_df[
+            heatmap_df["themes"].isin(
+                THEME_ORDER
+            )
+        ].copy()
+
+        heatmap_df = heatmap_df.reset_index(
+            drop=True
+        )
+
+
+        # ----------------------------------------------------
+        # CALCULATE COUNTS
+        # ----------------------------------------------------
+
+        heatmap_counts = (
+            heatmap_df
+            .groupby(
+                [
+                    "themes",
+                    "stance"
+                ],
+                observed=False
+            )
+            .size()
+            .unstack(
+                fill_value=0
+            )
+        )
+
+        heatmap_counts = heatmap_counts.reindex(
+            index=THEME_ORDER,
+            columns=STANCE_ORDER,
             fill_value=0
         )
-        .reset_index()
-    )
 
-    stance_counts.columns = [
-        "stance",
-        "count"
-    ]
+        heatmap_counts["Total"] = (
+            heatmap_counts[STANCE_ORDER]
+            .sum(axis=1)
+        )
 
-    stance_total = stance_counts["count"].sum()
 
-    stance_counts["percent"] = (
-        stance_counts["count"] / stance_total * 100
-        if stance_total > 0
-        else 0
-    )
+        # ----------------------------------------------------
+        # ROW-NORMALIZED PERCENTAGES
+        # ----------------------------------------------------
 
-    # ----------------------------------------------------
-    # IDENTIFY HIGHEST + SECOND-HIGHEST STANCE
-    # ----------------------------------------------------
-    
-    if stance_total > 0:
-    
-        ranked_stances = (
-            stance_counts
+        row_totals = (
+            heatmap_counts["Total"]
+            .replace(0, np.nan)
+        )
+
+        heatmap_pct = (
+            heatmap_counts[STANCE_ORDER]
+            .div(
+                row_totals,
+                axis=0
+            )
+            .fillna(0)
+            * 100
+        )
+
+        # ----------------------------------------------------
+        # IDENTIFY HIGHEST CRITICAL AND SUPPORTIVE SHARES
+        # ----------------------------------------------------
+        
+        critical_shares = heatmap_pct["Critical"]
+        
+        valid_critical_shares = (
+            critical_shares[
+                heatmap_counts["Total"] > 0
+            ]
+        )
+        
+        supportive_shares = heatmap_pct["Supportive"]
+        
+        valid_supportive_shares = (
+            supportive_shares[
+                heatmap_counts["Total"] > 0
+            ]
+        )
+        
+        if (
+            not valid_critical_shares.empty
+            and not valid_supportive_shares.empty
+        ):
+        
+            highest_critical_theme = (
+                valid_critical_shares.idxmax()
+            )
+        
+            highest_critical_share = (
+                valid_critical_shares.max()
+            )
+        
+            highest_supportive_theme = (
+                valid_supportive_shares.idxmax()
+            )
+        
+            highest_supportive_share = (
+                valid_supportive_shares.max()
+            )
+        
+            heatmap_takeaway = (
+                f"{highest_critical_theme} has the highest share "
+                f"of Critical coverage at "
+                f"{round(highest_critical_share):.0f}%, while "
+                f"{highest_supportive_theme} has the highest share "
+                f"of Supportive coverage at "
+                f"{round(highest_supportive_share):.0f}%."
+            )
+                
+        elif not valid_critical_shares.empty:
+        
+            highest_critical_theme = (
+                valid_critical_shares.idxmax()
+            )
+        
+            highest_critical_share = (
+                valid_critical_shares.max()
+            )
+        
+            heatmap_takeaway = (
+                f"{highest_critical_theme} has the highest share "
+                f"of Critical coverage at "
+                f"{round(highest_critical_share):.0f}%."
+            )
+        
+        elif not valid_supportive_shares.empty:
+        
+            highest_supportive_theme = (
+                valid_supportive_shares.idxmax()
+            )
+        
+            highest_supportive_share = (
+                valid_supportive_shares.max()
+            )
+        
+            heatmap_takeaway = (
+                f"{highest_supportive_theme} has the highest share "
+                f"of Supportive coverage at "
+                f"{round(highest_supportive_share):.0f}%."
+            )
+        
+        else:
+        
+            heatmap_takeaway = (
+                "No theme-level stance pattern could be detected"
+            )
+
+
+        # ----------------------------------------------------
+        # TAKEAWAY TITLE — TOP OF HEAT MAP
+        # ----------------------------------------------------
+
+        st.markdown(
+            f"""
+            <div style="
+                font-size: 18px;
+                font-weight: 700;
+                color: black;
+                text-align: left;
+                margin-bottom: 8px;
+            ">
+                {heatmap_takeaway}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # EXPLANATORY TEXT
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Cell color shows each theme's stance <em>mix</em> — the share of
+            that theme's articles falling into each stance — so themes of
+            different sizes can be compared fairly. Numbers show the actual
+            article count. The Total column (uncolored) shows the cumulative
+            number of articles for that theme.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # ORDER THEMES BY TOTAL VOLUME
+        # ----------------------------------------------------
+
+        heatmap_theme_order = (
+            heatmap_counts["Total"]
             .sort_values(
-                by="count",
                 ascending=False
             )
-            .reset_index(drop=True)
+            .index
+            .tolist()
         )
-    
-        highest_stance = ranked_stances.loc[0, "stance"]
-        highest_stance_share = ranked_stances.loc[0, "percent"]
-    
-        if len(ranked_stances) > 1:
-    
-            second_highest_stance = (
-                ranked_stances.loc[1, "stance"]
+
+        heatmap_counts = (
+            heatmap_counts
+            .reindex(
+                heatmap_theme_order
             )
-    
-            second_highest_share = (
-                ranked_stances.loc[1, "percent"]
-            )
-    
-            stance_takeaway = (
-                f"{highest_stance} coverage accounts for "
-                f"{round(highest_stance_share):.0f}% of articles, "
-                f"followed by {second_highest_stance} coverage "
-                f"at {round(second_highest_share):.0f}%."
-            )
-    
-        else:
-    
-            stance_takeaway = (
-                f"{highest_stance} coverage accounts for "
-                f"{round(highest_stance_share):.0f}% of articles."
-            )
-    
-    else:
-    
-        stance_takeaway = (
-            "No article-level stance could be detected"
         )
-    
-    # ----------------------------------------------------
-    # TAKEAWAY TITLE
-    # ----------------------------------------------------
 
-    st.markdown(
-        f"""
-        <div style="
-            font-size: 18px;
-            font-weight: 700;
-            color: black;
-            text-align: left;
-            margin-bottom: 10px;
-        ">
-            {stance_takeaway}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    # ----------------------------------------------------
-    # EXPLANATORY TEXT
-    # ----------------------------------------------------
-
-    st.markdown(
-        """
-        <div style="
-            text-align: justify;
-            color: black;
-            font-size: 14px;
-            margin-bottom: 10px;
-        ">
-        Stance is estimated using predefined words and phrases associated
-        with supportive or critical language in the available article text.
-        The classifier counts these indicators and assigns the stance based
-        on the stronger signal. Articles without a clear predominance of
-        either signal are classified as Neutral. This is a rule-based
-        classification and should be interpreted as a detected linguistic
-        signal rather than a definitive statement of the article's or
-        author's position.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    # ----------------------------------------------------
-    # STANCE CHART LABELS
-    # ----------------------------------------------------
-
-    stance_counts["segment_label"] = stance_counts.apply(
-        lambda row: (
-            f"{row['stance']}<br>{int(row['count'])} "
-            f"({row['percent']:.1f}%)"
-        ),
-        axis=1
-    )
-
-    stance_counts["row"] = "All coverage"
-
-
-    # ----------------------------------------------------
-    # CREATE STACKED BAR
-    # ----------------------------------------------------
-
-    fig_stance = px.bar(
-        stance_counts,
-        x="count",
-        y="row",
-        color="stance",
-        orientation="h",
-        text="segment_label",
-        category_orders={
-            "stance": STANCE_ORDER
-        },
-        color_discrete_map=STANCE_COLORS
-    )
-
-    fig_stance.update_traces(
-        textposition="inside",
-        insidetextanchor="middle",
-        textfont=dict(
-            size=12,
-            color="white"
-        ),
-        marker_line_width=0
-    )
-
-    fig_stance.update_layout(
-        barmode="stack",
-        height=220,
-        showlegend=True,
-        legend_title_text="Stance",
-        xaxis_title="Number of articles",
-        yaxis_title="",
-        yaxis=dict(
-            showticklabels=False
-        ),
-        margin=dict(
-            l=10,
-            r=10,
-            t=20,
-            b=40
+        heatmap_pct = (
+            heatmap_pct
+            .reindex(
+                heatmap_theme_order
+            )
         )
-    )
-
-    st.plotly_chart(
-        fig_stance,
-        use_container_width=True,
-        config={
-            "responsive": True
-        }
-    )
 
 
-    # ----------------------------------------------------
-    # CHART TITLE — BOTTOM, CENTERED, ITALIC
-    # ----------------------------------------------------
+        # ----------------------------------------------------
+        # BUILD DISPLAY MATRICES
+        # ----------------------------------------------------
 
-    st.markdown(
-        """
-        <div style="
-            font-size: 14px;
-            font-weight: 400;
-            font-style: italic;
-            color: black;
-            text-align: center;
-            margin-top: -8px;
-            margin-bottom: 10px;
-        ">
-            Detected Article-Level Stance
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-# ========================================================
-# SPACER
-# ========================================================
-
-with spacer:
-
-    st.markdown(
-        "<div style='height: 1px;'></div>",
-        unsafe_allow_html=True
-    )
-
-
-# ========================================================
-# THEME × STANCE HEAT MAP
-# ========================================================
-
-with col2:
-
-    heatmap_df = df.copy()
-
-    # ----------------------------------------------------
-    # NORMALIZE STANCE
-    # ----------------------------------------------------
-
-    heatmap_df["stance"] = (
-        heatmap_df["stance"]
-        .fillna("Neutral")
-        .astype(str)
-        .str.strip()
-        .str.title()
-        .replace({
-            "Positive": "Supportive",
-            "Negative": "Critical"
-        })
-    )
-
-    heatmap_df = heatmap_df[
-        heatmap_df["stance"].isin(
+        display_columns = (
             STANCE_ORDER
-        )
-    ].copy()
-
-
-    # ----------------------------------------------------
-    # EXPLODE THEMES
-    # ----------------------------------------------------
-
-    heatmap_df["themes"] = (
-        heatmap_df["themes"]
-        .fillna("")
-        .astype(str)
-        .str.split(", ")
-    )
-
-    heatmap_df = heatmap_df.explode(
-        "themes"
-    )
-
-    heatmap_df = heatmap_df[
-        heatmap_df["themes"].isin(
-            THEME_ORDER
-        )
-    ].copy()
-
-    heatmap_df = heatmap_df.reset_index(
-        drop=True
-    )
-
-
-    # ----------------------------------------------------
-    # CALCULATE COUNTS
-    # ----------------------------------------------------
-
-    heatmap_counts = (
-        heatmap_df
-        .groupby(
-            [
-                "themes",
-                "stance"
-            ],
-            observed=False
-        )
-        .size()
-        .unstack(
-            fill_value=0
-        )
-    )
-
-    heatmap_counts = heatmap_counts.reindex(
-        index=THEME_ORDER,
-        columns=STANCE_ORDER,
-        fill_value=0
-    )
-
-    heatmap_counts["Total"] = (
-        heatmap_counts[STANCE_ORDER]
-        .sum(axis=1)
-    )
-
-
-    # ----------------------------------------------------
-    # ROW-NORMALIZED PERCENTAGES
-    # ----------------------------------------------------
-
-    row_totals = (
-        heatmap_counts["Total"]
-        .replace(0, np.nan)
-    )
-
-    heatmap_pct = (
-        heatmap_counts[STANCE_ORDER]
-        .div(
-            row_totals,
-            axis=0
-        )
-        .fillna(0)
-        * 100
-    )
-
-    # ----------------------------------------------------
-    # IDENTIFY HIGHEST CRITICAL AND SUPPORTIVE SHARES
-    # ----------------------------------------------------
-    
-    critical_shares = heatmap_pct["Critical"]
-    
-    valid_critical_shares = (
-        critical_shares[
-            heatmap_counts["Total"] > 0
-        ]
-    )
-    
-    supportive_shares = heatmap_pct["Supportive"]
-    
-    valid_supportive_shares = (
-        supportive_shares[
-            heatmap_counts["Total"] > 0
-        ]
-    )
-    
-    if (
-        not valid_critical_shares.empty
-        and not valid_supportive_shares.empty
-    ):
-    
-        highest_critical_theme = (
-            valid_critical_shares.idxmax()
-        )
-    
-        highest_critical_share = (
-            valid_critical_shares.max()
-        )
-    
-        highest_supportive_theme = (
-            valid_supportive_shares.idxmax()
-        )
-    
-        highest_supportive_share = (
-            valid_supportive_shares.max()
-        )
-    
-        heatmap_takeaway = (
-            f"{highest_critical_theme} has the highest share "
-            f"of Critical coverage at "
-            f"{round(highest_critical_share):.0f}%, while "
-            f"{highest_supportive_theme} has the highest share "
-            f"of Supportive coverage at "
-            f"{round(highest_supportive_share):.0f}%."
-        )
-            
-    elif not valid_critical_shares.empty:
-    
-        highest_critical_theme = (
-            valid_critical_shares.idxmax()
-        )
-    
-        highest_critical_share = (
-            valid_critical_shares.max()
-        )
-    
-        heatmap_takeaway = (
-            f"{highest_critical_theme} has the highest share "
-            f"of Critical coverage at "
-            f"{round(highest_critical_share):.0f}%."
-        )
-    
-    elif not valid_supportive_shares.empty:
-    
-        highest_supportive_theme = (
-            valid_supportive_shares.idxmax()
-        )
-    
-        highest_supportive_share = (
-            valid_supportive_shares.max()
-        )
-    
-        heatmap_takeaway = (
-            f"{highest_supportive_theme} has the highest share "
-            f"of Supportive coverage at "
-            f"{round(highest_supportive_share):.0f}%."
-        )
-    
-    else:
-    
-        heatmap_takeaway = (
-            "No theme-level stance pattern could be detected"
+            + ["Total"]
         )
 
+        z_matrix = heatmap_pct.copy()
 
-    
+        z_matrix["Total"] = np.nan
 
-    # ----------------------------------------------------
-    # TAKEAWAY TITLE — TOP OF HEAT MAP
-    # ----------------------------------------------------
-
-    st.markdown(
-        f"""
-        <div style="
-            font-size: 18px;
-            font-weight: 700;
-            color: black;
-            text-align: left;
-            margin-bottom: 8px;
-        ">
-            {heatmap_takeaway}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    # ----------------------------------------------------
-    # EXPLANATORY TEXT
-    # ----------------------------------------------------
-
-    st.markdown(
-        """
-        <div style="
-            text-align: justify;
-            color: black;
-            font-size: 14px;
-            margin-bottom: 10px;
-        ">
-        Cell color shows each theme's stance <em>mix</em> — the share of
-        that theme's articles falling into each stance — so themes of
-        different sizes can be compared fairly. Numbers show the actual
-        article count. The Total column (uncolored) shows the cumulative
-        number of articles for that theme.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    # ----------------------------------------------------
-    # ORDER THEMES BY TOTAL VOLUME
-    # ----------------------------------------------------
-
-    heatmap_theme_order = (
-        heatmap_counts["Total"]
-        .sort_values(
-            ascending=False
-        )
-        .index
-        .tolist()
-    )
-
-    heatmap_counts = (
-        heatmap_counts
-        .reindex(
-            heatmap_theme_order
-        )
-    )
-
-    heatmap_pct = (
-        heatmap_pct
-        .reindex(
-            heatmap_theme_order
-        )
-    )
-
-
-    # ----------------------------------------------------
-    # BUILD DISPLAY MATRICES
-    # ----------------------------------------------------
-
-    display_columns = (
-        STANCE_ORDER
-        + ["Total"]
-    )
-
-    z_matrix = heatmap_pct.copy()
-
-    z_matrix["Total"] = np.nan
-
-    text_matrix = (
-        heatmap_counts[
-            display_columns
-        ]
-    )
-
-
-    # ----------------------------------------------------
-    # CREATE HEAT MAP
-    # ----------------------------------------------------
-
-    fig_heatmap = go.Figure(
-        data=go.Heatmap(
-            z=z_matrix[
+        text_matrix = (
+            heatmap_counts[
                 display_columns
-            ].values,
+            ]
+        )
 
-            x=display_columns,
 
-            y=heatmap_theme_order,
+        # ----------------------------------------------------
+        # CREATE HEAT MAP
+        # ----------------------------------------------------
 
-            text=text_matrix.values,
+        fig_heatmap = go.Figure(
+            data=go.Heatmap(
+                z=z_matrix[
+                    display_columns
+                ].values,
 
-            texttemplate="%{text}",
+                x=display_columns,
 
-            textfont=dict(
-                size=12
-            ),
+                y=heatmap_theme_order,
 
-            colorscale="Blues",
+                text=text_matrix.values,
 
-            zmin=0,
+                texttemplate="%{text}",
 
-            zmax=100,
+                textfont=dict(
+                    size=12
+                ),
 
-            colorbar=dict(
-                title="% of theme's<br>articles",
-                ticksuffix="%"
-            ),
+                colorscale="Blues",
 
-            xgap=3,
+                zmin=0,
 
-            ygap=3,
+                zmax=100,
 
-            hovertemplate=(
-                "Theme: %{y}<br>"
-                "Column: %{x}<br>"
-                "Articles: %{text}"
-                "<extra></extra>"
+                colorbar=dict(
+                    title="% of theme's<br>articles",
+                    ticksuffix="%"
+                ),
+
+                xgap=3,
+
+                ygap=3,
+
+                hovertemplate=(
+                    "Theme: %{y}<br>"
+                    "Column: %{x}<br>"
+                    "Articles: %{text}"
+                    "<extra></extra>"
+                )
             )
         )
-    )
 
 
-    fig_heatmap.update_layout(
-        height=500,
+        fig_heatmap.update_layout(
+            height=500,
 
-        xaxis_title="",
+            xaxis_title="",
 
-        yaxis_title="",
+            yaxis_title="",
 
-        margin=dict(
-            l=10,
-            r=20,
-            t=20,
-            b=20
+            margin=dict(
+                l=10,
+                r=20,
+                t=20,
+                b=20
+            )
         )
-    )
 
-    fig_heatmap.update_yaxes(
-        categoryorder="array",
+        fig_heatmap.update_yaxes(
+            categoryorder="array",
 
-        categoryarray=heatmap_theme_order,
+            categoryarray=heatmap_theme_order,
 
-        autorange="reversed",
+            autorange="reversed",
 
-        automargin=True
-    )
-
-
-    st.plotly_chart(
-        fig_heatmap,
-        use_container_width=True,
-        config={
-            "responsive": True
-        }
-    )
+            automargin=True
+        )
 
 
-    # ----------------------------------------------------
-    # CHART TITLE — BOTTOM, CENTERED, ITALIC
-    # ----------------------------------------------------
+        st.plotly_chart(
+            fig_heatmap,
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
+        )
 
-    st.markdown(
-        """
-        <div style="
-            font-size: 14px;
-            font-weight: 400;
-            font-style: italic;
-            color: black;
-            text-align: center;
-            margin-top: -18px;
-            margin-bottom: 10px;
-        ">
-            Theme × Stance Heat Map
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+
+        # ----------------------------------------------------
+        # CHART TITLE — BOTTOM, CENTERED, ITALIC
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                font-size: 14px;
+                font-weight: 400;
+                font-style: italic;
+                color: black;
+                text-align: center;
+                margin-top: -18px;
+                margin-bottom: 10px;
+            ">
+                Theme × Stance Heat Map
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 
     # ========================================================
     # RESEARCH QUESTION 3
@@ -2495,7 +2495,6 @@ with col2:
         """,
         unsafe_allow_html=True
     )
-
 
 
     # ========================================================
