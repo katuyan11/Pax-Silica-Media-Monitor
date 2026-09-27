@@ -451,6 +451,8 @@ def fetch_rss_articles():
 # GOOGLE NEWS RSS (free, no quota — Philippine edition search)
 # ============================================================
 
+_decode_cache = {}  # module-level cache, cleared each run since this is a script
+
 def fetch_google_news_rss():
     """Search Google News RSS, filtered to Philippine edition, for each topic.
     Free and unlimited — no quota, unlike World News API.
@@ -476,6 +478,8 @@ def fetch_google_news_rss():
             print(f"Google News RSS error for '{topic}': {e}")
             continue
 
+        print(f"  {len(feed.entries)} entries returned")
+
         for entry in feed.entries:
             raw_title = (entry.get("title") or "").strip()
             raw_summary = entry.get("summary") or ""
@@ -484,16 +488,36 @@ def fetch_google_news_rss():
             if not raw_title or not google_url:
                 continue
 
+            # --- Cheap relevance pre-check on raw text, BEFORE decoding ---
+            # Decoding is the slow, network-bound step (one+ requests per
+            # article, with a deliberate sleep between them to avoid being
+            # rate-limited). Most entries from broad queries like "BCDA" or
+            # "Aeta ancestral domain" won't mention Pax Silica at all, so
+            # filtering here first avoids decoding articles we'd throw away
+            # anyway.
+            raw_combined = f"{raw_title} {clean_html(raw_summary)}".lower()
+            if not any(term in raw_combined for term in ANCHOR_TERMS):
+                continue
+            if any(term in raw_combined for term in EXCLUDE_TERMS):
+                continue
+
             # --- Date filter: skip anything published before Pax Silica existed ---
             published_parsed = entry.get("published_parsed")
             if published_parsed:
                 published_dt = datetime(*published_parsed[:6], tzinfo=timezone.utc)
                 if published_dt < MIN_PUBLISH_DATE:
                     continue
-            # No parseable date at all — can't confirm it's old, so let it
-            # through to the relevance check below instead of dropping it blind.
 
-            resolved_url = resolve_google_news_url(google_url)
+            # --- Decode, using an in-run cache ---
+            # The same real article can surface under several different
+            # DEFAULT_TOPICS queries in one run, each time with a fresh
+            # redirect token, so cache on the raw token to avoid re-decoding
+            # (and re-hitting the network) for stories we've already resolved.
+            if google_url in _decode_cache:
+                resolved_url = _decode_cache[google_url]
+            else:
+                resolved_url = resolve_google_news_url(google_url)
+                _decode_cache[google_url] = resolved_url
 
             source_name = ""
             if entry.get("source"):
@@ -503,16 +527,6 @@ def fetch_google_news_rss():
 
             title = strip_source_from_title(raw_title, source_name)
             description = clean_html(raw_summary)
-
-            # --- Strict relevance check for this source specifically ---
-            # Require the literal anchor term; do NOT fall back to the
-            # secondary-term co-occurrence rule used elsewhere, since that
-            # rule is what let generic BCDA/NCC stories through here.
-            combined_text = f"{title} {description}".lower()
-            if not any(term in combined_text for term in ANCHOR_TERMS):
-                continue
-            if any(term in combined_text for term in EXCLUDE_TERMS):
-                continue
 
             row = {
                 "topic": topic,
@@ -531,8 +545,6 @@ def fetch_google_news_rss():
             articles.append(row)
 
     return articles
-
-
 # ============================================================
 # NORMALIZE DATA
 # ============================================================
