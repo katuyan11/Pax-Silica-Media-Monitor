@@ -2648,8 +2648,6 @@ else:
         "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
         unsafe_allow_html=True
     )
-
-    st.markdown("---")
     
     # ========================================================
     # RESEARCH QUESTION 4
