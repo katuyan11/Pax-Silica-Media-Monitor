@@ -2782,154 +2782,118 @@ else:
         unsafe_allow_html=True
     )
 
-        # ========================================================
+    # ========================================================
     # OUTLET TYPE MAPPING
     # ========================================================
+    # A few sources are excluded rather than mapped — see EXCLUDED_SOURCES
+    # below. facebook.com posts don't identify which page posted them, and
+    # "ph" is a URL-parsing artifact, not a real outlet name.
 
     OUTLET_TYPE_MAP = {
-        "Pna": "State-Owned",
-        "Pia": "State-Owned",
 
-        "Rappler": "Independent Local",
-        "Inquirer": "Independent Local",
-        "Gma News": "Independent Local",
-        "Philstar": "Independent Local",
-        "Manila Bulletin": "Independent Local",
-        "Manila Times": "Independent Local",
-        "Manila Standard": "Independent Local",
-        "Tribune": "Independent Local",
+        # --- State-Owned Local ---
+        "Philippine Information Agency": "State-Owned Local",
+        "Philippine News Agency": "State-Owned Local",
+        "ptvnews.ph": "State-Owned Local",
+        "pco.gov.ph": "State-Owned Local",
+
+        # --- Independent Local ---
+        "The Tribune": "Independent Local",
         "Daily Tribune": "Independent Local",
+        "Tribune.net.ph": "Independent Local",
+        "DZRH": "Independent Local",
+        "politiko.com.ph": "Independent Local",
+        "Inquirer.net": "Independent Local",
+        "newsinfo.inquirer.net": "Independent Local",
+        "Philippine Daily Inquirer": "Independent Local",
+        "Philippine Daily Inquirer - Business": "Independent Local",
+        "Philippine Daily Inquirer - Newsinfo": "Independent Local",
+        "Inquirer Technology": "Independent Local",
+        "Manila Standard": "Independent Local",
+        "Punto! Central Luzon": "Independent Local",
+        "Philstar.com": "Independent Local",
+        "Philippine Star": "Independent Local",
+        "Philstar Life": "Independent Local",
+        "SunStar Publishing Inc.": "Independent Local",
+        "Cebu Daily News": "Independent Local",
         "Bulatlat": "Independent Local",
-        "Abante": "Independent Local",
-        "Punto": "Independent Local",
+        "Rappler": "Independent Local",
+        "Newsbytes.PH": "Independent Local",
+        "Explained PH": "Independent Local",
+        "Manila Bulletin": "Independent Local",
+        "ABS-CBN": "Independent Local",
+        "ABS-CBN News": "Independent Local",
+        "Abs Cbn": "Independent Local",
+        "abs-cbn.com": "Independent Local",
+        "Interaksyon": "Independent Local",
+        "GMA Network": "Independent Local",
+        "GMA News": "Independent Local",
+        "The Voice Newsweekly": "Independent Local",
+        "pageone.ph": "Independent Local",
+        "Kami.com.ph": "Independent Local",
+        "Sugbo.ph": "Independent Local",
+        "The Summit Express": "Independent Local",
+        "Pampanga News Now": "Independent Local",
+        "BusinessWorld Online": "Independent Local",
+        "Bworldonline": "Independent Local",
+        "BusinessMirror": "Independent Local",
+        "Malaya Business Insight": "Independent Local",
+        "PEP.ph": "Independent Local",
+        "The Manila Times": "Independent Local",
+        "Manilatimes": "Independent Local",
+        "negrosnowdaily.com": "Independent Local",
+        "Davao Today": "Independent Local",
+        "The GUIDON": "Independent Local",
+        "startupfortune.com": "Independent Local",
+        "thephilbiznews": "Independent Local",
+        "InsiderPH": "Independent Local",
+        "Bilyonaryo Business": "Independent Local",
+        "Technobaboy": "Independent Local",
+        "Karapatan": "Independent Local",  # advocacy org, not a press outlet — flagged in write-up
+        "Raissa Robles": "Independent Local",  # PH-based; also an SCMP correspondent — ambiguous, see note
+        "Sam Beltran": "Independent Local",  # unconfirmed outlet affiliation
 
-        "Scmp": "International",
+        # --- International ---
         "Gulf News": "International",
+        "ANI News": "International",
+        "South China Morning Post": "International",
+        "scmp.com": "International",
+        "visiontimes.com": "International",
+        "W.Media": "International",
+        "Supply Chain Digital Magazine": "International",
+        "Crypto Briefing": "International",
+        "Taiwan News": "International",
+        "International Business Times UK": "International",
+        "Eco-Business": "International",
+        "fDi Intelligence": "International",
         "Global Times": "International",
-        "Rfa": "International",
+        "Radio Free Asia": "International",
+        "Jason Gutierrez For Rfa": "International",
+        "Arab News": "International",
+        "AFP": "International",
+        "Agence France-Presse": "International",
+        "Decode39": "International",
+        "Jay Hilotin": "International",  # Gulf News correspondent
+        "Ellie Aben": "International",  # Gulf News correspondent
+        "The Foundation for American Innovation": "International",
+        "Peace Brigades International-Canada": "International",  # advocacy org, not a press outlet
+        "ChemAnalyst": "International",
     }
 
 
-    # ========================================================
-    # OUTLET TYPE × STANCE CHART
-    # ========================================================
-
-    outlet_df = df.copy()
-
-    outlet_df["outlet_type"] = (
-        outlet_df["source"]
-        .map(OUTLET_TYPE_MAP)
-        .fillna("Independent Local")
-    )
-
-    outlet_df["stance"] = (
-        outlet_df["stance"]
-        .fillna("Neutral")
-        .astype(str)
-        .str.strip()
-        .str.title()
-        .replace({
-            "Positive": "Supportive",
-            "Negative": "Critical"
-        })
-    )
-
-    outlet_df = outlet_df[
-        outlet_df["stance"].isin(STANCE_ORDER)
-    ].copy()
-
-
     # --------------------------------------------------------
-    # AGGREGATE COUNTS BY OUTLET TYPE + STANCE
+    # SOURCES TO EXCLUDE FROM THIS COMPARISON
     # --------------------------------------------------------
+    # facebook.com doesn't identify which page posted the article, and
+    # "ph" is a URL-parsing artifact rather than a real outlet name —
+    # neither can be reliably classified by outlet type.
 
-    outlet_stance = (
-        outlet_df
-        .groupby(
-            [
-                "outlet_type",
-                "stance"
-            ]
-        )
-        .size()
-        .reset_index(
-            name="count"
-        )
-    )
+    EXCLUDED_SOURCES = [
+        "facebook.com",
+        "ph",
+    ]
 
-
-    # --------------------------------------------------------
-    # CONVERT TO PERCENT OF EACH OUTLET TYPE'S TOTAL
-    # --------------------------------------------------------
-
-    outlet_stance["percent"] = (
-        outlet_stance
-        .groupby("outlet_type")["count"]
-        .transform(
-            lambda x: x / x.sum() * 100
-        )
-    )
-
-
-    # --------------------------------------------------------
-    # BUILD CHART
-    # --------------------------------------------------------
-
-    if not outlet_stance.empty:
-
-        fig_outlet = px.bar(
-            outlet_stance,
-
-            x="percent",
-
-            y="outlet_type",
-
-            color="stance",
-
-            orientation="h",
-
-            category_orders={
-                "stance": STANCE_ORDER
-            },
-
-            labels={
-                "percent": "% of Coverage",
-                "outlet_type": "Outlet Type",
-                "stance": "Stance"
-            }
-        )
-
-        fig_outlet.update_layout(
-            barmode="stack",
-            height=350,
-            autosize=True,
-            xaxis_title="% of Coverage",
-            yaxis_title="Outlet Type",
-            legend_title="Stance",
-            margin=dict(
-                l=10,
-                r=20,
-                t=40,
-                b=40
-            )
-        )
-
-        st.plotly_chart(
-            fig_outlet,
-            use_container_width=True,
-            config={
-                "responsive": True
-            }
-        )
-
-    else:
-
-        st.info(
-            "No outlet-tagged, stance-classified articles are available "
-            "yet to compare coverage by outlet type."
-        )
-
-  
+    
 
     st.markdown("---")
 
