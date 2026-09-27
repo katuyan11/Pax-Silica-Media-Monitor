@@ -35,26 +35,20 @@ st.markdown("""
     border-radius: 12px;
     margin-bottom: 1.5rem;
 ">
-  <p style="color:#E8A33D; font-weight:700; letter-spacing:2px; font-size:0.8rem; margin:0 0 0.4rem 0; text-transform:uppercase;">
-    NLP News Monitor · Eskwelabs Capstone 2026
+  <p style="color:#E8A33D; font-weight:700; letter-spacing:2px; font-size:0.8rem; margin:0 0 0.4rem 0; text-transform:propercase;">
+    NLP News Monitor
   </p>
   <h1 style="color:white; font-size:2.1rem; font-weight:800; margin:0; line-height:1.25;">
-    Monitoring the Conversation
+    Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
   </h1>
   <p style="color:#9FC6CF; font-size:1.05rem; margin-top:0.6rem; margin-bottom:0;">
-    Tracking Philippine media coverage of the Pax Silica initiative
+    Using NLP to track Themes and Stances
   </p>
 </div>
 """, unsafe_allow_html=True)
 st.set_page_config(
-    page_title="Monitoring the Conversation: A News Monitoring Prototype"
-    "to Track Media Coverage of the Pax Silica Initiative in the Philippines",
+    page_title="Pax Silica News Monitor",
     layout="wide"
-)
-
-st.title(
-    "Monitoring the Conversation: A News Monitoring Prototype "
-    "to Track Media Coverage of the Pax Silica Initiative in the Philippines"
 )
 
 st.markdown(
