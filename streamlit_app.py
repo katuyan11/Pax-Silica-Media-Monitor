@@ -2464,9 +2464,7 @@ if not bubble_data.empty and not events_df.empty:
             ">
             Coverage around significant events is most strongly concentrated
             on <b>{event_theme}</b>, with <b>{event_stance}</b> emerging as
-            the dominant stance during these periods. This suggests that
-            major developments coincide with shifts in which themes receive
-            the most attention and how those developments are framed.
+            the dominant stance during these periods.
             </div>
             """,
             unsafe_allow_html=True
