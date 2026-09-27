@@ -2710,3 +2710,11 @@ else:
         articles_display,
         use_container_width=True
     )
+
+    st.markdown("---")
+    st.caption(
+        "Built by Katherine Uyan · Eskwelabs Data Analytics Capstone, 2026 · "
+        "This is a working prototype — themes and stances are detected using "
+        "rule-based NLP and should be read as a signal, not a definitive claim. "
+        "View methodology on GitHub - https://github.com/katuyan11/newsmonitornlp"
+    )
