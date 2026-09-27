@@ -2366,7 +2366,7 @@ else:
                     )
                 )
 
-        # ========================================================
+                # ========================================================
         # BUBBLE MATRIX TAKEAWAY
         # ========================================================
 
@@ -2443,6 +2443,52 @@ else:
                 "Coverage around significant events shows shifts in "
                 "dominant themes and stances across the coverage period."
             )
+
+        # --------------------------------------------------------
+        # CRITICAL COVERAGE TREND SINCE SONA
+        # --------------------------------------------------------
+        # Checks whether Critical coverage's share of total coverage
+        # rose meaningfully after the SONA mention specifically — this
+        # is the shift you noticed visually in the chart, so it's worth
+        # calling out explicitly rather than leaving the takeaway static
+        # on "what theme/stance dominates" alone.
+
+        sona_events = events_df[
+            events_df["label"].astype(str).str.contains("SONA", case=False, na=False)
+        ]
+
+        if not sona_events.empty:
+
+            sona_date = sona_events["date"].iloc[0]
+
+            before_sona = bubble_data[bubble_data["date"] < sona_date]
+            after_sona = bubble_data[bubble_data["date"] >= sona_date]
+
+            def critical_share(data):
+                total = data["article_count"].sum()
+                if total == 0:
+                    return None
+                critical_count = data.loc[
+                    data["stance"] == "Critical", "article_count"
+                ].sum()
+                return critical_count / total
+
+            share_before = critical_share(before_sona)
+            share_after = critical_share(after_sona)
+
+            # Only surface this if the shift is large enough to be a real
+            # pattern rather than noise from a small before-period sample.
+            if (
+                share_before is not None
+                and share_after is not None
+                and (share_after - share_before) >= 0.10
+            ):
+                bubble_takeaway += (
+                    f" Critical coverage has climbed since the SONA mention — "
+                    f"from {share_before:.0%} of coverage beforehand to "
+                    f"{share_after:.0%} afterward."
+                )
+
         # ----------------------------------------------------
         # DISPLAY TAKEAWAY ABOVE THE BUBBLE CHART
         # ----------------------------------------------------
