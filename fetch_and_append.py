@@ -24,7 +24,7 @@ SHEET_TAB_NAME = "Clean_Data"
 
 # No genuine Pax Silica coverage can predate this — anything older is
 # necessarily about an unrelated historical BCDA/New Clark City story.
-MIN_PUBLISH_DATE = datetime(2025, 6, 1, tzinfo=timezone.utc)
+MIN_PUBLISH_DATE = datetime(2025, 12, 1, tzinfo=timezone.utc)
 
 RSS_FEEDS = {
     "GMA News": "https://www.gmanetwork.com/news/rss/",
@@ -214,22 +214,19 @@ def clean_html(raw_html: str) -> str:
     return re.sub(r"<[^>]+>", "", raw_html or "").replace("&nbsp;", " ").strip()
 
 
-def resolve_google_news_url(google_url: str) -> str:
+def resolve_google_news_url(google_url: str):
     """Decode Google News' redirect token to get the real publisher URL.
-    requests.get(..., allow_redirects=True) can't follow this — Google
-    News RSS links use a JS/token-based redirect, not a standard HTTP
-    redirect — so a plain requests call silently fails to reach the real
-    publisher page and just returns the same news.google.com URL. That
-    was letting old articles slip past the URL-based dedup check, since
-    the same real article can get a different unresolved token depending
-    on which search query in DEFAULT_TOPICS surfaced it."""
+    Returns (resolved_url, success) instead of silently falling back —
+    a fallback to the raw, unresolved google_url was causing duplicate
+    appends, since an undecoded link doesn't match the real article's
+    URL or outlet name from a prior successful run."""
     try:
         result = gnewsdecoder(google_url, interval=1)
         if result.get("status") and result.get("decoded_url"):
-            return result["decoded_url"]
-        return google_url
+            return result["decoded_url"], True
+        return google_url, False
     except Exception:
-        return google_url
+        return google_url, False
 
 
 def strip_source_from_title(title: str, source_name: str) -> str:
@@ -465,6 +462,7 @@ def fetch_google_news_rss():
     """
 
     articles = []
+    skipped_decode_failures = 0
 
     for topic in DEFAULT_TOPICS:
         print(f"Fetching Google News RSS: {topic}")
@@ -512,12 +510,23 @@ def fetch_google_news_rss():
             # The same real article can surface under several different
             # DEFAULT_TOPICS queries in one run, each time with a fresh
             # redirect token, so cache on the raw token to avoid re-decoding
-            # (and re-hitting the network) for stories we've already resolved.
+            # (and re-hitting the network) for stories we've already resolved
+            # — or already failed to resolve, in the same run.
             if google_url in _decode_cache:
-                resolved_url = _decode_cache[google_url]
+                resolved_url, decode_success = _decode_cache[google_url]
             else:
-                resolved_url = resolve_google_news_url(google_url)
-                _decode_cache[google_url] = resolved_url
+                resolved_url, decode_success = resolve_google_news_url(google_url)
+                _decode_cache[google_url] = (resolved_url, decode_success)
+
+            # --- Skip entries that failed to decode ---
+            # Keeping a failed decode's raw, unresolved news.google.com URL
+            # was causing duplicate appends: it doesn't match the real
+            # article's URL or outlet name from a prior successful run, so
+            # dedup treats it as a new article. Skipping means it'll simply
+            # get picked up cleanly on a later run instead.
+            if not decode_success:
+                skipped_decode_failures += 1
+                continue
 
             source_name = ""
             if entry.get("source"):
@@ -544,6 +553,7 @@ def fetch_google_news_rss():
 
             articles.append(row)
 
+    print(f"Skipped due to decode failure: {skipped_decode_failures}")
     return articles
 # ============================================================
 # NORMALIZE DATA
