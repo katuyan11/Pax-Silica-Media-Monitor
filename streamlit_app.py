@@ -2955,15 +2955,22 @@ else:
         )
     )
 
-
-    # --------------------------------------------------------
+        # --------------------------------------------------------
     # OUTLET TYPE TAKEAWAY
     # --------------------------------------------------------
-    # Compares each outlet type's Critical-coverage share to find the
-    # widest gap — this is the actual comparative claim the chart is
-    # meant to show, computed from the data rather than assumed.
+    # Always names which outlet type leans most Supportive — this is
+    # useful on its own, not just as a side note to a Critical-coverage
+    # gap. A separate Critical-coverage clause is added only when that
+    # gap is wide enough to be a real pattern.
 
     if not outlet_stance.empty:
+
+        supportive_shares = (
+            outlet_stance[
+                outlet_stance["stance"] == "Supportive"
+            ]
+            .set_index("outlet_type")["percent"]
+        )
 
         critical_shares = (
             outlet_stance[
@@ -2972,11 +2979,16 @@ else:
             .set_index("outlet_type")["percent"]
         )
 
-        # Outlet types with zero Critical coverage won't appear in the
-        # groupby result above, so fill in 0% for any missing type.
+        # Outlet types with zero articles in a given stance won't appear
+        # in the groupby result above, so fill in 0% for any missing type.
         for outlet_type in outlet_stance["outlet_type"].unique():
+            if outlet_type not in supportive_shares.index:
+                supportive_shares[outlet_type] = 0.0
             if outlet_type not in critical_shares.index:
                 critical_shares[outlet_type] = 0.0
+
+        highest_supportive_type = supportive_shares.idxmax()
+        highest_supportive_value = supportive_shares.max()
 
         highest_critical_type = critical_shares.idxmax()
         lowest_critical_type = critical_shares.idxmin()
@@ -2984,21 +2996,23 @@ else:
         highest_critical_value = critical_shares.max()
         lowest_critical_value = critical_shares.min()
 
-        gap = highest_critical_value - lowest_critical_value
+        critical_gap = highest_critical_value - lowest_critical_value
 
-        # Only frame this as a notable gap if it's large enough to be a
-        # real pattern rather than noise from a small outlet-type sample.
-        if gap >= 10:
-            outlet_takeaway = (
-                f"{highest_critical_type} coverage skews far more Critical "
-                f"({highest_critical_value:.0f}% of its coverage) than "
-                f"{lowest_critical_type} coverage "
-                f"({lowest_critical_value:.0f}%)."
-            )
-        else:
-            outlet_takeaway = (
-                "Critical coverage is fairly evenly distributed across "
-                "outlet types, with no single group standing out."
+        outlet_takeaway = (
+            f"{highest_supportive_type} coverage leans most Supportive "
+            f"({highest_supportive_value:.0f}% of its coverage)."
+        )
+
+        # Only add a Critical-coverage clause if the gap is wide enough
+        # to be a real pattern rather than noise from a small sample —
+        # and skip it if the same outlet type already leads on Supportive
+        # AND has the lowest Critical share, since that would just repeat
+        # the same point.
+        if critical_gap >= 10 and highest_critical_type != highest_supportive_type:
+            outlet_takeaway += (
+                f" {highest_critical_type} coverage, by contrast, skews "
+                f"most Critical ({highest_critical_value:.0f}%), compared "
+                f"with {lowest_critical_type} at {lowest_critical_value:.0f}%."
             )
 
     else:
@@ -3007,7 +3021,8 @@ else:
             "yet to compare coverage by outlet type."
         )
 
-
+    
+        
     # --------------------------------------------------------
     # BUILD CHART
     # --------------------------------------------------------
