@@ -2782,6 +2782,155 @@ else:
         unsafe_allow_html=True
     )
 
+        # ========================================================
+    # OUTLET TYPE MAPPING
+    # ========================================================
+
+    OUTLET_TYPE_MAP = {
+        "Pna": "State-Owned",
+        "Pia": "State-Owned",
+
+        "Rappler": "Independent Local",
+        "Inquirer": "Independent Local",
+        "Gma News": "Independent Local",
+        "Philstar": "Independent Local",
+        "Manila Bulletin": "Independent Local",
+        "Manila Times": "Independent Local",
+        "Manila Standard": "Independent Local",
+        "Tribune": "Independent Local",
+        "Daily Tribune": "Independent Local",
+        "Bulatlat": "Independent Local",
+        "Abante": "Independent Local",
+        "Punto": "Independent Local",
+
+        "Scmp": "International",
+        "Gulf News": "International",
+        "Global Times": "International",
+        "Rfa": "International",
+    }
+
+
+    # ========================================================
+    # OUTLET TYPE × STANCE CHART
+    # ========================================================
+
+    outlet_df = df.copy()
+
+    outlet_df["outlet_type"] = (
+        outlet_df["source"]
+        .map(OUTLET_TYPE_MAP)
+        .fillna("Independent Local")
+    )
+
+    outlet_df["stance"] = (
+        outlet_df["stance"]
+        .fillna("Neutral")
+        .astype(str)
+        .str.strip()
+        .str.title()
+        .replace({
+            "Positive": "Supportive",
+            "Negative": "Critical"
+        })
+    )
+
+    outlet_df = outlet_df[
+        outlet_df["stance"].isin(STANCE_ORDER)
+    ].copy()
+
+
+    # --------------------------------------------------------
+    # AGGREGATE COUNTS BY OUTLET TYPE + STANCE
+    # --------------------------------------------------------
+
+    outlet_stance = (
+        outlet_df
+        .groupby(
+            [
+                "outlet_type",
+                "stance"
+            ]
+        )
+        .size()
+        .reset_index(
+            name="count"
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # CONVERT TO PERCENT OF EACH OUTLET TYPE'S TOTAL
+    # --------------------------------------------------------
+
+    outlet_stance["percent"] = (
+        outlet_stance
+        .groupby("outlet_type")["count"]
+        .transform(
+            lambda x: x / x.sum() * 100
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # BUILD CHART
+    # --------------------------------------------------------
+
+    if not outlet_stance.empty:
+
+        fig_outlet = px.bar(
+            outlet_stance,
+
+            x="percent",
+
+            y="outlet_type",
+
+            color="stance",
+
+            orientation="h",
+
+            category_orders={
+                "stance": STANCE_ORDER
+            },
+
+            labels={
+                "percent": "% of Coverage",
+                "outlet_type": "Outlet Type",
+                "stance": "Stance"
+            }
+        )
+
+        fig_outlet.update_layout(
+            barmode="stack",
+            height=350,
+            autosize=True,
+            xaxis_title="% of Coverage",
+            yaxis_title="Outlet Type",
+            legend_title="Stance",
+            margin=dict(
+                l=10,
+                r=20,
+                t=40,
+                b=40
+            )
+        )
+
+        st.plotly_chart(
+            fig_outlet,
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
+        )
+
+    else:
+
+        st.info(
+            "No outlet-tagged, stance-classified articles are available "
+            "yet to compare coverage by outlet type."
+        )
+
+  
+
     st.markdown("---")
 
     # ========================================================
