@@ -28,9 +28,27 @@ nltk.download("stopwords", quiet=True)
 # ============================================================
 # PAGE CONFIGURATION
 # ============================================================
-
+st.markdown("""
+<div style="
+    background: linear-gradient(90deg, #21295C 0%, #1C7293 100%);
+    padding: 2.2rem 2.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+">
+  <p style="color:#E8A33D; font-weight:700; letter-spacing:2px; font-size:0.8rem; margin:0 0 0.4rem 0; text-transform:uppercase;">
+    NLP News Monitor · Eskwelabs Capstone 2026
+  </p>
+  <h1 style="color:white; font-size:2.1rem; font-weight:800; margin:0; line-height:1.25;">
+    Monitoring the Conversation
+  </h1>
+  <p style="color:#9FC6CF; font-size:1.05rem; margin-top:0.6rem; margin-bottom:0;">
+    Tracking Philippine media coverage of the Pax Silica initiative
+  </p>
+</div>
+""", unsafe_allow_html=True)
 st.set_page_config(
-    page_title="Pax Silica News Monitor",
+    page_title="Monitoring the Conversation: A News Monitoring Prototype"
+    "to Track Media Coverage of the Pax Silica Initiative in the Philippines",
     layout="wide"
 )
 
