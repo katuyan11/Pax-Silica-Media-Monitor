@@ -2728,7 +2728,7 @@ else:
 
     st.markdown("---")
     st.caption(
-        "Built by Katherine Uyan · Eskwelabs Data Analytics Capstone, 2026 · "
+        "Built by __________ · Eskwelabs Data Analytics Capstone, 2026 · "
         "This is a working prototype — themes and stances are detected using "
         "Rule-based keyword matching NLP and is not a definitive claim. "
         "View methodology on GitHub - https://github.com/katuyan11/newsmonitornlp"
