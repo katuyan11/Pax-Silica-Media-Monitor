@@ -1083,12 +1083,13 @@ else:
         st.markdown(
             """
             <div style="
-                font-size: 14px;
-                color: black;
+                font-size: 12px;
+                color: gray;
                 margin-top: 10px;
                 margin-bottom: 10px;
-                text-align: justify;
+                text-align: left;
             ">
+            <b>Definitions</b>
             <b>Supportive:</b> Article text contains more supportive language than critical language, such as references to benefits, opportunities, growth, investment, jobs, or backing and welcoming of Pax Silica-related developments.<br><br>
             <b>Neutral:</b> Article text shows no clear predominance of either signal. This includes straightforward reporting, explainers, and articles where supportive and critical language appear in roughly equal measure or not at all.<br><br>
             <b>Critical:</b> Article text contains more critical language than supportive language, such as references to concerns, risks, opposition, protests, displacement, scrutiny, or backlash toward Pax Silica-related developments.
