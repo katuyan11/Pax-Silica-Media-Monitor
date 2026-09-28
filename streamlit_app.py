@@ -1323,30 +1323,6 @@ else:
             unsafe_allow_html=True
         )
 
-
-        # ----------------------------------------------------
-        # EXPLANATORY TEXT
-        # ----------------------------------------------------
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            Cell color shows each theme's stance <em>mix</em> — the share of
-            that theme's articles falling into each stance — so themes of
-            different sizes can be compared fairly. Numbers show the actual
-            article count. The Total column (uncolored) shows the cumulative
-            number of articles for that theme.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
         # ----------------------------------------------------
         # ORDER THEMES BY TOTAL VOLUME
         # ----------------------------------------------------
@@ -1497,6 +1473,29 @@ else:
             """,
             unsafe_allow_html=True
         )
+
+    # ----------------------------------------------------
+        # EXPLANATORY TEXT
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Cell color shows each theme's stance <em>mix</em> — the share of
+            that theme's articles falling into each stance — so themes of
+            different sizes can be compared fairly. Numbers show the actual
+            article count. The Total column (uncolored) shows the cumulative
+            number of articles for that theme.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
 
     st.markdown("---")
 
