@@ -3155,6 +3155,358 @@ else:
             "yet to compare coverage by outlet type."
         )
 
+
+    # ========================================================
+    # OUTLET TYPE × THEME CHART  [NEW]
+    # ========================================================
+    # Shows which themes each outlet type covers. Values are the share
+    # of that outlet type's unique articles that touch each theme, so
+    # outlet types with very different article volumes can be compared
+    # fairly. Because an article can carry more than one theme, each
+    # column can add up to more than 100%.
+
+    st.markdown(
+        "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
+        unsafe_allow_html=True
+    )
+
+    theme_outlet_df = outlet_df.copy()
+
+
+    # --------------------------------------------------------
+    # UNIQUE ARTICLE ID (same approach used in the monthly summary)
+    # --------------------------------------------------------
+
+    if "url" in theme_outlet_df.columns:
+
+        theme_outlet_df["article_id"] = (
+            theme_outlet_df["url"]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+        )
+
+    else:
+
+        theme_outlet_df["article_id"] = ""
+
+    missing_theme_outlet_id = theme_outlet_df["article_id"].eq("")
+
+    theme_outlet_df.loc[
+        missing_theme_outlet_id,
+        "article_id"
+    ] = (
+        "row_"
+        + theme_outlet_df.index.astype(str)
+    )
+
+    theme_outlet_df = theme_outlet_df.drop_duplicates(
+        subset="article_id"
+    )
+
+
+    # --------------------------------------------------------
+    # UNIQUE ARTICLES PER OUTLET TYPE (denominator for percentages)
+    # --------------------------------------------------------
+
+    outlet_article_totals = (
+        theme_outlet_df
+        .groupby("outlet_type")["article_id"]
+        .nunique()
+        .reindex(
+            OUTLET_TYPE_ORDER,
+            fill_value=0
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # SPLIT MULTI-LABEL THEMES
+    # --------------------------------------------------------
+
+    theme_outlet_df["themes"] = (
+        theme_outlet_df["themes"]
+        .fillna("")
+        .astype(str)
+        .str.split(", ")
+    )
+
+    theme_outlet_df = theme_outlet_df.explode(
+        "themes"
+    )
+
+    theme_outlet_df = theme_outlet_df[
+        theme_outlet_df["themes"].isin(
+            THEME_ORDER
+        )
+    ].copy()
+
+    theme_outlet_df = theme_outlet_df.drop_duplicates(
+        subset=[
+            "article_id",
+            "themes"
+        ]
+    )
+
+
+    # --------------------------------------------------------
+    # COUNTS AND PERCENTAGES (THEME × OUTLET TYPE)
+    # --------------------------------------------------------
+
+    outlet_theme_counts = (
+        theme_outlet_df
+        .groupby(
+            [
+                "themes",
+                "outlet_type"
+            ]
+        )["article_id"]
+        .nunique()
+        .unstack(
+            fill_value=0
+        )
+        .reindex(
+            index=THEME_ORDER,
+            columns=OUTLET_TYPE_ORDER,
+            fill_value=0
+        )
+    )
+
+    outlet_theme_pct = (
+        outlet_theme_counts
+        .div(
+            outlet_article_totals.replace(0, np.nan),
+            axis=1
+        )
+        .fillna(0)
+        * 100
+    )
+
+
+    if outlet_theme_counts.values.sum() > 0:
+
+        # ----------------------------------------------------
+        # TAKEAWAY — THEME WITH THE WIDEST GAP BETWEEN OUTLET TYPES
+        # ----------------------------------------------------
+        # Only outlet types that actually have articles are compared,
+        # so an empty column can't create a fake gap.
+
+        valid_outlet_types = [
+            outlet_type
+            for outlet_type in OUTLET_TYPE_ORDER
+            if outlet_article_totals[outlet_type] > 0
+        ]
+
+        if len(valid_outlet_types) >= 2:
+
+            valid_pct = outlet_theme_pct[valid_outlet_types]
+
+            theme_gaps = (
+                valid_pct.max(axis=1)
+                - valid_pct.min(axis=1)
+            )
+
+            widest_gap_theme = theme_gaps.idxmax()
+
+            top_outlet_type = (
+                valid_pct.loc[widest_gap_theme]
+                .idxmax()
+            )
+
+            bottom_outlet_type = (
+                valid_pct.loc[widest_gap_theme]
+                .idxmin()
+            )
+
+            outlet_theme_takeaway = (
+                f"{widest_gap_theme} shows the widest gap between outlet "
+                f"types: {valid_pct.loc[widest_gap_theme, top_outlet_type]:.0f}% "
+                f"of {top_outlet_type} coverage versus "
+                f"{valid_pct.loc[widest_gap_theme, bottom_outlet_type]:.0f}% "
+                f"of {bottom_outlet_type} coverage."
+            )
+
+        else:
+
+            only_type = valid_outlet_types[0]
+
+            leading_theme = (
+                outlet_theme_pct[only_type]
+                .idxmax()
+            )
+
+            outlet_theme_takeaway = (
+                f"{leading_theme} is the most covered theme "
+                f"among {only_type} outlets "
+                f"({outlet_theme_pct.loc[leading_theme, only_type]:.0f}% "
+                f"of its coverage)."
+            )
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align: center;
+                font-size: 20px;
+                font-weight: 700;
+                color: black;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            ">
+            {outlet_theme_takeaway}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # BUILD HEAT MAP
+        # ----------------------------------------------------
+
+        outlet_column_labels = [
+            f"{outlet_type}<br>(n={int(outlet_article_totals[outlet_type])})"
+            for outlet_type in OUTLET_TYPE_ORDER
+        ]
+
+        outlet_theme_text = [
+            [
+                f"{outlet_theme_pct.loc[theme, outlet_type]:.0f}%"
+                f"<br>({int(outlet_theme_counts.loc[theme, outlet_type])})"
+                for outlet_type in OUTLET_TYPE_ORDER
+            ]
+            for theme in THEME_ORDER
+        ]
+
+        fig_outlet_theme = go.Figure(
+            data=go.Heatmap(
+                z=outlet_theme_pct.values,
+
+                x=outlet_column_labels,
+
+                y=THEME_ORDER,
+
+                text=outlet_theme_text,
+
+                texttemplate="%{text}",
+
+                textfont=dict(
+                    size=12
+                ),
+
+                colorscale="Blues",
+
+                zmin=0,
+
+                zmax=max(
+                    float(outlet_theme_pct.values.max()),
+                    1.0
+                ),
+
+                colorbar=dict(
+                    title="% of outlet<br>type's articles",
+                    ticksuffix="%"
+                ),
+
+                xgap=3,
+
+                ygap=3,
+
+                hovertemplate=(
+                    "Theme: %{y}<br>"
+                    "Outlet type: %{x}<br>"
+                    "Share / articles: %{text}"
+                    "<extra></extra>"
+                )
+            )
+        )
+
+        fig_outlet_theme.update_layout(
+            height=500,
+            autosize=True,
+            xaxis_title="",
+            yaxis_title="",
+            margin=dict(
+                l=10,
+                r=20,
+                t=20,
+                b=20
+            )
+        )
+
+        fig_outlet_theme.update_xaxes(
+            side="top"
+        )
+
+        fig_outlet_theme.update_yaxes(
+            categoryorder="array",
+            categoryarray=THEME_ORDER,
+            autorange="reversed",
+            automargin=True
+        )
+
+        st.plotly_chart(
+            fig_outlet_theme,
+            use_container_width=True,
+            config={
+                "responsive": True
+            }
+        )
+
+
+        # ----------------------------------------------------
+        # CHART TITLE — BOTTOM, CENTERED, ITALIC
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                font-size: 14px;
+                font-weight: 400;
+                font-style: italic;
+                color: black;
+                text-align: center;
+                margin-top: -8px;
+                margin-bottom: 10px;
+            ">
+                Theme Coverage by Outlet Type
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ----------------------------------------------------
+        # EXPLANATORY TEXT
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: left;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Cell color and the percentage show the share of each outlet type's
+            unique articles that touch a given theme, so outlet types with very
+            different article volumes can be compared fairly. The number in
+            parentheses is the actual article count, and <em>n</em> in each
+            column heading is the outlet type's total number of articles.
+            Percentages can add up to more than 100% within a column because
+            one article may be tagged with more than one theme. Outlet types
+            with few articles should be read cautiously.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    else:
+
+        st.info(
+            "No outlet-tagged, theme-classified articles are available "
+            "yet to compare themes by outlet type."
+        )
+
     st.markdown("---")
 
     # ========================================================
