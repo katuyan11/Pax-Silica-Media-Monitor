@@ -128,9 +128,9 @@ st.markdown(
 st.markdown("""
 <div style="
     background: linear-gradient(90deg, #1E2A50 0%, #244B6E 100%);
-    padding: 2.2rem 2.5rem;
+    padding: 2.1rem 2.4rem;
     border-radius: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.4rem;
 ">
   <p style="color:#E8A33D; font-weight:750; letter-spacing:1px; font-size:1.00rem; margin:0 0 0.5rem 0;">
     An Eskwelabs Data Analytics Capstone Project
