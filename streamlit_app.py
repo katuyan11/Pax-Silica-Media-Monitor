@@ -2804,7 +2804,7 @@ else:
             margin-top: 10px;
             margin-bottom: 4px;
         ">
-        4. How do domestic and international outlets differ in their coverage of Pax Silica?
+        4. How do local state-owned, local independent media and international outlets differ in their coverage of Pax Silica?
         </div>
 
         <div style="
@@ -2814,7 +2814,7 @@ else:
             color: black;
             margin-bottom: 10px;
         ">
-        If I only monitor from certain outlets, what perspective might I be missing?
+        If I only monitor from a certain type of outlet, what perspective might I be missing?
         </div>
         """,
         unsafe_allow_html=True
