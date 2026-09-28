@@ -29,6 +29,13 @@ nltk.download("stopwords", quiet=True)
 # PAGE CONFIGURATION
 # ============================================================
 
+# [BUG FIX] st.set_page_config must be the FIRST Streamlit command.
+# It was previously called after the CSS and banner st.markdown calls.
+st.set_page_config(
+    page_title="Pax Silica News Monitor",
+    layout="wide"
+)
+
 # ------------------------------------------------------------
 # [DESIGN FIX] Shared CSS for the header + metric cards.
 # Keeps the metric row visually grouped (bordered cards instead
@@ -85,6 +92,11 @@ st.markdown(
         margin: 0;
         line-height: 1.2;
     }
+    .metric-card .metric-note {
+        font-size: 0.75rem;
+        color: #6B7785;
+        margin: 0.3rem 0 0 0;
+    }
     .intro-copy p {
         text-align: left;
         color: #2A2F36;
@@ -92,50 +104,65 @@ st.markdown(
         line-height: 1.6;
         margin-bottom: 0.9rem;
     }
+
+    /* [DESIGN FIX] Refresh button: palette-matched, no default look */
+    .stButton > button {
+        background: #FFFFFF;
+        color: #21295C;
+        border: 1px solid #C9D2DC;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    .stButton > button:hover {
+        background: #F1F5F9;
+        border-color: #244B6E;
+        color: #244B6E;
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
+# [DESIGN FIX] Softer, near-flat gradient; divider line removed;
+# eyebrow letter-spacing reduced; invalid `propercase` value removed.
 st.markdown("""
 <div style="
-    background: linear-gradient(90deg, #21295C 0%, #1C7293 100%);
+    background: linear-gradient(90deg, #1E2A50 0%, #244B6E 100%);
     padding: 2.2rem 2.5rem;
     border-radius: 0;
     margin-bottom: 1.5rem;
 ">
-  <p style="color:#E8A33D; font-weight:700; letter-spacing:2px; font-size:0.8rem; margin:0 0 0.4rem 0; text-transform:propercase;">
+  <p style="color:#E8A33D; font-weight:700; letter-spacing:1px; font-size:0.85rem; margin:0 0 0.5rem 0;">
     NLP News Monitor
   </p>
-  <h1 style="color:white; font-size:2.1rem; font-weight:800; margin:0; line-height:1.25;">
+  <h1 style="color:white; font-size:2.1rem; font-weight:800; margin:0 0 1.1rem 0; line-height:1.25;">
     Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
   </h1>
-  <div style="height:1px; background:rgba(255,255,255,0.25); margin:0.9rem 0 0.7rem 0;"></div>
   <p style="color:#F2D9A8; font-size:1.05rem; font-weight:600; margin:0;">
     Using NLP to track Themes and Stances
   </p>
 </div>
 """, unsafe_allow_html=True)
-st.set_page_config(
-    page_title="Pax Silica News Monitor",
-    layout="wide"
-)
 
-# ------------------------------------------------------------
-# [DESIGN FIX] Left-aligned, broken into real <p> tags (was one
-# justified block with blank lines that HTML collapses), so it
-# reads as short paragraphs instead of a justified wall of text.
-# ------------------------------------------------------------
+# [DESIGN FIX] Intro trimmed to two paragraphs; methodology moved
+# into a collapsed expander.
 st.markdown(
     """
     <div class="intro-copy" style="margin-bottom: 8px;">
-    <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains and the Philippines is positioned to play a role in this emerging global network. As the initiative develops, Philippine news coverage is growing quickly — touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
-    <p>Following that conversation by hand can be difficult. As new developments unfold, new voices enter the discussion, and different outlets tend to focus on different aspects of the initiative. This dashboard follows that coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.</p>
-    <p>This prototype combines automated news collection with rule-based NLP. Articles are processed and classified by theme and stance using rule-based keyword matching and text preprocessing. These approaches provide a structured way to explore the themes and stances appearing across the monitored news coverage.</p>
+    <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains, and the Philippines is positioned to play a role in this emerging global network. Philippine news coverage is growing quickly, touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
+    <p>Following that conversation by hand is difficult: new developments unfold, new voices enter, and different outlets focus on different aspects. This dashboard follows coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.</p>
     </div>
     """,
     unsafe_allow_html=True
 )
+
+with st.expander("How this prototype works"):
+    st.write(
+        "This prototype combines automated news collection with rule-based NLP. "
+        "Articles are processed and classified by theme and stance using rule-based "
+        "keyword matching and text preprocessing. These approaches provide a structured "
+        "way to explore the themes and stances appearing across the monitored news coverage."
+    )
 
 # ============================================================
 # STANCE DISPLAY COLORS (kept consistent across all stance charts)
@@ -487,12 +514,8 @@ def get_top_terms(
 # LOAD DATA
 # ============================================================
 
-# ------------------------------------------------------------
-# [DESIGN FIX] Refresh button no longer floats alone above the
-# metrics — right-aligned into its own slim column next to a
-# small caption, so it reads as "controls for the row below" and
-# has an icon so it isn't a bare unstyled Streamlit button.
-# ------------------------------------------------------------
+# [DESIGN FIX] Refresh button: no emoji, palette-matched (see CSS),
+# with a tooltip that explains what it does.
 refresh_col_label, refresh_col_button = st.columns([5, 1])
 
 with refresh_col_label:
@@ -504,7 +527,11 @@ with refresh_col_label:
     )
 
 with refresh_col_button:
-    if st.button("🔄 Refresh Data", use_container_width=True):
+    if st.button(
+        "Refresh data",
+        use_container_width=True,
+        help="Reload the latest articles from the daily fetch."
+    ):
 
         st.cache_data.clear()
         st.rerun()
@@ -581,6 +608,14 @@ else:
 
         date_range_text = "N/A"
 
+    if not valid_dates.empty:
+
+        latest_article_text = valid_dates.max().strftime("%b %d, %Y")
+
+    else:
+
+        latest_article_text = "N/A"
+
     overview_cols = st.columns(3)
 
     # ------------------------------------------------------------
@@ -596,6 +631,7 @@ else:
             <div class="metric-card">
                 <p class="metric-label">Articles tracked</p>
                 <p class="metric-value">{overview_article_count:,}</p>
+                <p class="metric-note">Unique articles</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -608,6 +644,7 @@ else:
             <div class="metric-card">
                 <p class="metric-label">Coverage period</p>
                 <p class="metric-value">{date_range_text}</p>
+                <p class="metric-note">Latest article: {latest_article_text}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -632,6 +669,7 @@ else:
             <div class="metric-card">
                 <p class="metric-label">Outlets monitored</p>
                 <p class="metric-value">{outlets_value}</p>
+                <p class="metric-note">Unique sources</p>
             </div>
             """,
             unsafe_allow_html=True
