@@ -149,7 +149,7 @@ st.markdown("""
 st.markdown(
     """
     <div class="intro-copy" style="margin-bottom: 8px;">
-    <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains, and the Philippines is positioned to play a role in this emerging global network. Philippine news coverage is growing quickly, touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
+    <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains, and the Philippines is positioned to play a role in this emerging global network. News coverage is growing quickly, touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
     <p>Following that conversation by hand is difficult: new developments unfold, new voices enter, and different outlets focus on different aspects. This dashboard follows coverage over time, looking at what is being discussed, who is talking about it, and how the conversation shifts.</p>
     </div>
     """,
