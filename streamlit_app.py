@@ -3286,10 +3286,13 @@ else:
     if outlet_theme_counts.values.sum() > 0:
 
         # ----------------------------------------------------
-        # TAKEAWAY — THEME WITH THE WIDEST GAP BETWEEN OUTLET TYPES
+        # TAKEAWAY — MOST-COVERED THEME FOR EACH OUTLET TYPE
         # ----------------------------------------------------
-        # Only outlet types that actually have articles are compared,
-        # so an empty column can't create a fake gap.
+        # Names the theme that takes the largest share of each outlet
+        # type's coverage, so the reader sees what each type of outlet
+        # mostly talks about. Only outlet types that actually have
+        # articles are included, so an empty column can't produce a
+        # misleading "top theme".
 
         valid_outlet_types = [
             outlet_type
@@ -3297,49 +3300,37 @@ else:
             if outlet_article_totals[outlet_type] > 0
         ]
 
-        if len(valid_outlet_types) >= 2:
+        top_theme_parts = []
 
-            valid_pct = outlet_theme_pct[valid_outlet_types]
+        for outlet_type in valid_outlet_types:
 
-            theme_gaps = (
-                valid_pct.max(axis=1)
-                - valid_pct.min(axis=1)
-            )
-
-            widest_gap_theme = theme_gaps.idxmax()
-
-            top_outlet_type = (
-                valid_pct.loc[widest_gap_theme]
+            outlet_top_theme = (
+                outlet_theme_pct[outlet_type]
                 .idxmax()
             )
 
-            bottom_outlet_type = (
-                valid_pct.loc[widest_gap_theme]
-                .idxmin()
+            outlet_top_share = (
+                outlet_theme_pct.loc[outlet_top_theme, outlet_type]
             )
 
+            top_theme_parts.append(
+                f"{outlet_type} outlets mostly cover "
+                f"{outlet_top_theme} ({outlet_top_share:.0f}%)"
+            )
+
+        if len(top_theme_parts) > 1:
+
             outlet_theme_takeaway = (
-                f"{widest_gap_theme} shows the widest gap between outlet "
-                f"types: {valid_pct.loc[widest_gap_theme, top_outlet_type]:.0f}% "
-                f"of {top_outlet_type} coverage versus "
-                f"{valid_pct.loc[widest_gap_theme, bottom_outlet_type]:.0f}% "
-                f"of {bottom_outlet_type} coverage."
+                "; ".join(top_theme_parts[:-1])
+                + "; and "
+                + top_theme_parts[-1]
+                + "."
             )
 
         else:
 
-            only_type = valid_outlet_types[0]
-
-            leading_theme = (
-                outlet_theme_pct[only_type]
-                .idxmax()
-            )
-
             outlet_theme_takeaway = (
-                f"{leading_theme} is the most covered theme "
-                f"among {only_type} outlets "
-                f"({outlet_theme_pct.loc[leading_theme, only_type]:.0f}% "
-                f"of its coverage)."
+                top_theme_parts[0] + "."
             )
 
         st.markdown(
