@@ -1055,7 +1055,7 @@ else:
         st.markdown(
             """
             <div style="
-                text-align: justify;
+                text-align: left;
                 color: black;
                 font-size: 14px;
                 margin-bottom: 10px;
@@ -1481,7 +1481,7 @@ else:
         st.markdown(
             """
             <div style="
-                text-align: justify;
+                text-align: left;
                 color: black;
                 font-size: 14px;
                 margin-bottom: 10px;
