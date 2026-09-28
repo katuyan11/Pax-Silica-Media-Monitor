@@ -760,7 +760,7 @@ else:
         """
         <div style="
             color: black;
-            text-align: justify;
+            text-align: left;
             font-size: 14px;
             margin-bottom: 20px;
         ">
@@ -794,7 +794,7 @@ else:
             f"""
             <div style="
                 color: black;
-                text-align: justify;
+                text-align: left;
                 margin-bottom: 18px;
             ">
                 {THEME_DESCRIPTIONS[theme]}
@@ -3511,7 +3511,7 @@ else:
     st.markdown(
         """
         <div style="
-            text-align: justify;
+            text-align: left;
             color: black;
         ">
         New articles are collected through Google and media outlets'
