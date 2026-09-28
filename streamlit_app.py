@@ -949,7 +949,7 @@ else:
                 font-size: 22px;
                 font-weight: 700;
                 color: black;
-                text-align: left;
+                text-align: center;
                 margin-bottom: 10px;
             ">
                 {stance_takeaway}
@@ -1314,7 +1314,7 @@ else:
                 font-size: 22px;
                 font-weight: 700;
                 color: black;
-                text-align: left;
+                text-align: center;
                 margin-bottom: 8px;
             ">
                 {heatmap_takeaway}
