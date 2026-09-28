@@ -958,33 +958,6 @@ else:
             unsafe_allow_html=True
         )
 
-
-        # ----------------------------------------------------
-        # EXPLANATORY TEXT
-        # ----------------------------------------------------
-
-        st.markdown(
-            """
-            <div style="
-                text-align: justify;
-                color: black;
-                font-size: 14px;
-                margin-bottom: 10px;
-            ">
-            Stance is estimated using predefined words and phrases associated
-            with supportive or critical language in the available article text.
-            The classifier counts these indicators and assigns the stance based
-            on the stronger signal. Articles without a clear predominance of
-            either signal are classified as Neutral. This is a rule-based
-            classification and should be interpreted as a detected linguistic
-            signal rather than a definitive statement of the article's or
-            author's position.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
         # ----------------------------------------------------
         # STANCE CHART LABELS
         # ----------------------------------------------------
@@ -1075,6 +1048,30 @@ else:
             unsafe_allow_html=True
         )
 
+        # ----------------------------------------------------
+        # EXPLANATORY TEXT
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                text-align: justify;
+                color: black;
+                font-size: 14px;
+                margin-bottom: 10px;
+            ">
+            Stance is estimated using predefined words and phrases associated
+            with supportive or critical language in the available article text.
+            The classifier counts these indicators and assigns the stance based
+            on the stronger signal. Articles without a clear predominance of
+            either signal are classified as Neutral. This is a rule-based
+            classification and should be interpreted as a detected linguistic
+            signal rather than a definitive statement of the article's or
+            author's position.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         # ----------------------------------------------------
         # STANCE DEFINITIONS — BELOW THE STANCE CHART
