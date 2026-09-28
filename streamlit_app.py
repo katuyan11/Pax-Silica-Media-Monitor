@@ -133,7 +133,7 @@ st.markdown("""
     margin-bottom: 1.5rem;
 ">
   <p style="color:#E8A33D; font-weight:700; letter-spacing:1px; font-size:0.85rem; margin:0 0 0.5rem 0;">
-    NLP News Monitor
+    An Eskwelabs Data Analytics Capstone Project
   </p>
   <h1 style="color:white; font-size:2.1rem; font-weight:800; margin:0 0 1.1rem 0; line-height:1.25;">
     Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
