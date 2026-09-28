@@ -132,7 +132,7 @@ st.markdown("""
     border-radius: 0;
     margin-bottom: 1.5rem;
 ">
-  <p style="color:#E8A33D; font-weight:650; letter-spacing:1px; font-size:0.85rem; margin:0 0 0.5rem 0;">
+  <p style="color:#E8A33D; font-weight:750; letter-spacing:1px; font-size:1.00rem; margin:0 0 0.5rem 0;">
     An Eskwelabs Data Analytics Capstone Project
   </p>
   <h1 style="color:white; font-size:2.1rem; font-weight:800; margin:0 0 1.1rem 0; line-height:1.25;">
