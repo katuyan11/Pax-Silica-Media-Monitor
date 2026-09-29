@@ -73,8 +73,8 @@ st.markdown(
     .metric-card {
         background: #F7F9FB;
         border: 1px solid #E3E8EC;
-        border-radius: 10px;
-        padding: 0.9rem 1.1rem;
+        border-radius: 9px;
+        padding: 0.8rem 1.0rem;
         height: 35%;
     }
     .metric-card .metric-label {
