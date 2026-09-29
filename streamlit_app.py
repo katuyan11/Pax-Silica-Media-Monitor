@@ -2543,7 +2543,7 @@ else:
                     )
                 )
 
-                # ========================================================
+        # ========================================================
         # BUBBLE MATRIX TAKEAWAY
         # ========================================================
 
@@ -3103,9 +3103,9 @@ else:
         # stance chart, once you send it — Supportive/Neutral below are
         # placeholders too, matched to whatever Critical turns out to be.
         STANCE_COLOR_MAP = {
-            "Supportive": "#1C7293",   # placeholder — confirm against RQ2
-            "Neutral": "#9FC6CF",      # placeholder — confirm against RQ2
-            "Critical": "#d62728", # <-- exact RQ2 "Critical" hex goes here
+            "Supportive": "#1f77b4",   
+            "Neutral": "#a9c6e8",     
+            "Critical": "#d62728", 
         }
 
         fig_outlet = px.bar(
