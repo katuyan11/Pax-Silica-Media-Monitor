@@ -3593,12 +3593,22 @@ else:
         use_container_width=True
     )
 
-    st.markdown("---")
-    st.caption(
-	    "This report and app were developed by Katherine Uyan as an Eskwelabs "
-	    "Data Analytics Capstone Project. As a working prototype, its "
-	    "classifications may contain errors and should be read as "
-	    "indicative rather than definitive. More information on the "
-	    "project can be found here. "
-	)
+    st.markdown(
+    """
+    <div style="
+        color: #333333;
+        font-style: italic;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    ">
+    This report and app were developed by Katherine Uyan as an Eskwelabs
+	Data Analytics Capstone Project. As a working prototype, its
+	classifications may contain errors and should be read as
+	indicative rather than definitive. More information on the
+	project can be found here.
+
+    </div>
+    """,
+    unsafe_allow_html=True
+)
     
