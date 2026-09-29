@@ -2908,6 +2908,7 @@ else:
         "Karapatan": "Independent Local",  # advocacy org, not a press outlet — flagged in write-up
         "Raissa Robles": "Independent Local",  # PH-based; also an SCMP correspondent — ambiguous, see note
         "Sam Beltran": "Independent Local",  # unconfirmed outlet affiliation
+        "Mindanao Gold Star Daily": "Independent Local",
 
         # --- International ---
         "Gulf News": "International",
@@ -2934,6 +2935,8 @@ else:
         "The Foundation for American Innovation": "International",
         "Peace Brigades International-Canada": "International",  # advocacy org, not a press outlet
         "ChemAnalyst": "International",
+        "The Diplomat – Asia-Pacific Current Affairs Magazine": "International",
+        "canadianinquirer.net": "International",
     }
 
 
