@@ -3595,7 +3595,8 @@ else:
 
     st.markdown("---")
     st.caption(
-        "This report and the app were developed as an Eskwelabs Data Analytics Capstone Project. "
-        "This is a working prototype — themes and stances are detected using an NLP technique called "
-        "Rule-based keyword matching. "
+        "This report and app were developed as an Eskwelabs Data Analytics "
+	    "Capstone Project. This is a working prototype: themes and stances "
+	    "are detected using rule-based keyword matching, a natural language "
+	    "processing (NLP) technique."
     )
