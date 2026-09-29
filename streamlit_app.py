@@ -1594,7 +1594,7 @@ else:
         # AVAILABLE MONTHS
         # ----------------------------------------------------
 
-                available_months = sorted(
+        available_months = sorted(
             monthly_df["month"]
             .dropna()
             .unique(),
