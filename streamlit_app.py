@@ -3618,11 +3618,6 @@ st.markdown(
     <a href="YOUR_LINK" style="color: #333333;">here</a>.
     </div>
 
-    <div style="
-        background: linear-gradient(90deg, #1E2A50 0%, #244B6E 100%);
-        height: 3.5rem;
-        width: 100%;
-    "></div>
     """,
     unsafe_allow_html=True
 )
