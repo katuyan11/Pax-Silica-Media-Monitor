@@ -75,7 +75,7 @@ st.markdown(
         border: 1px solid #E3E8EC;
         border-radius: 10px;
         padding: 0.9rem 1.1rem;
-        height: 100%;
+        height: 90%;
     }
     .metric-card .metric-label {
         font-size: 0.78rem;
