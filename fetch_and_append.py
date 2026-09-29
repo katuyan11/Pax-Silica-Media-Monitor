@@ -141,6 +141,7 @@ SUPPORTIVE_WORDS = [
     "jobs", "bets", "trusted", "trusted partnership", "trust", 
     "beef up PH resiliency, industrialization", "keen on",
     "new global position", "promise", "sees promise", "promising",
+    "good deal",
 ]
 
 CRITICAL_WORDS = [
@@ -155,7 +156,7 @@ CRITICAL_WORDS = [
     "No to Pax Silica", "backlash", "exploitation", "scrutiny", "opposition",
     "scraps", "debunks claims", "laban", "kontra", "Scrap Pax Silica", "slammed",
     "slams", "force them off", "force off", "condemns", "condemn", "violent",
-    "dispute", "protest", "protesters",
+    "dispute", "protest", "protesters", "cancellation", "cancel",
 ]
 
 
