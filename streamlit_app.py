@@ -3552,7 +3552,6 @@ else:
     st.markdown("---")
     st.caption(
         "This report and the app were developed by Katherine Uyan, as her Eskwelabs Data Analytics Capstone Project. "
-        "This is a working prototype — themes and stances are detected using an NLP technique called"
+        "This is a working prototype — themes and stances are detected using an NLP technique called "
         "Rule-based keyword matching. "
-        "The technical documentation can be accessed here."
     )
