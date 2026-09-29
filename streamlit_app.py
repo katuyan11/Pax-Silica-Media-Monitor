@@ -128,17 +128,17 @@ st.markdown(
 st.markdown("""
 <div style="
     background: linear-gradient(90deg, #1E2A50 0%, #244B6E 100%);
-    padding: 1.0rem 1.8rem;
+    padding: 1.6rem 2.2rem;
     border-radius: 0;
-    margin-bottom: 1rem;
+    margin-bottom: 1.3rem;
 ">
-  <p style="color:#E8A33D; font-weight:750; letter-spacing:0.8px; font-size:0.85rem; margin:0 0 0.3rem 0; line-height:1.3;">
+  <p style="color:#E8A33D; font-weight:750; letter-spacing:0.8px; font-size:0.95rem; margin:0 0 0.5rem 0; line-height:1.3;">
     An Eskwelabs Data Analytics Capstone Project
   </p>
-  <h1 style="color:white; font-size:1.6rem; font-weight:800; margin:0 0 0.5rem 0; padding:0; line-height:1.2;">
+  <h1 style="color:white; font-size:1.75rem; font-weight:800; margin:0 0 0.8rem 0; padding:0; line-height:1.25;">
     Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
   </h1>
-  <p style="color:#F2D9A8; font-size:0.95rem; font-weight:600; margin:0; line-height:1.3;">
+  <p style="color:#F2D9A8; font-size:1.05rem; font-weight:600; margin:0; line-height:1.3;">
     Using NLP to track Themes and Stances
   </p>
 </div>
