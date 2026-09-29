@@ -3607,7 +3607,7 @@ else:
 	indicative rather than definitive. More information on the
 	project can be found here.
 
-    </div>
+    
     """,
     unsafe_allow_html=True
 )
