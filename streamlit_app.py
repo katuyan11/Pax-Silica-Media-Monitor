@@ -3593,13 +3593,22 @@ else:
         use_container_width=True
     )
 
-    st.markdown(
+    # Space between the articles section and the footer
+st.markdown(
+    "<div style='height: 2.5rem;'></div>",
+    unsafe_allow_html=True
+)
+
+st.markdown(
     """
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 0 0 1.5rem 0;">
+
     <div style="
         color: #333333;
         font-style: italic;
         font-size: 1.00rem;
         line-height: 1.5;
+        margin-bottom: 1.5rem;
     ">
     This report and app were developed by Katherine Uyan as an Eskwelabs
     Data Analytics Capstone Project. As a working prototype, its
@@ -3608,6 +3617,12 @@ else:
     project can be found
     <a href="YOUR_LINK" style="color: #333333;">here</a>.
     </div>
+
+    <div style="
+        background: linear-gradient(90deg, #1E2A50 0%, #244B6E 100%);
+        height: 3.5rem;
+        width: 100%;
+    "></div>
     """,
     unsafe_allow_html=True
 )
