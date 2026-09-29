@@ -3389,7 +3389,7 @@ else:
         # ----------------------------------------------------
 
         outlet_column_labels = [
-            f"{outlet_type}<br>(n={int(outlet_article_totals[outlet_type])})"
+            f"{outlet_type.replace(' ', '<br>', 1)}<br>(n={int(outlet_article_totals[outlet_type])})"
             for outlet_type in OUTLET_TYPE_ORDER
         ]
 
@@ -3453,13 +3453,16 @@ else:
             margin=dict(
                 l=10,
                 r=20,
-                t=20,
+                t=40,
                 b=20
             )
         )
 
         fig_outlet_theme.update_xaxes(
-            side="top"
+            side="top",
+            tickangle=0,
+            tickfont=dict(size=13),
+            automargin=True
         )
 
         fig_outlet_theme.update_yaxes(
