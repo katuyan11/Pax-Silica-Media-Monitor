@@ -3594,8 +3594,6 @@ else:
     )
 
     st.markdown(
-
-	st.markdown(
     """
     <div style="
         color: #333333;
@@ -3604,12 +3602,12 @@ else:
         line-height: 1.5;
     ">
     This report and app were developed by Katherine Uyan as an Eskwelabs
-	Data Analytics Capstone Project. As a working prototype, its
-	classifications may contain errors and should be read as
-	indicative rather than definitive. More information on the
-	project can be found here.
-
-    
+    Data Analytics Capstone Project. As a working prototype, its
+    classifications may contain errors and should be read as
+    indicative rather than definitive. More information on the
+    project can be found
+    <a href="YOUR_LINK" style="color: #333333;">here</a>.
+    </div>
     """,
     unsafe_allow_html=True
 )
