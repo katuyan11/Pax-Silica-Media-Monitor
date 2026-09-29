@@ -3077,7 +3077,7 @@ else:
         )
 
 
-    # --------------------------------------------------------
+        # --------------------------------------------------------
     # BUILD CHART
     # --------------------------------------------------------
 
@@ -3099,13 +3099,10 @@ else:
             unsafe_allow_html=True
         )
 
-        # TODO: replace with the exact hex used for "Critical" in the RQ2
-        # stance chart, once you send it — Supportive/Neutral below are
-        # placeholders too, matched to whatever Critical turns out to be.
         STANCE_COLOR_MAP = {
-            "Supportive": "#1f77b4",   
-            "Neutral": "#a9c6e8",     
-            "Critical": "#d62728", 
+            "Supportive": "#1f77b4",
+            "Neutral": "#a9c6e8",
+            "Critical": "#d62728",
         }
 
         fig_outlet = px.bar(
@@ -3164,14 +3161,7 @@ else:
                 }
             )
 
-    else:
-
-        st.info(
-            "No outlet-tagged, stance-classified articles are available "
-            "yet to compare coverage by outlet type."
-        )
-
-         # ----------------------------------------------------
+        # ----------------------------------------------------
         # CHART TITLE: BOTTOM, CENTERED, ITALIC
         # ----------------------------------------------------
 
@@ -3190,6 +3180,13 @@ else:
             </div>
             """,
             unsafe_allow_html=True
+        )
+
+    else:
+
+        st.info(
+            "No outlet-tagged, stance-classified articles are available "
+            "yet to compare coverage by outlet type."
         )
 	    
 
