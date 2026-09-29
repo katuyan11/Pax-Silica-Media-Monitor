@@ -3598,7 +3598,7 @@ else:
     <div style="
         color: #333333;
         font-style: italic;
-        font-size: 0.85rem;
+        font-size: 1.00rem;
         line-height: 1.5;
     ">
     This report and app were developed by Katherine Uyan as an Eskwelabs
