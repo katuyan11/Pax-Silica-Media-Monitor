@@ -1594,7 +1594,7 @@ else:
         # AVAILABLE MONTHS
         # ----------------------------------------------------
 
-        available_months = sorted(
+                available_months = sorted(
             monthly_df["month"]
             .dropna()
             .unique(),
@@ -1602,15 +1602,20 @@ else:
         )
 
         month_labels = {
-            month: month.strftime("%B %Y")
+            month.strftime("%Y-%m"): month.strftime("%B %Y")
             for month in available_months
         }
 
-        selected_month = st.selectbox(
+        selected_month_key = st.selectbox(
             "Select month:",
-            options=available_months,
-            format_func=lambda month:
-                month_labels[month]
+            options=list(month_labels.keys()),
+            format_func=lambda key: month_labels[key],
+            key="rq3_selected_month"
+        )
+
+        selected_month = pd.Period(
+            selected_month_key,
+            freq="M"
         )
 
         selected_month_df = monthly_df[
