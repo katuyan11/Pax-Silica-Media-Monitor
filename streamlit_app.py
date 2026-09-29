@@ -79,8 +79,8 @@ st.markdown(
     }
     .metric-card .metric-label {
         font-size: 0.78rem;
-        font-weight: 600;
-        letter-spacing: 0.4px;
+        font-weight: 550;
+        letter-spacing: 0.2px;
         text-transform: uppercase;
         color: #6B7785;
         margin: 0 0 0.25rem 0;
@@ -90,12 +90,12 @@ st.markdown(
         font-weight: 800;
         color: #17203A;
         margin: 0;
-        line-height: 1.2;
+        line-height: 1.1;
     }
     .metric-card .metric-note {
         font-size: 0.75rem;
         color: #6B7785;
-        margin: 0.3rem 0 0 0;
+        margin: 0.2rem 0 0 0;
     }
     .intro-copy p {
         text-align: left;
