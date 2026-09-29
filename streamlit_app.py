@@ -2811,7 +2811,7 @@ else:
         unsafe_allow_html=True
     )
     
-        # ========================================================
+    # ========================================================
     # RESEARCH QUESTION 4
     # ========================================================
 
@@ -3105,7 +3105,7 @@ else:
         STANCE_COLOR_MAP = {
             "Supportive": "#1C7293",   # placeholder — confirm against RQ2
             "Neutral": "#9FC6CF",      # placeholder — confirm against RQ2
-            "Critical": "#REPLACE_ME", # <-- exact RQ2 "Critical" hex goes here
+            "Critical": "#d62728", # <-- exact RQ2 "Critical" hex goes here
         }
 
         fig_outlet = px.bar(
