@@ -3171,6 +3171,27 @@ else:
             "yet to compare coverage by outlet type."
         )
 
+         # ----------------------------------------------------
+        # CHART TITLE: BOTTOM, CENTERED, ITALIC
+        # ----------------------------------------------------
+
+        st.markdown(
+            """
+            <div style="
+                font-size: 14px;
+                font-weight: 400;
+                font-style: italic;
+                color: black;
+                text-align: center;
+                margin-top: -8px;
+                margin-bottom: 10px;
+            ">
+                Stance by Outlet Type
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+	    
 
     # ========================================================
     # OUTLET TYPE × THEME CHART  [NEW]
