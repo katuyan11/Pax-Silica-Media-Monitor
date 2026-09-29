@@ -140,7 +140,7 @@ SUPPORTIVE_WORDS = [
     "job creation", "development", "expansion", "boost", "income",
     "jobs", "bets", "trusted", "trusted partnership", "trust", 
     "beef up PH resiliency, industrialization", "keen on",
-    "new global position",
+    "new global position", "promise", "sees promise", "promising",
 ]
 
 CRITICAL_WORDS = [
