@@ -2811,7 +2811,7 @@ else:
         unsafe_allow_html=True
     )
     
-    # ========================================================
+        # ========================================================
     # RESEARCH QUESTION 4
     # ========================================================
 
@@ -3099,6 +3099,15 @@ else:
             unsafe_allow_html=True
         )
 
+        # TODO: replace with the exact hex used for "Critical" in the RQ2
+        # stance chart, once you send it — Supportive/Neutral below are
+        # placeholders too, matched to whatever Critical turns out to be.
+        STANCE_COLOR_MAP = {
+            "Supportive": "#1C7293",   # placeholder — confirm against RQ2
+            "Neutral": "#9FC6CF",      # placeholder — confirm against RQ2
+            "Critical": "#REPLACE_ME", # <-- exact RQ2 "Critical" hex goes here
+        }
+
         fig_outlet = px.bar(
             outlet_stance,
 
@@ -3114,6 +3123,8 @@ else:
                 "outlet_type": OUTLET_TYPE_ORDER,
                 "stance": STANCE_ORDER
             },
+
+            color_discrete_map=STANCE_COLOR_MAP,
 
             labels={
                 "percent": "% of Coverage",
@@ -3143,13 +3154,15 @@ else:
             )
         )
 
-        st.plotly_chart(
-            fig_outlet,
-            use_container_width=True,
-            config={
-                "responsive": True
-            }
-        )
+        _, chart_col, _ = st.columns([1, 2, 1])
+        with chart_col:
+            st.plotly_chart(
+                fig_outlet,
+                use_container_width=True,
+                config={
+                    "responsive": True
+                }
+            )
 
     else:
 
@@ -3438,13 +3451,15 @@ else:
             automargin=True
         )
 
-        st.plotly_chart(
-            fig_outlet_theme,
-            use_container_width=True,
-            config={
-                "responsive": True
-            }
-        )
+        _, heatmap_col, _ = st.columns([1, 2, 1])
+        with heatmap_col:
+            st.plotly_chart(
+                fig_outlet_theme,
+                use_container_width=True,
+                config={
+                    "responsive": True
+                }
+            )
 
 
         # ----------------------------------------------------
