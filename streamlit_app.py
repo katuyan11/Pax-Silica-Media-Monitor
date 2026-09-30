@@ -139,7 +139,7 @@ st.markdown("""
     Monitoring the Conversation: A News Monitoring Prototype to Track Media Coverage of the Pax Silica Initiative in the Philippines
   </h1>
   <p style="color:#F2D9A8; font-size:1.05rem; font-weight:600; margin:0; line-height:1.3;">
-    Using rule-based keyword matching NLP to track Themes and Stances
+    Using rule-based keyword matching (NLP) to track themes and stances
   </p>
 </div>
 """, unsafe_allow_html=True)
