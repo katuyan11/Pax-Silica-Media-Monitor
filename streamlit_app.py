@@ -3610,7 +3610,7 @@ st.markdown(
     line-height: 1.5;
     margin-bottom: 1.5rem;
 ">
-This report and app were developed by Katherine Uyan as an Eskwelabs
+This report and app were developed as an Eskwelabs
 Data Analytics Capstone Project. As a working prototype, its
 classifications may contain errors and should be read as
 indicative rather than definitive. This tool monitors and classifies
