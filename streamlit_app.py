@@ -3601,26 +3601,25 @@ st.markdown(
 
 st.markdown(
     """
-    <hr style="border: none; border-top: 1px solid #ddd; margin: 0 0 1.5rem 0;">
+<hr style="border: none; border-top: 1px solid #ddd; margin: 0 0 1.5rem 0;">
 
-    <div style="
-        color: #333333;
-        font-style: italic;
-        font-size: 1.00rem;
-        line-height: 1.5;
-        margin-bottom: 1.5rem;
-    ">
-    This report and app were developed by Katherine Uyan as an Eskwelabs
-    Data Analytics Capstone Project. As a working prototype, its
-    classifications may contain errors and should be read as
-    indicative rather than definitive. This tool monitors and classifies public news coverage; the content it surfaces 
-	does not reflect the stance or opinion of the author.
-	More information on the project can be found
-    <a href="YOUR_LINK" style="color: #333333;">here</a>.
-    </div>
-
-    """,
-    unsafe_allow_html=True
+<div style="
+    color: #333333;
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+">
+This report and app were developed by Katherine Uyan as an Eskwelabs
+Data Analytics Capstone Project. As a working prototype, its
+classifications may contain errors and should be read as
+indicative rather than definitive. This tool monitors and classifies
+public news coverage; the content it surfaces does not reflect the
+stance or opinion of the author. More information on the project can
+be found <a href="YOUR_LINK" style="color: #333333;">here</a>.
+</div>
+""",
+    unsafe_allow_html=True,
 )
 	
     
