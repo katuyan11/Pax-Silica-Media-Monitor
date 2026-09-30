@@ -84,7 +84,7 @@ THEME_KEYWORDS = {
         "investment", "jobs", "gdp", "economic zone", "supply chain",
         "semiconductor", "hub", "trade", "manufacturing", "corridor",
         "value chain", "industrial corridor", "real estate", "economy",
-        "power demand", "business groups", "industrialization",
+        "power demand", "business groups", "industrialization", "Makati Business Club",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -123,6 +123,8 @@ THEME_KEYWORDS = {
         "civil society", "kalikasan", "makabayan", "ibon", "protest",
         "opposition", "moratorium", "activist", "walkout", "dialogue",
         "multi-stakeholder dialogue", "criticize", "akbayan", "Government",
+        "PBBM", "President Marcos", "President", "Imee Marcos", "Sara Duterte",
+        "consultations", "consultation", "Senator", "arrested", 
     ],
     "Geopolitical Security": [
         "coercive dependencies", "civilian industrial zone",
