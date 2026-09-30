@@ -131,7 +131,7 @@ THEME_KEYWORDS = {
         "supply chain security", "geopolitics", "national security",
         "strategic alignment", "strategic dependence",
         "strategic dependency", "security implications",
-        "economic security", "china", "sovereignty",
+        "economic security", "China", "sovereignty", "US", "America",
     ],
 }
 
