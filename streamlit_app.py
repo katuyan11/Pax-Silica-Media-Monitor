@@ -150,7 +150,7 @@ st.markdown(
     """
     <div class="intro-copy" style="margin-bottom: 8px;">
     <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains, and the Philippines is positioned to play a role in this global alliance. Media coverage is growing, touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
-    <p>Following that conversation manually is difficult: new developments unfold, new voices enter, and different outlets focus on different aspects. The prototype's corpus consists of news articles, columns, editorials, press releases, organizational statements, explainer articles, which this dashboard tracks to show what is being discussed, how the conversation shifts over time, and how local and international media differ in their coverage.</p>
+    <p>Following that conversation manually is difficult: new developments unfold, new voices enter, and different outlets focus on different aspects. The prototype's corpus consists of news articles, columns, editorials, press releases, organizational statements, and explainer articles, which this dashboard tracks to show what is being discussed, how the conversation shifts over time, and how local and international media differ in their coverage.</p>
     </div>
     """,
     unsafe_allow_html=True
