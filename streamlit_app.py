@@ -3559,7 +3559,7 @@ else:
             color: black;
         ">
         New articles are collected through Google and media outlets'
-        RSS feeds six times daily.
+        RSS feeds six times daily. The full corpus is shown below, for transparency:
         </div>
         """,
         unsafe_allow_html=True
