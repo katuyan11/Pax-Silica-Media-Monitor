@@ -770,6 +770,9 @@ else:
         categories were developed inductively from patterns observed in the
         collected corpus. Themes below are ordered by article volume,
         most-covered first.
+
+		Theme counts are not mutually exclusive because a single article 
+		may be classified under more than one theme.
         </div>
         """,
         unsafe_allow_html=True
