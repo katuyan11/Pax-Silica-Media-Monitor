@@ -757,26 +757,26 @@ else:
     )
 
     st.markdown(
-        """
-        <div style="
-            color: black;
-            text-align: left;
-            font-size: 14px;
-            margin-bottom: 20px;
-        ">
-        <strong>Note:</strong> The categories were defined based on recurring
-        topics and issues identified in the corpus and subsequently
-        operationalized through keyword-based classification. The thematic
-        categories were developed inductively from patterns observed in the
-        collected corpus. Themes below are ordered by article volume,
-        most-covered first.
-
-		Theme counts are not mutually exclusive because a single article 
-		may be classified under more than one theme.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    """
+    <div style="
+        text-align: left;
+        color: black;
+        font-size: 14px;
+        margin-bottom: 10px;
+    ">
+    <strong>Note:</strong> The categories were defined based on recurring
+    topics and issues identified in the corpus and subsequently
+    operationalized through keyword-based classification. The thematic
+    categories were developed inductively from patterns observed in the
+    collected corpus. Themes below are ordered by article volume,
+    most-covered first.
+    <br><br>
+    Theme counts are not mutually exclusive because a single article
+    may be classified under more than one theme.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
     # ========================================================
     # THEME DESCRIPTIONS — SINGLE COLUMN, ORDERED BY VOLUME
