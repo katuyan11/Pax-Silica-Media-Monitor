@@ -768,7 +768,7 @@ else:
         topics and issues identified in the corpus and subsequently
         operationalized through keyword-based classification. The thematic
         categories were developed inductively from patterns observed in the
-        collected news coverage. Themes below are ordered by article volume,
+        collected corpus. Themes below are ordered by article volume,
         most-covered first.
         </div>
         """,
@@ -2724,7 +2724,7 @@ else:
                 margin-top: 4px;
                 margin-bottom: 18px;
             ">
-            News Coverage Over Time
+            Coverage Over Time
             </div>
             """,
             unsafe_allow_html=True
