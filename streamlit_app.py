@@ -150,7 +150,7 @@ st.markdown(
     """
     <div class="intro-copy" style="margin-bottom: 8px;">
     <p>Pax Silica covers technology, AI infrastructure, and critical-mineral supply chains, and the Philippines is positioned to play a role in this global alliance. Media coverage is growing, touching on investment and jobs, economic growth, environmental and indigenous concerns, governance, sovereignty, and the country’s place in global supply chains.</p>
-    <p>Following that conversation manually is difficult: new developments unfold, new voices enter, and different outlets focus on different aspects. This dashboard tracks a corpus of news outlets, explainer sites, and organizational statements to show what is being discussed, how the conversation shifts over time, and how local and international media differ in their coverage.</p>
+    <p>Following that conversation manually is difficult: new developments unfold, new voices enter, and different outlets focus on different aspects. The prototype's corpus consists of news articles, columns, editorials, press releases, organizational statements, explainer articles, which this dashboard tracks to show what is being discussed, how the conversation shifts over time, and how local and international media differ in their coverage.</p>
     </div>
     """,
     unsafe_allow_html=True
@@ -159,7 +159,7 @@ st.markdown(
 with st.expander("How this prototype works"):
     st.write(
         "This prototype combines automated article collection with rule-based NLP. "
-        "News articles, columns, editorials, press releases, and explainer articles are processed and classified by theme and stance using text preprocessing and rule-based "
+        "The corpus is processed and classified by theme and stance using text preprocessing and rule-based "
         "keyword matching. These approaches provide a structured "
         "way to explore the themes and stances appearing across the monitored coverage."
     )
