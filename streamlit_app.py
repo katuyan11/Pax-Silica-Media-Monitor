@@ -2189,7 +2189,7 @@ else:
         # ----------------------------------------------------
 
         fig_bubble.update_layout(
-            height=600,
+            height=680,
             autosize=True,
             xaxis_title="Publication Date",
             yaxis_title="Theme",
@@ -2199,10 +2199,10 @@ else:
                 l=10,
                 r=20,
                 t=80,
-                b=70
+                b=150
             )
         )
-
+		
         fig_bubble.update_xaxes(
             tickangle=45,
             automargin=True
@@ -2266,12 +2266,11 @@ else:
             ]
 
             international_label_rows = [
-                -0.115,
-                -0.175,
+                -0.165,
                 -0.235,
-                -0.295
+                -0.305,
+                -0.375
             ]
-
 
             # -------------------------------------------------
             # ESTIMATE LABEL WIDTH
