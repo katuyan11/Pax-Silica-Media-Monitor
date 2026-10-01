@@ -2112,12 +2112,17 @@ else:
         SIGNIFICANT_EVENTS
     )
 
-
-    # ========================================================
+	    # ========================================================
     # GENERATE BUBBLE MATRIX
     # ========================================================
 
     if not bubble_data.empty:
+
+        STANCE_COLORS = {
+            "Supportive": "#1f77b4",
+            "Neutral": "#a9c6e8",
+            "Critical": "#d62728"
+        }
 
         fig_bubble = px.scatter(
             bubble_data,
@@ -2129,6 +2134,8 @@ else:
             size="article_count",
 
             color="stance",
+
+            color_discrete_map=STANCE_COLORS,
 
             size_max=45,
 
@@ -2149,7 +2156,6 @@ else:
                 "article_count": "Articles"
             }
         )
-
 
         # ----------------------------------------------------
         # HOVER INFORMATION
