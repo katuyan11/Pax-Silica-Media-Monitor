@@ -159,7 +159,7 @@ st.markdown(
 with st.expander("How this prototype works"):
     st.write(
         "This prototype combines automated news collection with rule-based NLP. "
-        "News articles, columns, editorials, and explainer websites  are processed and classified by theme and stance using text preprocessing and rule-based "
+        "News articles, columns, editorials, and explainer articles are processed and classified by theme and stance using text preprocessing and rule-based "
         "keyword matching. These approaches provide a structured "
         "way to explore the themes and stances appearing across the monitored coverage."
     )
