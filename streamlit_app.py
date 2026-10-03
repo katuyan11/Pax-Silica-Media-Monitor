@@ -3596,15 +3596,30 @@ else:
         )
     )
 
-    st.dataframe(
+        st.dataframe(
         articles_display,
         use_container_width=True
     )
 
+    st.markdown(
+        """
+        <style>
+        [data-testid="stElementToolbar"] [data-testid="stElementToolbarButton"]:has([data-testid="stIconMaterial"][aria-label*="download" i]),
+        [data-testid="stElementToolbar"] button[aria-label*="download" i],
+        [data-testid="stElementToolbar"] button[title*="download" i] {
+            display: none !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Space between the articles section and the footer
+
     # Space between the articles section and the footer
 st.markdown(
     "<div style='height: 2.5rem;'></div>",
-    unsafe_allow_html=True
+    unsafe_allow_html=True	
 )
 
 st.markdown(
