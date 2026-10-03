@@ -3596,7 +3596,7 @@ else:
         )
     )
 
-        st.dataframe(
+    st.dataframe(
         articles_display,
         use_container_width=True
     )
