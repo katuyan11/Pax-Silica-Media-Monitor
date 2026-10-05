@@ -85,6 +85,7 @@ THEME_KEYWORDS = {
         "semiconductor", "hub", "trade", "manufacturing", "corridor",
         "value chain", "industrial corridor", "real estate", "economy",
         "power demand", "business groups", "industrialization", "Makati Business Club",
+        "Filipino industries", "industries",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -93,6 +94,7 @@ THEME_KEYWORDS = {
         "pollution", "emissions", "environmental compliance",
         "land conversion", "lng", "aeta", "ancestral domain",
         "displacement", "indigenous", "resettlement", "land rights",
+        "heat",
     ],
     "Technological Advancement": [
         "artificial intelligence", "ai infrastructure", "data center",
