@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import time
 import requests
 import pandas as pd
 import gspread
@@ -38,6 +39,36 @@ RSS_FEEDS = {
     "PNA": "https://www.pna.gov.ph/rss",
     "Abante": "https://www.abante.com.ph/feed/",
 }
+
+# ============================================================
+# TIMESTAMP NORMALIZER
+# ============================================================
+
+SOURCE_TZ = "UTC"            # timezone of feed dates that carry no offset
+TARGET_TZ = "Asia/Manila"    # timezone stored in the sheet
+TS_FORMAT = "%Y-%m-%d %H:%M:%S"   # zero-padded, e.g. 2026-10-03 08:00:14
+
+
+def normalize_timestamp(value) -> str:
+    """Return 'YYYY-MM-DD HH:MM:SS' in TARGET_TZ, or '' if unparseable."""
+    if value is None or value == "":
+        return ""
+
+    # feedparser's published_parsed / updated_parsed are always UTC
+    if isinstance(value, time.struct_time):
+        value = datetime(*value[:6])
+        source_tz = "UTC"
+    else:
+        source_tz = SOURCE_TZ
+
+    ts = pd.to_datetime(value, errors="coerce")
+    if pd.isna(ts):
+        return ""
+
+    if ts.tzinfo is None:
+        ts = ts.tz_localize(source_tz)
+
+    return ts.tz_convert(TARGET_TZ).strftime(TS_FORMAT)
 
 
 # ============================================================
@@ -439,7 +470,9 @@ def fetch_world_news():
                 "description": description,
                 "source": get_outlet_name(url),
                 "url": url,
-                "published_at": (article.get("publish_date") or article.get("published") or ""),
+                "published_at": normalize_timestamp(
+                    article.get("publish_date") or article.get("published") or ""
+                ),
             }
 
             if not is_relevant(row):
@@ -488,7 +521,13 @@ def fetch_rss_articles():
                 "description": description,
                 "source": source_name,
                 "url": url,
-                "published_at": (entry.get("published") or entry.get("updated") or ""),
+                "published_at": normalize_timestamp(
+                    entry.get("published_parsed")
+                    or entry.get("updated_parsed")
+                    or entry.get("published")
+                    or entry.get("updated")
+                    or ""
+                ),
             }
 
             if not is_relevant(row):
@@ -603,7 +642,9 @@ def fetch_google_news_rss():
                 "description": description,
                 "source": source_name or "Google News",
                 "url": resolved_url,
-                "published_at": entry.get("published") or "",
+                "published_at": normalize_timestamp(
+                    entry.get("published_parsed") or entry.get("published") or ""
+                ),
             }
 
             full_text = f"{title} {description}"
@@ -687,7 +728,7 @@ def append_new_articles_to_sheet(df, sheet):
         return
 
     rows = new_df[EXPECTED_COLUMNS].fillna("").values.tolist()
-    sheet.append_rows(rows, value_input_option="USER_ENTERED")
+    sheet.append_rows(rows, value_input_option="RAW")
 
     print(f"Appended {len(rows)} new articles to '{SHEET_TAB_NAME}'.")
     print("Themes found in appended articles:")
