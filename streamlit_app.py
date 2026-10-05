@@ -213,12 +213,24 @@ def load_data():
 
     df = pd.DataFrame(records)
 
+        records = sheet.get_all_records()
+
+    df = pd.DataFrame(records)
+
     if not df.empty and "published_at" in df.columns:
 
-        df["published_at"] = pd.to_datetime(
-            df["published_at"],
-            errors="coerce"
+        cleaned = (
+            df["published_at"]
+            .astype(str)
+            .str.strip()
         )
+
+        try:
+            parsed = pd.to_datetime(cleaned, format="mixed", errors="coerce")
+        except (TypeError, ValueError):
+            parsed = pd.to_datetime(cleaned, errors="coerce")
+
+        df["published_at"] = parsed
 
     return df
 
