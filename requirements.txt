@@ -9,3 +9,4 @@ nltk
 wordcloud
 trafilatura
 googlenewsdecoder
+selectolax<1.0
