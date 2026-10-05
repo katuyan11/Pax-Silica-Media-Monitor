@@ -278,27 +278,71 @@ def normalize_title_only(title: str) -> str:
 
 
 # ============================================================
-# CLASSIFIERS
+# CLASSIFIERS  (replaces the existing "CLASSIFIERS" section in
+# fetch_and_append.py; keep THEME_KEYWORDS, SUPPORTIVE_WORDS and
+# CRITICAL_WORDS exactly where they are, above this block)
 # ============================================================
 
+# Terms that must match with their exact capitalization. "US" (the country)
+# would otherwise match the pronoun "us" in every other headline.
+CASE_SENSITIVE_TERMS = {"US"}
+
+
+def compile_term(term: str, allow_plural: bool = False):
+    """Compile a keyword into a whole-word regex.
+
+    (?<!\\w) and (?!\\w) require that the keyword is not embedded inside a
+    longer word, so "dict" no longer matches "predict" and "dti" no longer
+    matches inside other words. Using lookarounds instead of \\b also lets
+    terms that end in punctuation, such as "Rep." and "Gov't", match.
+
+    allow_plural lets the keyword also match a trailing "s" or "es"
+    ("data center" -> "data centers"). It is used for themes only: theme
+    matching is true/false per theme, so extra matches cannot inflate a score.
+    Stance lists are scored by counting matches, and they already list their
+    variants explicitly ("protest", "protests", "protested"), so they use
+    exact whole-word matching to avoid counting one word twice.
+    """
+    suffix = r"(?:e?s)?" if allow_plural else ""
+    flags = 0 if term in CASE_SENSITIVE_TERMS else re.IGNORECASE
+    return re.compile(rf"(?<!\w){re.escape(term)}{suffix}(?!\w)", flags)
+
+
+# Compiled once at import. dict.fromkeys() removes repeated entries (for
+# example "protest", "slams" and "backlash" each appear more than once in
+# CRITICAL_WORDS) so that a duplicated entry cannot count twice.
+THEME_PATTERNS = {
+    theme: [compile_term(k, allow_plural=True) for k in dict.fromkeys(keywords)]
+    for theme, keywords in THEME_KEYWORDS.items()
+}
+SUPPORTIVE_PATTERNS = [compile_term(k) for k in dict.fromkeys(SUPPORTIVE_WORDS)]
+CRITICAL_PATTERNS = [compile_term(k) for k in dict.fromkeys(CRITICAL_WORDS)]
+
+
+def _normalize_text(text) -> str:
+    """Collapse runs of whitespace so multi-word keywords match reliably.
+    Case is handled by the patterns themselves, so the text is NOT lowercased."""
+    return re.sub(r"\s+", " ", str(text or ""))
+
+
 def classify_themes(text):
-    text = str(text or "").lower()
+    text = _normalize_text(text)
     matched_themes = [
-        theme for theme, keywords in THEME_KEYWORDS.items()
-        if any(keyword.lower() in text for keyword in keywords)
+        theme for theme, patterns in THEME_PATTERNS.items()
+        if any(p.search(text) for p in patterns)
     ]
     return ", ".join(matched_themes) if matched_themes else "Uncategorized"
 
+
 def classify_stance(text):
-    text = str(text or "").lower()
-    supportive_hits = sum(k in text for k in SUPPORTIVE_WORDS)
-    critical_hits = sum(k in text for k in CRITICAL_WORDS)
+    text = _normalize_text(text)
+    supportive_hits = sum(1 for p in SUPPORTIVE_PATTERNS if p.search(text))
+    critical_hits = sum(1 for p in CRITICAL_PATTERNS if p.search(text))
     if supportive_hits > critical_hits:
         return "Supportive"
     if critical_hits > supportive_hits:
         return "Critical"
     return "Neutral"
-
 
 # ============================================================
 # GOOGLE SHEETS
