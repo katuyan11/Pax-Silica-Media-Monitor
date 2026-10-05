@@ -551,6 +551,11 @@ with refresh_col_button:
 
 df = load_data()
 
+if "published_at" in df.columns:
+    n_bad = df["published_at"].isna().sum()
+    if n_bad:
+        st.warning(f"{n_bad} article(s) have an unreadable publication date and are excluded from the time charts.")
+
 
 # ============================================================
 # MAIN APP
