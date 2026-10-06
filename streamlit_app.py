@@ -213,7 +213,7 @@ def load_data():
 
     df = pd.DataFrame(records)
 
-        records = sheet.get_all_records()
+    records = sheet.get_all_records()
 
     df = pd.DataFrame(records)
 
