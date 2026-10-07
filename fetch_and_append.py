@@ -116,7 +116,7 @@ THEME_KEYWORDS = {
         "semiconductor", "hub", "trade", "manufacturing", "corridor",
         "value chain", "industrial corridor", "real estate", "economy",
         "power demand", "business groups", "industrialization", "Makati Business Club",
-        "Filipino industries", "industries",
+        "Filipino industries", "industries", "industrialization", "industrial investments",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -140,6 +140,7 @@ THEME_KEYWORDS = {
         "vocational training", "skilled workers", "engineers",
         "technical professionals", "talent", "jobs", "job creation",
         "employment opportunities", "upskilling", "reskilling",
+        "high value work", "high-value work",
     ],
     "Supply-Chain Resilience": [
         "supply chain", "supply chain resilience", "supply chain security",
@@ -148,6 +149,7 @@ THEME_KEYWORDS = {
         "market diversification", "supplier diversification",
         "strategic dependencies", "coercive dependencies", "single market",
         "alternative markets", "trusted partners", "economic resilience",
+        "chipmaker", "chipmakers", "mineral", "minerals", "PH minerals",
     ],
     "Institutional Governance": [
         "bcda", "dict", "dti", "marcos", "bingcang", "aguda",
@@ -158,6 +160,7 @@ THEME_KEYWORDS = {
         "multi-stakeholder dialogue", "criticize", "akbayan", "Government",
         "PBBM", "President Marcos", "President", "Imee Marcos", "Sara Duterte",
         "consultations", "consultation", "Senator", "arrested", "Rep.", "Gov't",
+        "exec", "lobbies", "lobbied", "lobby", "public hearing",
     ],
     "Geopolitical Security": [
         "coercive dependencies", "civilian industrial zone",
@@ -192,7 +195,7 @@ CRITICAL_WORDS = [
     "scraps", "debunks claims", "laban", "kontra", "Scrap Pax Silica", "slammed",
     "slams", "force them off", "force off", "condemns", "condemn", "violent",
     "dispute", "protest", "protesters", "cancellation", "cancel", "flags risk",
-    "costly", "plunder",
+    "costly", "plunder", "tough questions", "top concerns",
 ]
 
 
