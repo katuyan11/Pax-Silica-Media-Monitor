@@ -117,6 +117,7 @@ THEME_KEYWORDS = {
         "value chain", "industrial corridor", "real estate", "economy",
         "power demand", "business groups", "industrialization", "Makati Business Club",
         "Filipino industries", "industries", "industrialization", "industrial investments",
+        "investor", "investors",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -180,7 +181,7 @@ SUPPORTIVE_WORDS = [
     "beef up PH resiliency, industrialization", "keen on",
     "new global position", "promise", "sees promise", "promising",
     "good deal", "good for", "defends", "supercharge", "accelerating transformation",
-    "back", "backs",
+    "back", "backs", "easing entry", "ease",
 ]
 
 CRITICAL_WORDS = [
