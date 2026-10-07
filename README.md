@@ -21,7 +21,7 @@ Business value: Journalists, researchers, and interested individuals without acc
 
 | | |
 |---|---|
-| **Corpus** | News articles, columns, editorials, press releases, organizational statements, and explainer articles (grows daily) (grows daily) |
+| **Corpus** | News articles, columns, editorials, press releases, organizational statements, and explainer articles (grows daily) |
 | **Refresh rate** | 6 runs per day via GitHub Actions |
 | **Classifier** | Rule-based keyword matching (no trained model) |
 | **Stack** | Python, pandas, feedparser, gspread, GitHub Actions, Google Sheets, Streamlit |
