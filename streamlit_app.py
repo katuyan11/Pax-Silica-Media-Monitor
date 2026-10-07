@@ -3656,7 +3656,7 @@ classifications may contain errors and should be read as
 indicative rather than definitive. This tool monitors and classifies
 media coverage on Pax Silica; the content it surfaces does not reflect the
 stance or opinion of the author. More information on the project can
-be found <a href="YOUR_LINK" style="color: #333333;">here</a>.
+be found <a href="https://github.com/katuyan11/Pax-Silica-Media-Monitor" style="color: #333333;">here</a>.
 </div>
 """,
     unsafe_allow_html=True,
