@@ -27,6 +27,15 @@ Business value: Journalists, researchers, and interested individuals without acc
 | **Stack** | Python, pandas, GitHub Actions, Google Sheets API, Streamlit |
 
 ---
+## Repository Structure
+Path	Purpose
+fetch_and_append.py	Pipeline: collect, filter, classify, deduplicate, append to Google Sheets
+reclassify_sheet.py	Re-applies the classifier to existing sheet rows after keyword changes
+streamlit_app.py	Dashboard reading the sheet as its live data source
+.github/workflows/daily_fetch.yml	Scheduled workflow that runs the pipeline
+requirements.txt	Python dependencies
+
+---
 
 ## Architecture
 
