@@ -186,4 +186,4 @@ streamlit run streamlit_app.py
 
 ## Context
 
-Individual capstone project for the Eskwelabs Data Analytics program, presented at Demo Day.
+This prototype is my individual Eskwelabs Data Analytics Capstone Project and was presented in Eskwelabs' Demo Day on September 30, 2026.
