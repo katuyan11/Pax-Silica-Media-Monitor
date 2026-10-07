@@ -142,8 +142,6 @@ There is no labeled ground-truth set. Quality control is manual and iterative: c
 - **Single-pass classification.** No embeddings or model-based second pass.
 - **Ongoing keyword upkeep** is required for accuracy.
 
-**Planned next step:** full-text analysis.
-
 ---
 
 ## Getting Started
