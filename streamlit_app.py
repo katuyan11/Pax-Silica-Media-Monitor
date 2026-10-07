@@ -3648,7 +3648,7 @@ st.markdown(
         font-style: italic;
         font-size: 1rem;
         line-height: 1.5;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     ">
     This report and app were developed as an Eskwelabs
     Data Analytics Capstone Project. As a working prototype, its
@@ -3661,9 +3661,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown(
-    "More information on the project can be found "
-    "[in the project repository](https://github.com/katuyan11/Pax-Silica-Media-Monitor)."
+st.link_button(
+    "View the project repository on GitHub",
+    "https://github.com/katuyan11/Pax-Silica-Media-Monitor",
 )
 	
     
