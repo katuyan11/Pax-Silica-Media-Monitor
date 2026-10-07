@@ -1,6 +1,6 @@
 # Pax Silica Monitor
 
-A rule-based news monitoring pipeline that tracks themes and stance in Philippine and international media coverage of the Pax Silica initiative. It ingests articles six times a day, classifies them with transparent keyword dictionaries, stores results in Google Sheets, and serves a live Streamlit dashboard. It's a transparent, topic-specific monitor built to answer defined research questions about one policy debate, with a taxonomy designed for Philippine policy coverage and a method that can be audited end to end.
+A rule-based news monitoring pipeline that tracks themes and stance in media coverage of the Pax Silica initiative in the Philippines. It ingests articles six times a day, classifies them with transparent keyword dictionaries, stores results in Google Sheets, and serves a live Streamlit dashboard. It's a transparent, topic-specific monitor built to answer defined research questions about one policy debate, with a taxonomy designed for Philippine policy coverage and a method that can be audited end to end.
 
 **[Live dashboard](https://newsmonitoringnlp.streamlit.app/)** (best viewed on a laptop at 90% browser zoom)
 
