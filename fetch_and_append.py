@@ -180,6 +180,7 @@ SUPPORTIVE_WORDS = [
     "beef up PH resiliency, industrialization", "keen on",
     "new global position", "promise", "sees promise", "promising",
     "good deal", "good for", "defends", "supercharge", "accelerating transformation",
+    "back", "backs",
 ]
 
 CRITICAL_WORDS = [
