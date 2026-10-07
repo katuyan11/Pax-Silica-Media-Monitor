@@ -58,8 +58,6 @@ Generic monitors count mentions and apply one-size-fits-all sentiment. This one 
 
 ```
 
----
-
 ## Methodology
 
 ### 1. Collection
