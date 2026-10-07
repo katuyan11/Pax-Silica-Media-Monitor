@@ -51,12 +51,9 @@ Generic monitors count mentions and apply one-size-fits-all sentiment. This one 
 
 ## Architecture
 
-```
 <a href="docs/architecture.png">
   <img src="docs/architecture.png" alt="Pax Silica Monitor pipeline architecture" width="800">
 </a>
-
-```
 
 ## Methodology
 
