@@ -52,11 +52,8 @@ Generic monitors count mentions and apply one-size-fits-all sentiment. This one 
 ## Architecture
 
 ```
-Google News RSS ─┐
-Outlet RSS feeds ─┼─► Relevance filter ─► Classify ─► Deduplicate ─► Google Sheets ─► Streamlit
-World News API ──┘   (anchor terms,      (themes +    (URL, source+   (Clean_Data)     dashboard
-                      date, exclusions)    stance)      title, title)
-        └──────────── GitHub Actions (scheduled, 6x/day) ────────────┘
+<img width="6637" height="4821" alt="diagram (3)" src="https://github.com/user-attachments/assets/1addf2e3-f8f3-44e9-857e-fca1d7d17239" />
+
 ```
 
 ---
