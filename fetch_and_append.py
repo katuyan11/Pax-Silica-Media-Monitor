@@ -117,7 +117,7 @@ THEME_KEYWORDS = {
         "value chain", "industrial corridor", "real estate", "economy",
         "power demand", "business groups", "industrialization", "Makati Business Club",
         "Filipino industries", "industries", "industrialization", "industrial investments",
-        "investor", "investors",
+        "investor", "investors", "workers",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -126,7 +126,7 @@ THEME_KEYWORDS = {
         "pollution", "emissions", "environmental compliance",
         "land conversion", "lng", "aeta", "ancestral domain",
         "displacement", "indigenous", "resettlement", "land rights",
-        "heat",
+        "heat", "power plant",
     ],
     "Technological Advancement": [
         "artificial intelligence", "ai infrastructure", "data center",
@@ -161,7 +161,8 @@ THEME_KEYWORDS = {
         "multi-stakeholder dialogue", "criticize", "akbayan", "Government",
         "PBBM", "President Marcos", "President", "Imee Marcos", "Sara Duterte",
         "consultations", "consultation", "Senator", "arrested", "Rep.", "Gov't",
-        "exec", "lobbies", "lobbied", "lobby", "public hearing",
+        "exec", "lobbies", "lobbied", "lobby", "public hearing", "Gatchalian",
+        "Kiko Pangilinan",
     ],
     "Geopolitical Security": [
         "coercive dependencies", "civilian industrial zone",
@@ -181,7 +182,7 @@ SUPPORTIVE_WORDS = [
     "beef up PH resiliency, industrialization", "keen on",
     "new global position", "promise", "sees promise", "promising",
     "good deal", "good for", "defends", "supercharge", "accelerating transformation",
-    "back", "backs", "easing entry", "ease",
+    "back", "backs", "easing entry", "ease", "bullish",
 ]
 
 CRITICAL_WORDS = [
@@ -197,7 +198,7 @@ CRITICAL_WORDS = [
     "scraps", "debunks claims", "laban", "kontra", "Scrap Pax Silica", "slammed",
     "slams", "force them off", "force off", "condemns", "condemn", "violent",
     "dispute", "protest", "protesters", "cancellation", "cancel", "flags risk",
-    "costly", "plunder", "tough questions", "top concerns",
+    "costly", "plunder", "tough questions", "top concerns", "unlikely to succeed",
 ]
 
 
