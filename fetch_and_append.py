@@ -162,7 +162,7 @@ THEME_KEYWORDS = {
         "PBBM", "President Marcos", "President", "Imee Marcos", "Sara Duterte",
         "consultations", "consultation", "Senator", "arrested", "Rep.", "Gov't",
         "exec", "lobbies", "lobbied", "lobby", "public hearing", "Gatchalian",
-        "Kiko Pangilinan",
+        "Kiko Pangilinan", "Palace",
     ],
     "Geopolitical Security": [
         "coercive dependencies", "civilian industrial zone",
@@ -182,7 +182,8 @@ SUPPORTIVE_WORDS = [
     "beef up PH resiliency, industrialization", "keen on",
     "new global position", "promise", "sees promise", "promising",
     "good deal", "good for", "defends", "supercharge", "accelerating transformation",
-    "back", "backs", "easing entry", "ease", "bullish",
+    "back", "backs", "easing entry", "ease", "bullish", "protect", "protects",
+    "not a threat",
 ]
 
 CRITICAL_WORDS = [
