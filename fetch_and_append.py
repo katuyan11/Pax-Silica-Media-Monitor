@@ -117,7 +117,7 @@ THEME_KEYWORDS = {
         "value chain", "industrial corridor", "real estate", "economy",
         "power demand", "business groups", "industrialization", "Makati Business Club",
         "Filipino industries", "industries", "industrialization", "industrial investments",
-        "investor", "investors", "workers",
+        "investor", "investors", "workers", "private sector",
     ],
     "Environmental & Resource Impact": [
         "water", "water table", "water depletion", "water scarcity",
@@ -162,7 +162,8 @@ THEME_KEYWORDS = {
         "PBBM", "President Marcos", "President", "Imee Marcos", "Sara Duterte",
         "consultations", "consultation", "Senator", "arrested", "Rep.", "Gov't",
         "exec", "lobbies", "lobbied", "lobby", "public hearing", "Gatchalian",
-        "Kiko Pangilinan", "Palace",
+        "Kiko Pangilinan", "Palace", "SONA", "whole-of-nation approach", "rally",
+        
     ],
     "Geopolitical Security": [
         "coercive dependencies", "civilian industrial zone",
@@ -183,7 +184,7 @@ SUPPORTIVE_WORDS = [
     "new global position", "promise", "sees promise", "promising",
     "good deal", "good for", "defends", "supercharge", "accelerating transformation",
     "back", "backs", "easing entry", "ease", "bullish", "protect", "protects",
-    "not a threat",
+    "not a threat", "smooth"
 ]
 
 CRITICAL_WORDS = [
@@ -200,6 +201,7 @@ CRITICAL_WORDS = [
     "slams", "force them off", "force off", "condemns", "condemn", "violent",
     "dispute", "protest", "protesters", "cancellation", "cancel", "flags risk",
     "costly", "plunder", "tough questions", "top concerns", "unlikely to succeed",
+    "lack of", "pushing back", "sounds alarm",
 ]
 
 
