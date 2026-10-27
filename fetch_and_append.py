@@ -201,7 +201,8 @@ CRITICAL_WORDS = [
     "slams", "force them off", "force off", "condemns", "condemn", "violent",
     "dispute", "protest", "protesters", "cancellation", "cancel", "flags risk",
     "costly", "plunder", "tough questions", "top concerns", "unlikely to succeed",
-    "lack of", "pushing back", "sounds alarm",
+    "lack of", "pushing back", "sounds alarm", "flags risk", "flag risks", "petition to stop",
+    "petition", "raised concerns", "raise concern", "vs Pax Silica", "vow to fight",
 ]
 
 
