@@ -1526,30 +1526,6 @@ else:
     # ========================================================
     # RESEARCH QUESTION 3
     # ========================================================
-	st.markdown(
-        """
-        <div style="
-            font-size: 28px;
-            font-weight: 800;
-            margin-top: 10px;
-            margin-bottom: 4px;
-        ">
-        3. How has the story changed over time?
-        </div>
-
-        <div style="
-            font-size: 15px;
-            font-style: italic;
-            font-weight: 400;
-            color: black;
-            margin-bottom: 10px;
-        ">
-        Tracking shifts in themes and stances over time as real-world events unfold, 
-        showing how coverage responds to developments on the ground.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
     # ========================================================
     # MONTHLY SUMMARY
