@@ -2795,79 +2795,76 @@ else:
     # SIGNIFICANT EVENTS TABLE
     # ========================================================
 
-    if not bubble_data.empty and not events_df.empty:
+    # Built directly from SIGNIFICANT_EVENTS so recent events always
+    # appear, even if no article has been collected after them yet.
 
-        if not events_df.empty:
+    table_events = pd.DataFrame(SIGNIFICANT_EVENTS)
 
-            chart_min_date = (
-                bubble_data["date"].min()
+    if not table_events.empty:
+
+        table_events["date"] = pd.to_datetime(
+            table_events["date"],
+            errors="coerce"
+        )
+
+        table_events = table_events.dropna(
+            subset=["date"]
+        )
+
+        # Keep the lower bound only: hide events that happened
+        # before the first article, but never hide recent ones.
+        if not bubble_data.empty:
+
+            table_events = table_events[
+                table_events["date"]
+                >= bubble_data["date"].min()
+            ]
+
+        table_events = (
+            table_events
+            .sort_values("date")
+            .reset_index(drop=True)
+        )
+
+        if not table_events.empty:
+
+            st.markdown(
+                "**Significant events during the monitoring period**"
             )
 
-            chart_max_date = (
-                bubble_data["date"].max()
+            event_display = table_events.copy()
+
+            event_display["date"] = (
+                event_display["date"]
+                .dt.strftime("%d %b %Y")
             )
 
-            visible_events = events_df[
-                (
-                    events_df["date"]
-                    >= chart_min_date
-                )
-                & (
-                    events_df["date"]
-                    <= chart_max_date
-                )
-            ].copy()
+            event_display = event_display.rename(
+                columns={
+                    "date": "Date",
+                    "label": "Event",
+                    "description": "Description"
+                }
+            )
 
-            if not visible_events.empty:
+            st.dataframe(
+                event_display[
+                    [
+                        "Date",
+                        "Event",
+                        "Description"
+                    ]
+                ],
+                hide_index=True,
+                use_container_width=True
+            )
 
-                st.markdown(
-                    "**Significant events during the monitoring period**"
-                )
+        else:
 
-                event_display = visible_events.copy()
-
-                event_display["date"] = (
-                    event_display["date"]
-                    .dt.strftime("%d %b %Y")
-                )
-
-                event_display = event_display.rename(
-                    columns={
-                        "date": "Date",
-                        "label": "Event",
-                        "description": "Description"
-                    }
-                )
-
-                st.dataframe(
-                    event_display[
-                        [
-                            "Date",
-                            "Event",
-                            "Description"
-                        ]
-                    ],
-                    hide_index=True,
-                    use_container_width=True
-                )
-
-            else:
-
-                # [MERGE FIX] Original message here was copy-pasted from
-                # the bubble-matrix empty-state ("...to generate the
-                # bubble matrix"), which doesn't describe this table.
-                # Replaced with wording that matches what's actually
-                # being checked.
-                st.info(
-                    "No significant events fall within the current "
-                    "monitoring period."
-                )
-
-
-    st.markdown(
-        "<hr style='border: none; border-top: 1px solid #ddd; margin: 8px 0 20px 0;'>",
-        unsafe_allow_html=True
-    )
+            st.info(
+                "No significant events fall within the current "
+                "monitoring period."
+            )
     
     # ========================================================
     # RESEARCH QUESTION 4
