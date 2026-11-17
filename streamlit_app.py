@@ -1525,7 +1525,10 @@ else:
     # ========================================================
     # RESEARCH QUESTION 3
     # ========================================================
-
+	st.error(
+	    f"DEBUG | events in list: {len(SIGNIFICANT_EVENTS)} | "
+	    f"last: {SIGNIFICANT_EVENTS[-1]['label']} | file: {__file__}"
+		
     st.markdown(
         """
         <div style="
