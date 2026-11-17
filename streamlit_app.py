@@ -365,7 +365,7 @@ SIGNIFICANT_EVENTS = [
             "protests against Pax Silica, with officials saying no Pax Silica "
             "agreement would be signed at the summit."
         ),
-    },
+    }
 ]
 
 
