@@ -363,6 +363,16 @@ SIGNIFICANT_EVENTS = [
             "investment implications."
         )
     }
+
+	{
+        "date": "2026-11-15",
+        "label": "49th ASEAN Summit",
+        "description": (
+            "The Luzon Economic Corridor Investment Forum generated further "
+            "discussion of the proposed Pax Silica development and its "
+            "investment implications."
+        )
+    }
 ]
 
 
