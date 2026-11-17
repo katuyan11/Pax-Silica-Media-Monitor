@@ -163,6 +163,7 @@ THEME_KEYWORDS = {
         "consultations", "consultation", "Senator", "arrested", "Rep.", "Gov't",
         "exec", "lobbies", "lobbied", "lobby", "public hearing", "Gatchalian",
         "Kiko Pangilinan", "Palace", "SONA", "whole-of-nation approach", "rally",
+        "Bishops", "UP", "lawmakers",
         
     ],
     "Geopolitical Security": [
@@ -202,7 +203,7 @@ CRITICAL_WORDS = [
     "dispute", "protest", "protesters", "cancellation", "cancel", "flags risk",
     "costly", "plunder", "tough questions", "top concerns", "unlikely to succeed",
     "lack of", "pushing back", "sounds alarm", "flags risk", "flag risks", "petition to stop",
-    "petition", "raised concerns", "raise concern", "vs Pax Silica", "vow to fight",
+    "petition", "raised concerns", "raise concern", "vs Pax Silica", "vow to fight", "rejecting", 
 ]
 
 
