@@ -362,7 +362,7 @@ SIGNIFICANT_EVENTS = [
             "discussion of the proposed Pax Silica development and its "
             "investment implications."
         )
-    }
+    },
 
 	{
         "date": "2026-11-15",
