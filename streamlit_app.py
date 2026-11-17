@@ -304,7 +304,6 @@ THEME_DESCRIPTIONS = {
 # ============================================================
 
 SIGNIFICANT_EVENTS = [
-
     {
         "date": "2026-04-17",
         "label": "PH joins Pax Silica",
@@ -312,27 +311,24 @@ SIGNIFICANT_EVENTS = [
             "The Philippines formally joined the US-led Pax Silica initiative "
             "and plans for a 4,000-acre industrial hub in the Luzon Economic "
             "Corridor were announced."
-        )
+        ),
     },
-
     {
         "date": "2026-05-04",
         "label": "PH-Israel cooperation",
         "description": (
             "Philippines-Israel discussions on critical minerals processing "
             "and AI technology were linked to Pax Silica."
-        )
+        ),
     },
-
     {
         "date": "2026-05-04",
         "label": "PH-UAE AI infrastructure talks",
         "description": (
             "Philippine officials discussed energy and digital infrastructure "
             "partnerships with UAE companies in connection with Pax Silica."
-        )
+        ),
     },
-
     {
         "date": "2026-07-27",
         "label": "Pax Silica highlighted in SONA",
@@ -341,9 +337,8 @@ SIGNIFICANT_EVENTS = [
             "the President's 2026 State of the Nation Address as part of "
             "the Luzon Economic Corridor and the country's advanced "
             "manufacturing strategy."
-        )
+        ),
     },
-
     {
         "date": "2026-08-07",
         "label": "Development timeline announced",
@@ -351,9 +346,8 @@ SIGNIFICANT_EVENTS = [
             "BCDA and DTI officials provided further details on the proposed "
             "Pax Silica hub, including its development timeline and planned "
             "initial site development."
-        )
+        ),
     },
-
     {
         "date": "2026-09-10",
         "label": "Luzon Economic Corridor forum",
@@ -361,18 +355,17 @@ SIGNIFICANT_EVENTS = [
             "The Luzon Economic Corridor Investment Forum generated further "
             "discussion of the proposed Pax Silica development and its "
             "investment implications."
-        )
+        ),
     },
-
-	{
+    {
         "date": "2026-11-15",
         "label": "49th ASEAN Summit",
         "description": (
-            "The Luzon Economic Corridor Investment Forum generated further "
-            "discussion of the proposed Pax Silica development and its "
-            "investment implications."
-        )
-    }
+            "The Philippines hosted the 49th ASEAN Summit in Manila amid "
+            "protests against Pax Silica, with officials saying no Pax Silica "
+            "agreement would be signed at the summit."
+        ),
+    },
 ]
 
 
