@@ -2243,6 +2243,32 @@ else:
                 bubble_data["date"].max()
             )
 
+            # Extend the visible range to the latest event that has
+            # already happened, so a recent event isn't hidden just
+            # because no article has been collected after it yet.
+            today = pd.Timestamp.today().normalize()
+
+            latest_past_event = events_df.loc[
+                events_df["date"] <= today,
+                "date"
+            ].max()
+
+            if pd.notna(latest_past_event):
+
+                chart_max_date = max(
+                    chart_max_date,
+                    latest_past_event
+                )
+
+            # Make sure the x-axis reaches the new event line and
+            # its label isn't clipped at the edge.
+            fig_bubble.update_xaxes(
+                range=[
+                    chart_min_date - pd.Timedelta(days=3),
+                    chart_max_date + pd.Timedelta(days=3)
+                ]
+            )
+
             visible_events = events_df[
                 (
                     events_df["date"]
@@ -2253,8 +2279,7 @@ else:
                     <= chart_max_date
                 )
             ].copy()
-
-
+			
             # =================================================
             # EVENT TYPE
             # =================================================
